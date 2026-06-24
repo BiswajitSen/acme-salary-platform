@@ -1,0 +1,57 @@
+import { describe, expect, it } from "vitest";
+
+import { db } from "../../db/index.js";
+import { runSeed } from "../../db/seed.js";
+import { DrizzleAnalyticsRepository } from "./analytics.repository.js";
+import { DrizzleCompensationRepository } from "./compensation.repository.js";
+
+describe("DrizzleAnalyticsRepository", () => {
+  const repository = new DrizzleAnalyticsRepository(db);
+  const compensationRepository = new DrizzleCompensationRepository(db);
+
+  it("returns zero when compensation history is empty", async () => {
+    await expect(
+      repository.countEmployeesWithLatestCompensationInCurrency("USD"),
+    ).resolves.toBe(0);
+  });
+
+  it("counts employees whose latest compensation is in the requested currency", async () => {
+    await runSeed(db);
+
+    await expect(
+      repository.countEmployeesWithLatestCompensationInCurrency("USD"),
+    ).resolves.toBe(1);
+    await expect(
+      repository.countEmployeesWithLatestCompensationInCurrency("GBP"),
+    ).resolves.toBe(1);
+  });
+
+  it("returns zero when no employees have latest compensation in the currency", async () => {
+    await runSeed(db);
+
+    await expect(
+      repository.countEmployeesWithLatestCompensationInCurrency("EUR"),
+    ).resolves.toBe(0);
+  });
+
+  it("uses the newest effective date when determining latest compensation currency", async () => {
+    await runSeed(db);
+
+    await compensationRepository.insertCompensationHistoryRecord({
+      employeeId: "E001",
+      baseSalary: 140_000,
+      currency: "EUR",
+      effectiveDate: "2026-06-01",
+      reason: "Market Adjustment",
+      changedBy: "HR Admin",
+      notes: null,
+    });
+
+    await expect(
+      repository.countEmployeesWithLatestCompensationInCurrency("USD"),
+    ).resolves.toBe(0);
+    await expect(
+      repository.countEmployeesWithLatestCompensationInCurrency("EUR"),
+    ).resolves.toBe(1);
+  });
+});
