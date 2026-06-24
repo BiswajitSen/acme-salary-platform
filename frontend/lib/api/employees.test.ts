@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { listEmployeeFilterOptions, listEmployees } from "./employees";
+import { listEmployeeFilterOptions, listEmployees, getEmployeeProfile, listEmployeeCompensationHistory } from "./employees";
 
 describe("listEmployees", () => {
   it("builds query string from employee list params", async () => {
@@ -71,6 +71,48 @@ describe("listEmployeeFilterOptions", () => {
       countries: ["US"],
       departments: ["Engineering"],
       jobTitles: ["Senior Engineer"],
+    });
+    global.fetch = originalFetch;
+  });
+});
+
+describe("getEmployeeProfile", () => {
+  it("requests an employee profile by id", async () => {
+    const originalFetch = global.fetch;
+    global.fetch = async (input) => {
+      expect(String(input)).toBe("/api/backend/employees/E001");
+      return new Response(
+        JSON.stringify({
+          id: "E001",
+          fullName: "Jane Doe",
+          department: "Engineering",
+          jobTitle: "Senior Engineer",
+          country: "US",
+          currentCompensation: null,
+        }),
+        { status: 200, headers: { "Content-Type": "application/json" } },
+      );
+    };
+
+    await expect(getEmployeeProfile("E001")).resolves.toMatchObject({ id: "E001" });
+    global.fetch = originalFetch;
+  });
+});
+
+describe("listEmployeeCompensationHistory", () => {
+  it("requests compensation history by employee id", async () => {
+    const originalFetch = global.fetch;
+    global.fetch = async (input) => {
+      expect(String(input)).toBe("/api/backend/employees/E001/compensation");
+      return new Response(
+        JSON.stringify({ employeeId: "E001", entries: [] }),
+        { status: 200, headers: { "Content-Type": "application/json" } },
+      );
+    };
+
+    await expect(listEmployeeCompensationHistory("E001")).resolves.toEqual({
+      employeeId: "E001",
+      entries: [],
     });
     global.fetch = originalFetch;
   });

@@ -1,5 +1,7 @@
 import type {
   EmployeeFilterOptions,
+  EmployeeCompensationHistoryResponse,
+  EmployeeProfileResponse,
   ListEmployeesQuery,
   PaginatedEmployeesResponse,
 } from "@acme/shared";
@@ -34,4 +36,18 @@ export async function listEmployees(
 
 export async function listEmployeeFilterOptions(): Promise<EmployeeFilterOptions> {
   return apiFetch<EmployeeFilterOptions>("/api/backend/employees/filter-options");
+}
+
+export async function getEmployeeProfile(
+  employeeId: string,
+): Promise<EmployeeProfileResponse> {
+  return apiFetch<EmployeeProfileResponse>(`/api/backend/employees/${employeeId}`);
+}
+
+export async function listEmployeeCompensationHistory(
+  employeeId: string,
+): Promise<EmployeeCompensationHistoryResponse> {
+  return apiFetch<EmployeeCompensationHistoryResponse>(
+    `/api/backend/employees/${employeeId}/compensation`,
+  );
 }
