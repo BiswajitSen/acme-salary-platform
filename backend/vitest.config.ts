@@ -8,11 +8,16 @@ export default defineConfig({
     environment: "node",
     env: {
       NODE_ENV: "test",
-      DATABASE_URL: ":memory:",
+      DATABASE_URL: "postgresql://acme:acme@localhost:5433/acme_salary_test",
     },
     setupFiles: ["./tests/setup.ts"],
     pool: "forks",
     fileParallelism: false,
+    poolOptions: {
+      forks: {
+        singleFork: true,
+      },
+    },
     coverage: {
       provider: "v8",
       include: [
@@ -20,13 +25,17 @@ export default defineConfig({
         "src/services/employee.service.ts",
         "src/services/compensation.service.ts",
         "src/services/employee-import.service.ts",
+        "src/services/compensation-import.service.ts",
         "src/repositories/drizzle/employee*.ts",
         "src/repositories/drizzle/compensation.repository.ts",
         "src/routes/employees.route.ts",
         "src/routes/employee-import.route.ts",
+        "src/routes/compensation-import.route.ts",
+        "src/routes/spreadsheet-upload.ts",
         "src/middleware/error-handler.ts",
         "src/lib/errors.ts",
         "src/db/migrate.ts",
+        "src/db/ensure-compensation-month-partition.ts",
       ],
       exclude: ["**/*.test.ts", "src/domain/compensation.types.ts"],
       thresholds: {

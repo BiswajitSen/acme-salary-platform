@@ -12,6 +12,22 @@ concurrency:
 jobs:
   verify:
     runs-on: ubuntu-latest
+    services:
+      postgres:
+        image: postgres:16
+        env:
+          POSTGRES_USER: acme
+          POSTGRES_PASSWORD: acme
+          POSTGRES_DB: acme_salary_test
+        ports:
+          - 5432:5432
+        options: >-
+          --health-cmd "pg_isready -U acme -d acme_salary_test"
+          --health-interval 10s
+          --health-timeout 5s
+          --health-retries 5
+    env:
+      DATABASE_URL: postgresql://acme:acme@localhost:5432/acme_salary_test
     steps:
       - name: Checkout
         uses: actions/checkout@v4
