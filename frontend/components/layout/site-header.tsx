@@ -15,7 +15,10 @@ export function SiteHeader() {
             Directory
           </Link>
           <Link href="/import" className={styles.navLink}>
-            Import
+            Import Employees
+          </Link>
+          <Link href="/import/compensation" className={styles.navLink}>
+            Import Compensation
           </Link>
         </nav>
       </div>
