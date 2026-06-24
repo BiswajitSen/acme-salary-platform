@@ -5,6 +5,8 @@ import {
   COMPENSATION_REASONS,
   DEFAULT_EMPLOYEE_LIMIT,
   DEFAULT_EMPLOYEE_PAGE,
+  DEFAULT_INSIGHT_CURRENCY,
+  INSIGHT_EXECUTION_ERROR_KINDS,
   insightQueryRequestSchema,
   listEmployeesQuerySchema,
   MAX_EMPLOYEE_LIMIT,
@@ -36,5 +38,7 @@ describe("shared exports", () => {
     expect(insightQueryRequestSchema.parse({ query: "average salary in Engineering" })).toEqual({
       query: "average salary in Engineering",
     });
+    expect(DEFAULT_INSIGHT_CURRENCY).toBe("USD");
+    expect(INSIGHT_EXECUTION_ERROR_KINDS).toContain("UNSUPPORTED_INTENT");
   });
 });

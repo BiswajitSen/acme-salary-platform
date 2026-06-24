@@ -64,11 +64,22 @@ export {
 
 export {
   AI_INSIGHT_INTENTS,
+  DEFAULT_INSIGHT_CURRENCY,
+  INSIGHT_EXECUTION_ERROR_KINDS,
   INSIGHT_QUERY_DEPARTMENTS,
   insightQueryRequestSchema,
   type AiInsightIntent,
+  type ExecuteInsightQueryResponse,
+  type InsightAvgDeptSalaryResult,
+  type InsightExecutionError,
+  type InsightExecutionErrorKind,
+  type InsightExecutionResult,
+  type InsightHeadcountResult,
+  type InsightMedianDeptSalaryResult,
   type InsightQueryDepartment,
   type InsightQueryRequest,
+  type InsightTopEarnersResult,
+  type InsightTotalPayrollResult,
   type ParseInsightQueryResponse,
   type ParsedInsightQuery,
 } from "./ai-insights";
