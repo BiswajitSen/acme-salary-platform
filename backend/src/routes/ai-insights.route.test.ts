@@ -4,15 +4,15 @@ import { describe, expect, it, vi } from "vitest";
 
 import { errorHandler } from "../middleware/error-handler.js";
 import { AiInsightsService } from "../services/ai-insights.service.js";
-import type { AnalyticsService } from "../services/analytics.service.js";
+import type { InsightAnalyticsService } from "../services/insight-analytics.service.js";
 import { createAiInsightsRouter } from "./ai-insights.route.js";
 
-function createAnalyticsServiceMock(): AnalyticsService {
+function createInsightAnalyticsServiceMock(): InsightAnalyticsService {
   return {
     getAnalyticsSummary: vi.fn(),
     getDepartmentSalaryStatistics: vi.fn(),
     getTopEarners: vi.fn(),
-  } as unknown as AnalyticsService;
+  } as unknown as InsightAnalyticsService;
 }
 
 function createTestApp(aiInsightsService: AiInsightsService) {
@@ -46,7 +46,7 @@ describe("createAiInsightsRouter", () => {
   });
 
   it("returns 400 when query validation fails", async () => {
-    const response = await request(createTestApp(new AiInsightsService(createAnalyticsServiceMock())))
+    const response = await request(createTestApp(new AiInsightsService(createInsightAnalyticsServiceMock())))
       .post("/insights/parse")
       .send({ query: "" });
 
@@ -100,7 +100,7 @@ describe("createAiInsightsRouter", () => {
   });
 
   it("returns 400 when execute query validation fails", async () => {
-    const response = await request(createTestApp(new AiInsightsService(createAnalyticsServiceMock())))
+    const response = await request(createTestApp(new AiInsightsService(createInsightAnalyticsServiceMock())))
       .post("/insights/execute")
       .send({ query: "" });
 

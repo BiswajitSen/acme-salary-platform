@@ -1,9 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 
 import { AiInsightsService } from "./ai-insights.service.js";
-import type { AnalyticsService } from "./analytics.service.js";
+import type { InsightAnalyticsService } from "./insight-analytics.service.js";
 
-function createAnalyticsServiceMock(): AnalyticsService {
+function createInsightAnalyticsServiceMock(): InsightAnalyticsService {
   return {
     getAnalyticsSummary: vi.fn().mockResolvedValue({
       currency: "USD",
@@ -32,12 +32,12 @@ function createAnalyticsServiceMock(): AnalyticsService {
         },
       ],
     }),
-  } as unknown as AnalyticsService;
+  } as unknown as InsightAnalyticsService;
 }
 
 describe("AiInsightsService", () => {
   it("parses a natural language analytics question into an intent", () => {
-    const service = new AiInsightsService(createAnalyticsServiceMock());
+    const service = new AiInsightsService(createInsightAnalyticsServiceMock());
 
     expect(service.parseQuery({ query: "average salary in Engineering" })).toEqual({
       intent: "AVG_DEPT_SALARY",
@@ -48,13 +48,13 @@ describe("AiInsightsService", () => {
   });
 
   it("rejects invalid request bodies", () => {
-    const service = new AiInsightsService(createAnalyticsServiceMock());
+    const service = new AiInsightsService(createInsightAnalyticsServiceMock());
 
     expect(() => service.parseQuery({ query: "" })).toThrow();
   });
 
   it("executes a parsed average salary question against analytics", async () => {
-    const analyticsService = createAnalyticsServiceMock();
+    const analyticsService = createInsightAnalyticsServiceMock();
     const service = new AiInsightsService(analyticsService);
 
     await expect(
@@ -81,7 +81,7 @@ describe("AiInsightsService", () => {
   });
 
   it("returns a graceful error for unsupported intents", async () => {
-    const service = new AiInsightsService(createAnalyticsServiceMock());
+    const service = new AiInsightsService(createInsightAnalyticsServiceMock());
 
     await expect(service.executeQuery({ query: "Tell me a joke" })).resolves.toEqual({
       parsedQuery: {
@@ -99,7 +99,7 @@ describe("AiInsightsService", () => {
   });
 
   it("executes top earners questions against analytics", async () => {
-    const analyticsService = createAnalyticsServiceMock();
+    const analyticsService = createInsightAnalyticsServiceMock();
     const service = new AiInsightsService(analyticsService);
 
     await expect(service.executeQuery({ query: "top earners in USD" })).resolves.toMatchObject({
@@ -116,7 +116,7 @@ describe("AiInsightsService", () => {
   });
 
   it("executes headcount questions against analytics", async () => {
-    const analyticsService = createAnalyticsServiceMock();
+    const analyticsService = createInsightAnalyticsServiceMock();
     const service = new AiInsightsService(analyticsService);
 
     await expect(service.executeQuery({ query: "headcount in USD" })).resolves.toMatchObject({
@@ -130,5 +130,24 @@ describe("AiInsightsService", () => {
       error: null,
     });
     expect(analyticsService.getAnalyticsSummary).toHaveBeenCalledWith({ currency: "USD" });
+  });
+
+  it("rejects injection-style queries before calling analytics", async () => {
+    const analyticsService = createInsightAnalyticsServiceMock();
+    const service = new AiInsightsService(analyticsService);
+
+    await expect(
+      service.executeQuery({ query: "average salary; DROP TABLE employees" }),
+    ).resolves.toMatchObject({
+      parsedQuery: {
+        intent: "UNKNOWN",
+      },
+      result: null,
+      error: {
+        kind: "REJECTED_INPUT",
+        message: "Invalid or unsafe query input.",
+      },
+    });
+    expect(analyticsService.getDepartmentSalaryStatistics).not.toHaveBeenCalled();
   });
 });

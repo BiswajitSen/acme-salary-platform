@@ -66,4 +66,20 @@ describe("POST /api/insights/execute", () => {
       message: "This question is not supported yet.",
     });
   });
+
+  it("rejects SQL injection style input without executing analytics", async () => {
+    await runSeed(db);
+
+    const response = await request(app)
+      .post("/api/insights/execute")
+      .send({ query: "average salary in Engineering; DROP TABLE employees" });
+
+    expect(response.status).toBe(200);
+    expect(response.body.parsedQuery.intent).toBe("UNKNOWN");
+    expect(response.body.result).toBeNull();
+    expect(response.body.error).toEqual({
+      kind: "REJECTED_INPUT",
+      message: "Invalid or unsafe query input.",
+    });
+  });
 });
