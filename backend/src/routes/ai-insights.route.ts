@@ -18,5 +18,14 @@ export function createAiInsightsRouter(deps: AiInsightsRouterDeps) {
     }
   });
 
+  router.post("/execute", async (req, res, next) => {
+    try {
+      const execution = await deps.aiInsightsService.executeQuery(req.body);
+      res.json(execution);
+    } catch (error) {
+      next(error);
+    }
+  });
+
   return router;
 }
