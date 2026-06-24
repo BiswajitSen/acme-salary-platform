@@ -14,6 +14,7 @@ export const employees = sqliteTable(
   (table) => [
     index("idx_employees_department").on(table.department),
     index("idx_employees_country").on(table.country),
+    index("idx_employees_full_name").on(table.fullName),
   ],
 );
 
