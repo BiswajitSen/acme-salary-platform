@@ -82,7 +82,14 @@ Schema (PRD-aligned):
 
 Migrations run automatically on backend startup. WAL mode and foreign keys are enabled.
 
-## Standards applied
+## Documentation
+
+| Doc | Purpose |
+|-----|---------|
+| [docs/roadmap.md](./docs/roadmap.md) | Feature-wise build plan (phases 0–7) |
+| [docs/engineering-standards.md](./docs/engineering-standards.md) | TDD, SOLID, DI, repository pattern |
+| [docs/architecture.md](./docs/architecture.md) | Stack & layer diagram |
+| [AGENTS.md](./AGENTS.md) | Instructions for AI coding agents |
 
 **Backend:** layered routes → services → DB, Zod env validation, structured logging (Pino), Helmet security headers, centralized error handling, integration tests with Supertest.
 

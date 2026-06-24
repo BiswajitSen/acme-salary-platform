@@ -2,22 +2,17 @@
 
 ## Decision: one repo (monorepo)
 
-ACME Salary Platform uses a **single repository** with three packages:
-
 ```
 acme-salary-platform/
 ├── backend/    → Node.js + Express + SQLite (Drizzle)
 ├── frontend/   → Next.js (App Router)
-└── shared/     → Shared TypeScript types & enums
+├── shared/     → Shared TypeScript types & enums
+├── docs/       → PRD, roadmap, engineering standards
+└── AGENTS.md   → AI agent entry point
 ```
 
-**Why not separate repos?**
-
-- Frontend and backend are one product with tightly coupled changes (employees, compensation, import, analytics).
-- `@acme/shared` keeps API contracts in sync without publishing a separate package.
-- One clone, one PR, one CI run — simpler for MVP and small teams.
-
-**Revisit splitting only when:** different teams own FE/BE, independent release cadences, or the API serves multiple unrelated clients.
+See [engineering-standards.md](./engineering-standards.md) for SOLID, TDD, and DI patterns.  
+See [roadmap.md](./roadmap.md) for feature delivery plan.
 
 ---
 
@@ -29,34 +24,40 @@ acme-salary-platform/
 | Backend  | Express, TypeScript             |
 | Database | SQLite (PRD), Drizzle ORM       |
 | Shared   | npm workspaces (`@acme/shared`) |
+| Testing  | Vitest + Supertest              |
 
 ---
 
-## Backend layers
+## Backend layers (target)
 
 ```
 HTTP request
-  → routes/        (URL mapping, thin handlers)
-  → services/      (business logic)
-  → db/            (Drizzle schema + queries)
+  → routes/              thin handlers
+  → validators/          Zod request/response
+  → services/            use cases (constructor-injected deps)
+  → domain/              pure business rules
+  → repositories/        interfaces + Drizzle implementations
+  → db/                  schema, migrations, connection
+
+container/               composition root (manual DI)
 ```
 
 Cross-cutting: env validation (Zod), logging (Pino), error middleware, Helmet, CORS.
 
-API prefix: `/api/*` · Health: `GET /api/health`
+API prefix: `/api/*`
 
 ---
 
 ## Frontend layers
 
 ```
-app/               (routes, Server Components)
-components/        (UI)
-lib/api/           (typed fetch client)
-lib/env.ts         (validated config)
+app/               routes, Server Components
+components/        UI
+lib/api/           typed HTTP client
+lib/env.ts         validated config
 ```
 
-Server Components fetch the backend directly. Client-side calls use the Next.js proxy: `/api/backend/*` → backend `/api/*`.
+Server Components fetch the backend directly. Client-side calls use `/api/backend/*` → backend `/api/*`.
 
 ---
 
@@ -66,6 +67,15 @@ Server Components fetch the backend directly. Client-side calls use the Next.js 
 - Migrations: `backend/drizzle/` (version-controlled, run on startup)
 - Tables: `employees`, `compensation_history` (append-only)
 - PRAGMAs: WAL mode, foreign keys ON
+
+---
+
+## Key business rules
+
+- **Append-only:** compensation history is insert-only
+- **Currency isolation:** metrics grouped per ISO currency, never blended
+- **Import:** all-or-nothing transactional dry-run
+- **AI:** intent → whitelisted analytics functions only (no dynamic SQL)
 
 ---
 
@@ -84,7 +94,6 @@ npm run dev:frontend  # :3000
 
 ## Conventions
 
-- **DB columns:** snake_case (SQL standard)
-- **API JSON:** camelCase (TypeScript standard)
-- **Compensation changes:** insert-only — never update/delete history rows
-- **Currency rule:** aggregate metrics per currency only (no cross-currency blending)
+- **DB columns:** snake_case
+- **API JSON:** camelCase
+- **Tests:** TDD — see [engineering-standards.md](./engineering-standards.md)

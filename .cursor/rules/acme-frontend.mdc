@@ -1,0 +1,14 @@
+---
+description: Frontend patterns — Server Components, API client, no business logic
+globs: frontend/**/*
+alwaysApply: false
+---
+
+# Frontend Rules
+
+- Fetch data in **Server Components** via `lib/api/*`; use Client Components only for interactivity.
+- All API calls through typed client — use types from `@acme/shared`.
+- **No business rules in components** — backend owns validation and domain logic.
+- Employee directory: virtualize long lists (`@tanstack/react-virtual`).
+- Proxy path: `/api/backend/*` → backend `/api/*` for client-side calls.
+- Never construct JSX inside try/catch — load data first, then render (see `app/page.tsx`).

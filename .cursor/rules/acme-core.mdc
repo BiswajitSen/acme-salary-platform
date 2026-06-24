@@ -1,0 +1,29 @@
+---
+description: ACME platform core rules — TDD, SOLID, DI, PRD business rules
+alwaysApply: true
+---
+
+# ACME Salary Platform — Core Rules
+
+Read `docs/engineering-standards.md` and `docs/roadmap.md` before implementing features.
+
+## Must follow
+
+- **TDD:** Failing test first, then implementation. No untested business logic.
+- **DI:** Services receive repository **interfaces** via constructor. Wire concretes only in `backend/src/container/`.
+- **Layers:** routes (HTTP) → services (use cases) → repositories (DB) → domain (pure rules). No SQL in services; no business logic in routes.
+- **Append-only:** `compensation_history` is insert-only. Repositories must not expose update/delete for history.
+- **Currency:** Analytics and totals are per ISO currency — never blend currencies.
+- **Shared contracts:** Types/enums in `@acme/shared`. Zod validates API I/O.
+
+## Must not
+
+- Skip tests or add them "later"
+- Import Drizzle/SQL directly in services or routes
+- Put business rules in Next.js components
+- UPDATE/DELETE compensation history rows
+- Generate dynamic SQL (especially for AI features)
+
+## Done when
+
+- Roadmap item tests pass, lint/typecheck pass, PRD rule covered by test

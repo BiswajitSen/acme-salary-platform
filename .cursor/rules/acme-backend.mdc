@@ -1,0 +1,40 @@
+---
+description: Backend patterns — repositories, services, DI, TDD
+globs: backend/**/*
+alwaysApply: false
+---
+
+# Backend Rules
+
+## Structure
+
+```
+routes/ → validators/ (Zod) → services/ → repositories/interfaces/ → repositories/drizzle/
+domain/ = pure functions, no db imports
+container/ = only place that instantiates concrete classes
+```
+
+## Example service
+
+```typescript
+export class EmployeeService {
+  constructor(private readonly employees: IEmployeeRepository) {}
+}
+```
+
+## Tests (order)
+
+1. `domain/*.test.ts` — pure logic
+2. `services/*.test.ts` — mock repos
+3. `repositories/**/*.test.ts` — `:memory:` SQLite
+4. `tests/*.integration.test.ts` — Supertest
+
+## Compensation repository
+
+```typescript
+interface ICompensationRepository {
+  insert(record: NewCompensationRecord): Promise<CompensationRecord>;
+  findByEmployeeId(id: string): Promise<CompensationRecord[]>;
+  // NO update() or delete()
+}
+```
