@@ -63,16 +63,16 @@ Each feature follows **TDD**: failing test → minimal implementation → refact
 
 ---
 
-## Phase 4 — Compensation Management (PRD §4.3) ⬜
+## Phase 4 — Compensation Management (PRD §4.3) ✅
 
 **Goal:** Append-only audit trail. **Never** UPDATE/DELETE history rows.
 
-| # | Feature | API | UI | Tests (write first) |
-|---|---------|-----|----|---------------------|
-| 4.1 | Record change | `POST /api/employees/:id/compensation` | "Record change" form | Valid reason enum enforced |
-| 4.2 | Validation | Zod: salary > 0, ISO currency, effective date, reason, changedBy | Inline field errors | Reject negative salary, invalid currency |
-| 4.3 | Immutability guard | Repository exposes `insert` only for history | — | **No update/delete methods exist**; test attempts fail |
-| 4.4 | Currency rule | Service rejects cross-currency aggregation in single response | UI groups by currency | Cannot sum USD + EUR in one total |
+| # | Feature | API | UI | Tests (write first) | Status |
+|---|---------|-----|----|---------------------|--------|
+| 4.1 | Record change | `POST /api/employees/:id/compensation` | "Record change" form | Valid reason enum enforced | ✅ |
+| 4.2 | Validation | Zod: salary > 0, ISO currency, effective date, reason, changedBy | Inline field errors | Reject negative salary, invalid currency | ✅ |
+| 4.3 | Immutability guard | Repository exposes `insert` only for history | — | **No update/delete methods exist**; test attempts fail | ✅ |
+| 4.4 | Currency rule | Service rejects cross-currency aggregation in single response | UI groups by currency | Cannot sum USD + EUR in one total | ✅ |
 
 **Exit criteria:** Every compensation change creates a new history row; history is never mutated.
 

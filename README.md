@@ -112,6 +112,14 @@ Open **Import** in the header (`/import`), upload an `.xlsx` file, preview valid
 
 Click any row in the directory to open `/employees/:id` — summary cards, current salary, and a newest-first compensation timeline.
 
+Use the **Record compensation change** form on the profile page to append a new history row (salary, currency, effective date, reason, changed by). Changes are validated server-side and never update existing history rows.
+
+```bash
+curl -X POST http://localhost:8000/api/employees/E001/compensation \
+  -H "Content-Type: application/json" \
+  -d '{"baseSalary":140000,"currency":"USD","effectiveDate":"2026-06-01","reason":"Promotion","changedBy":"HR Admin"}'
+```
+
 ## Documentation
 
 | Doc | Purpose |
