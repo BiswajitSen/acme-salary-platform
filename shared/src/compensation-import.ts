@@ -17,7 +17,7 @@ export type CompensationImportRecord = {
 };
 
 export type CompensationImportPreviewResponse = {
-  records: CompensationImportRecord[];
+  recordCount: number;
   errors: CompensationImportValidationIssue[];
   isValid: boolean;
 };

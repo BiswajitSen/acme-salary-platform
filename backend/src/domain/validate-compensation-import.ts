@@ -6,20 +6,14 @@ export async function collectUnknownEmployeeIdErrors(
   employees: IEmployeeRepository,
   records: ParsedCompensationSpreadsheetRow[],
 ): Promise<CompensationImportError[]> {
-    const uniqueEmployeeIds = [
-      ...new Set(records.map((record) => record.employeeId)),
-    ] satisfies string[];
-  const employeeExistsById = new Map<string, boolean>();
+  const uniqueEmployeeIds = [
+    ...new Set(records.map((record) => record.employeeId)),
+  ] satisfies string[];
 
-  await Promise.all(
-    uniqueEmployeeIds.map(async (employeeId) => {
-      const employee = await employees.findEmployeeById(employeeId);
-      employeeExistsById.set(employeeId, employee !== null);
-    }),
-  );
+  const existingEmployeeIds = await employees.findExistingEmployeeIds(uniqueEmployeeIds);
 
   return records
-    .filter((record) => !employeeExistsById.get(record.employeeId))
+    .filter((record) => !existingEmployeeIds.has(record.employeeId))
     .map((record) => ({
       rowNumber: record.rowNumber,
       field: "employeeId",

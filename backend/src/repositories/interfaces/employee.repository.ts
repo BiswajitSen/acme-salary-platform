@@ -18,6 +18,7 @@ export type PaginatedEmployeesResult = {
 export interface IEmployeeRepository {
   findPaginated(query: PaginatedEmployeesQuery): Promise<PaginatedEmployeesResult>;
   findEmployeeById(id: string): Promise<EmployeeSummary | null>;
+  findExistingEmployeeIds(employeeIds: string[]): Promise<Set<string>>;
   findDistinctEmployeeFilterValues(): Promise<{
     countries: string[];
     departments: string[];

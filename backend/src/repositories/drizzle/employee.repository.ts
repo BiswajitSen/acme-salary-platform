@@ -1,4 +1,4 @@
-import { count, eq, sql } from "drizzle-orm";
+import { count, eq, inArray, sql } from "drizzle-orm";
 
 import type { EmployeeSpreadsheetRow } from "../../domain/employee-import.types.js";
 import type { Database } from "../../db/index.js";
@@ -11,6 +11,7 @@ import type {
 import { buildEmployeeMatchConditions } from "./employee-query-builder.js";
 
 const UPSERT_BATCH_SIZE = 500;
+const EXISTING_EMPLOYEE_ID_LOOKUP_BATCH_SIZE = 500;
 
 export function readAggregateCount(rows: { value: number }[]): number {
   return rows[0]?.value ?? 0;
@@ -64,6 +65,32 @@ export class DrizzleEmployeeRepository implements IEmployeeRepository {
       .limit(1);
 
     return employee ?? null;
+  }
+
+  async findExistingEmployeeIds(employeeIds: string[]): Promise<Set<string>> {
+    if (employeeIds.length === 0) {
+      return new Set();
+    }
+
+    const existingEmployeeIds = new Set<string>();
+
+    for (
+      let index = 0;
+      index < employeeIds.length;
+      index += EXISTING_EMPLOYEE_ID_LOOKUP_BATCH_SIZE
+    ) {
+      const batch = employeeIds.slice(index, index + EXISTING_EMPLOYEE_ID_LOOKUP_BATCH_SIZE);
+      const rows = await this.database
+        .select({ id: employees.id })
+        .from(employees)
+        .where(inArray(employees.id, batch));
+
+      for (const row of rows) {
+        existingEmployeeIds.add(row.id);
+      }
+    }
+
+    return existingEmployeeIds;
   }
 
   async findDistinctEmployeeFilterValues() {

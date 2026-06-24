@@ -1,10 +1,12 @@
 import type { NextFunction, Request, Response } from "express";
+import { MulterError } from "multer";
 import { describe, expect, it, vi } from "vitest";
 import { ZodError, z } from "zod";
 
 import { AppError } from "../lib/errors.js";
 import { CompensationImportValidationError } from "../lib/compensation-import-validation-error.js";
 import { EmployeeImportValidationError } from "../lib/employee-import-validation-error.js";
+import { env } from "../config/env.js";
 import { errorHandler, notFoundHandler } from "./error-handler.js";
 
 function createMockResponse() {
@@ -119,6 +121,37 @@ describe("errorHandler", () => {
     });
   });
 
+  it("maps multer file size errors to 400", () => {
+    const response = createMockResponse();
+
+    errorHandler(
+      new MulterError("LIMIT_FILE_SIZE"),
+      {} as Request,
+      response,
+      vi.fn() as NextFunction,
+    );
+
+    expect(response.statusCode).toBe(400);
+    expect(response.body).toEqual({
+      error: "Upload Error",
+      message: "Spreadsheet exceeds the maximum upload size",
+    });
+  });
+
+  it("maps other multer errors to 400 with the multer message", () => {
+    const response = createMockResponse();
+    const error = new MulterError("LIMIT_UNEXPECTED_FILE");
+    error.message = "Unexpected field";
+
+    errorHandler(error, {} as Request, response, vi.fn() as NextFunction);
+
+    expect(response.statusCode).toBe(400);
+    expect(response.body).toEqual({
+      error: "Upload Error",
+      message: "Unexpected field",
+    });
+  });
+
   it("maps unknown errors to 500", () => {
     const response = createMockResponse();
 
@@ -128,6 +161,42 @@ describe("errorHandler", () => {
       response,
       vi.fn() as NextFunction,
     );
+
+    expect(response.statusCode).toBe(500);
+    expect(response.body).toEqual({
+      error: "Internal Server Error",
+      message: "An unexpected error occurred",
+    });
+  });
+
+  it("returns the error message in development for unknown errors", () => {
+    const response = createMockResponse();
+    const originalNodeEnv = env.NODE_ENV;
+
+    env.NODE_ENV = "development";
+
+    try {
+      errorHandler(
+        new Error("Database connection refused"),
+        {} as Request,
+        response,
+        vi.fn() as NextFunction,
+      );
+    } finally {
+      env.NODE_ENV = originalNodeEnv;
+    }
+
+    expect(response.statusCode).toBe(500);
+    expect(response.body).toEqual({
+      error: "Internal Server Error",
+      message: "Database connection refused",
+    });
+  });
+
+  it("maps non-error throwables to 500", () => {
+    const response = createMockResponse();
+
+    errorHandler("failure", {} as Request, response, vi.fn() as NextFunction);
 
     expect(response.statusCode).toBe(500);
     expect(response.body).toEqual({

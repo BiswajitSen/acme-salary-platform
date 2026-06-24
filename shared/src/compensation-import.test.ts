@@ -5,21 +5,11 @@ import type { CompensationImportPreviewResponse } from "./compensation-import";
 describe("compensation import contracts", () => {
   it("accepts a valid preview response shape", () => {
     const preview: CompensationImportPreviewResponse = {
-      records: [
-        {
-          employeeId: "E001",
-          baseSalary: 120_000,
-          currency: "USD",
-          effectiveDate: "2024-01-01",
-          reason: "New Hire",
-          changedBy: "HR Admin",
-          notes: null,
-        },
-      ],
+      recordCount: 1,
       errors: [],
       isValid: true,
     };
 
-    expect(preview.records).toHaveLength(1);
+    expect(preview.recordCount).toBe(1);
   });
 });

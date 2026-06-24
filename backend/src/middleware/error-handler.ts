@@ -1,6 +1,8 @@
 import type { NextFunction, Request, Response } from "express";
+import { MulterError } from "multer";
 import { ZodError } from "zod";
 
+import { env } from "../config/env.js";
 import { logger } from "../config/logger.js";
 import { isAppError } from "../lib/errors.js";
 import { CompensationImportValidationError } from "../lib/compensation-import-validation-error.js";
@@ -45,6 +47,17 @@ export function errorHandler(
     return;
   }
 
+  if (error instanceof MulterError) {
+    res.status(400).json({
+      error: "Upload Error",
+      message:
+        error.code === "LIMIT_FILE_SIZE"
+          ? "Spreadsheet exceeds the maximum upload size"
+          : error.message,
+    });
+    return;
+  }
+
   if (isAppError(error)) {
     res.status(error.statusCode).json({
       error: error.name,
@@ -55,8 +68,12 @@ export function errorHandler(
 
   logger.error({ err: error }, "Unhandled error");
 
+  const errorMessage =
+    error instanceof Error ? error.message : "An unexpected error occurred";
+
   res.status(500).json({
     error: "Internal Server Error",
-    message: "An unexpected error occurred",
+    message:
+      env.NODE_ENV === "development" ? errorMessage : "An unexpected error occurred",
   });
 }

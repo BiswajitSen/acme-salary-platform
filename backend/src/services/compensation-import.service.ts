@@ -11,7 +11,7 @@ function toPreviewResponse(
   preview: CompensationImportPreview,
 ): CompensationImportPreviewResponse {
   return {
-    records: preview.records.map(({ rowNumber: _rowNumber, ...record }) => record),
+    recordCount: preview.records.length,
     errors: preview.errors,
     isValid: preview.isValid,
   };

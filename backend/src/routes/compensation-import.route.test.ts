@@ -37,17 +37,7 @@ describe("createCompensationImportRouter", () => {
   it("returns a preview for a valid spreadsheet upload", async () => {
     const compensationImportService = {
       previewCompensationSpreadsheet: vi.fn().mockResolvedValue({
-        records: [
-          {
-            employeeId: "E001",
-            baseSalary: 120_000,
-            currency: "USD",
-            effectiveDate: "2024-01-01",
-            reason: "New Hire",
-            changedBy: "HR Admin",
-            notes: null,
-          },
-        ],
+        recordCount: 1,
         errors: [],
         isValid: true,
       }),

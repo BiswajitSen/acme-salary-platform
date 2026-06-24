@@ -166,6 +166,18 @@ describe("DrizzleEmployeeRepository", () => {
     await expect(repository.findEmployeeById("E404")).resolves.toBeNull();
   });
 
+  it("returns existing employee ids in bulk", async () => {
+    await seedDirectoryFixtures();
+
+    await expect(
+      repository.findExistingEmployeeIds(["E001", "E404", "E002"]),
+    ).resolves.toEqual(new Set(["E001", "E002"]));
+  });
+
+  it("returns an empty set when no employee ids are provided", async () => {
+    await expect(repository.findExistingEmployeeIds([])).resolves.toEqual(new Set());
+  });
+
   it("inserts new employees through upsertManyEmployees", async () => {
     const result = await repository.upsertManyEmployees([
       {

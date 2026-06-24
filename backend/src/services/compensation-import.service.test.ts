@@ -20,7 +20,7 @@ describe("CompensationImportService", () => {
   it("returns a preview for a valid spreadsheet", async () => {
     const service = createService(
       {
-        findEmployeeById: vi.fn().mockResolvedValue({ id: "E001" }),
+        findExistingEmployeeIds: vi.fn().mockResolvedValue(new Set(["E001"])),
       },
       {},
     );
@@ -38,17 +38,7 @@ describe("CompensationImportService", () => {
     ]);
 
     await expect(service.previewCompensationSpreadsheet(buffer)).resolves.toEqual({
-      records: [
-        {
-          employeeId: "E001",
-          baseSalary: 120_000,
-          currency: "USD",
-          effectiveDate: "2024-01-01",
-          reason: "New Hire",
-          changedBy: "HR Admin",
-          notes: null,
-        },
-      ],
+      recordCount: 1,
       errors: [],
       isValid: true,
     });
@@ -57,7 +47,7 @@ describe("CompensationImportService", () => {
   it("includes unknown employee errors in the preview", async () => {
     const service = createService(
       {
-        findEmployeeById: vi.fn().mockResolvedValue(null),
+        findExistingEmployeeIds: vi.fn().mockResolvedValue(new Set()),
       },
       {},
     );
@@ -93,7 +83,7 @@ describe("CompensationImportService", () => {
     });
     const service = createService(
       {
-        findEmployeeById: vi.fn().mockResolvedValue({ id: "E001" }),
+        findExistingEmployeeIds: vi.fn().mockResolvedValue(new Set(["E001"])),
       },
       { insertManyCompensationHistoryRecords },
     );
@@ -119,7 +109,7 @@ describe("CompensationImportService", () => {
   it("rejects invalid spreadsheets during confirm", async () => {
     const service = createService(
       {
-        findEmployeeById: vi.fn().mockResolvedValue(null),
+        findExistingEmployeeIds: vi.fn().mockResolvedValue(new Set()),
       },
       {},
     );

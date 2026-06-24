@@ -6,11 +6,7 @@ import { collectUnknownEmployeeIdErrors } from "./validate-compensation-import.j
 describe("collectUnknownEmployeeIdErrors", () => {
   it("returns errors for employee ids that do not exist", async () => {
     const employees = {
-      findEmployeeById: vi
-        .fn()
-        .mockImplementation(async (employeeId: string) =>
-          employeeId === "E001" ? { id: "E001" } : null,
-        ),
+      findExistingEmployeeIds: vi.fn().mockResolvedValue(new Set(["E001"])),
     };
 
     const records: ParsedCompensationSpreadsheetRow[] = [
@@ -43,11 +39,12 @@ describe("collectUnknownEmployeeIdErrors", () => {
         message: 'Employee "E404" does not exist',
       },
     ]);
+    expect(employees.findExistingEmployeeIds).toHaveBeenCalledWith(["E001", "E404"]);
   });
 
-  it("reports each unknown employee id only once across duplicate rows", async () => {
+  it("looks up each unique employee id once", async () => {
     const employees = {
-      findEmployeeById: vi.fn().mockResolvedValue(null),
+      findExistingEmployeeIds: vi.fn().mockResolvedValue(new Set<string>()),
     };
 
     const records: ParsedCompensationSpreadsheetRow[] = [
@@ -85,6 +82,6 @@ describe("collectUnknownEmployeeIdErrors", () => {
         message: 'Employee "E404" does not exist',
       },
     ]);
-    expect(employees.findEmployeeById).toHaveBeenCalledOnce();
+    expect(employees.findExistingEmployeeIds).toHaveBeenCalledWith(["E404"]);
   });
 });

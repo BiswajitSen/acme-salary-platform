@@ -3,7 +3,7 @@ import multer from "multer";
 import { AppError } from "../lib/errors.js";
 
 export const SPREADSHEET_FIELD_NAME = "file";
-export const MAX_SPREADSHEET_BYTES = 10 * 1024 * 1024;
+export const MAX_SPREADSHEET_BYTES = 25 * 1024 * 1024;
 
 export const uploadSpreadsheet = multer({
   storage: multer.memoryStorage(),

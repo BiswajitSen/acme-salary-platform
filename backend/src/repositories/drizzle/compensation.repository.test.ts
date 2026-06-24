@@ -1,6 +1,7 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { db } from "../../db/index.js";
+import * as compensationPartition from "../../db/ensure-compensation-month-partition.js";
 import { runSeed } from "../../db/seed.js";
 import { DrizzleCompensationRepository } from "./compensation.repository.js";
 
@@ -84,5 +85,35 @@ describe("DrizzleCompensationRepository", () => {
     expect(repository.insertCompensationHistoryRecord).toBeDefined();
     expect("updateCompensationHistoryRecord" in repository).toBe(false);
     expect("deleteCompensationHistoryRecord" in repository).toBe(false);
+  });
+
+  it("throws when a single insert returns no row", async () => {
+    await runSeed(db);
+
+    const ensurePartition = vi
+      .spyOn(compensationPartition, "ensureCompensationMonthPartitionExists")
+      .mockResolvedValue(undefined);
+    const insert = vi.spyOn(db, "insert").mockReturnValue({
+      values: vi.fn().mockReturnValue({
+        returning: vi.fn().mockResolvedValue([]),
+      }),
+    } as never);
+
+    try {
+      await expect(
+        repository.insertCompensationHistoryRecord({
+          employeeId: "E003",
+          baseSalary: 95_000,
+          currency: "USD",
+          effectiveDate: "2026-01-01",
+          reason: "New Hire",
+          changedBy: "HR Admin",
+          notes: null,
+        }),
+      ).rejects.toThrow("Failed to insert compensation history record");
+    } finally {
+      insert.mockRestore();
+      ensurePartition.mockRestore();
+    }
   });
 });
