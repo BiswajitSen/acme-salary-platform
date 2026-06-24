@@ -11,10 +11,28 @@
 .inner {
   display: flex;
   align-items: center;
+  justify-content: space-between;
+  gap: 1.5rem;
   max-width: var(--content-width);
   height: 100%;
   margin: 0 auto;
   padding: 0 1.5rem;
+}
+
+.nav {
+  display: flex;
+  gap: 1rem;
+}
+
+.navLink {
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.navLink:hover {
+  color: var(--text);
 }
 
 .brand {

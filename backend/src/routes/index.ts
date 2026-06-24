@@ -1,6 +1,7 @@
 import { Router } from "express";
 
 import type { Container } from "../container/index.js";
+import { createEmployeeImportRouter } from "./employee-import.route.js";
 import { createEmployeesRouter } from "./employees.route.js";
 import { healthRouter } from "./health.route.js";
 
@@ -11,6 +12,12 @@ export function createApiRouter(container: Container) {
   router.use(
     "/employees",
     createEmployeesRouter({ employeeService: container.employeeService }),
+  );
+  router.use(
+    "/import",
+    createEmployeeImportRouter({
+      employeeImportService: container.employeeImportService,
+    }),
   );
 
   return router;

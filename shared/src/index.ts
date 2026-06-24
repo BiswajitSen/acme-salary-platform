@@ -31,3 +31,10 @@ export {
   type PaginatedEmployeesResponse,
   type PaginationMeta,
 } from "./employees.js";
+
+export type {
+  EmployeeImportPreviewResponse,
+  EmployeeImportResultResponse,
+  EmployeeImportValidationErrorResponse,
+  EmployeeImportValidationIssue,
+} from "./employee-import.js";

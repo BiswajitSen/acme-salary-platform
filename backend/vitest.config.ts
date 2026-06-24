@@ -21,6 +21,7 @@ export default defineConfig({
         "src/services/employee-import.service.ts",
         "src/repositories/drizzle/employee*.ts",
         "src/routes/employees.route.ts",
+        "src/routes/employee-import.route.ts",
         "src/middleware/error-handler.ts",
         "src/lib/errors.ts",
         "src/db/migrate.ts",

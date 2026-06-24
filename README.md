@@ -104,6 +104,10 @@ npm run db:import -w backend -- fixtures/employees-10000.xlsx
 
 Expected columns (header aliases supported): `employee_id`, `full_name`, `department`, `job_title`, `country`. Import validates all rows before writing; duplicate employee IDs are rejected. Re-importing the same file upserts by employee ID.
 
+### Import in the HR UI
+
+Open **Import** in the header (`/import`), upload an `.xlsx` file, preview validation results, then confirm to write employees to the database.
+
 ## Documentation
 
 | Doc | Purpose |

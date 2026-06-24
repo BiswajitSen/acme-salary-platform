@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import { ZodError, z } from "zod";
 
 import { AppError } from "../lib/errors.js";
+import { EmployeeImportValidationError } from "../lib/employee-import-validation-error.js";
 import { errorHandler, notFoundHandler } from "./error-handler.js";
 
 function createMockResponse() {
@@ -71,6 +72,26 @@ describe("errorHandler", () => {
     expect(response.body).toEqual({
       error: "AppError",
       message: "Employee not found",
+    });
+  });
+
+  it("maps employee import validation errors to 400 with row details", () => {
+    const response = createMockResponse();
+
+    errorHandler(
+      new EmployeeImportValidationError("Employee spreadsheet validation failed", [
+        { rowNumber: 2, field: "id", message: "Employee ID is required" },
+      ]),
+      {} as Request,
+      response,
+      vi.fn() as NextFunction,
+    );
+
+    expect(response.statusCode).toBe(400);
+    expect(response.body).toEqual({
+      error: "EmployeeImportValidationError",
+      message: "Employee spreadsheet validation failed",
+      errors: [{ rowNumber: 2, field: "id", message: "Employee ID is required" }],
     });
   });
 

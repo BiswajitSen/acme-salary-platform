@@ -94,17 +94,17 @@ Each feature follows **TDD**: failing test → minimal implementation → refact
 
 ---
 
-## Phase 6 — Spreadsheet Import (PRD §4.5) ⬜
+## Phase 6 — Spreadsheet Import (PRD §4.5) 🔄
 
 **Goal:** All-or-nothing `.xlsx` import with dry-run preview.
 
-| # | Feature | API | UI | Tests (write first) |
-|---|---------|-----|----|---------------------|
-| 6.1 | Parse xlsx | `POST /api/import/preview` | File upload | Valid fixture parses |
-| 6.2 | Validation pipeline | Duplicate IDs, invalid ISO currency, negative salary, missing ID, empty date | Stoplight preview grid | One test per rejection rule |
-| 6.3 | Dry-run | Validate only; no DB writes | "All Clear" vs error view | Invalid file → 0 rows imported |
-| 6.4 | Confirm import | `POST /api/import/confirm` in transaction | Confirm button (disabled until valid) | Upsert by employee ID; rollback on any error |
-| 6.5 | Idempotent upsert | Employee ID as key | — | Re-import same file is safe |
+| # | Feature | API | UI | Tests (write first) | Status |
+|---|---------|-----|----|---------------------|--------|
+| 6.1 | Parse xlsx | `POST /api/import/preview` | File upload | Valid fixture parses | ✅ |
+| 6.2 | Validation pipeline | Duplicate IDs, invalid ISO currency, negative salary, missing ID, empty date | Stoplight preview grid | One test per rejection rule | ✅ |
+| 6.3 | Dry-run | Validate only; no DB writes | "All Clear" vs error view | Invalid file → 0 rows imported | ✅ |
+| 6.4 | Confirm import | `POST /api/import/confirm` in transaction | Confirm button (disabled until valid) | Upsert by employee ID; rollback on any error | ✅ |
+| 6.5 | Idempotent upsert | Employee ID as key | — | Re-import same file is safe | ✅ |
 
 **Exit criteria:** 100% valid file imports; any invalid row blocks entire import.
 
