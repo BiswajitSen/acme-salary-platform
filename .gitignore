@@ -1,0 +1,11 @@
+node_modules/
+dist/
+.env
+.env.local
+*.db
+backend/data/
+.next/
+.DS_Store
+coverage/
+backend/package-lock.json
+frontend/package-lock.json

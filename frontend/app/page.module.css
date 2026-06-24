@@ -1,0 +1,26 @@
+.page {
+  max-width: 640px;
+  margin: 0 auto;
+  padding: 3rem 1.5rem;
+}
+
+.subtitle {
+  color: #64748b;
+  margin: 0.5rem 0 2rem;
+}
+
+.error {
+  color: #b91c1c;
+  line-height: 1.6;
+}
+
+.error code {
+  font-family: ui-monospace, monospace;
+  font-size: 0.9em;
+}
+
+@media (prefers-color-scheme: dark) {
+  .subtitle {
+    color: #94a3b8;
+  }
+}
