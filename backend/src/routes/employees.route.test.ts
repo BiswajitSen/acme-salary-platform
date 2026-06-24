@@ -4,17 +4,29 @@ import { describe, expect, it, vi } from "vitest";
 
 import { AppError } from "../lib/errors.js";
 import { errorHandler } from "../middleware/error-handler.js";
+import type { CompensationService } from "../services/compensation.service.js";
 import type { EmployeeService } from "../services/employee.service.js";
 import { createEmployeesRouter } from "./employees.route.js";
 
-function createTestApp(employeeService: EmployeeService) {
+function createTestApp(
+  employeeService: EmployeeService,
+  compensationService: CompensationService,
+) {
   const app = express();
-  app.use("/employees", createEmployeesRouter({ employeeService }));
+  app.use(express.json());
+  app.use(
+    "/employees",
+    createEmployeesRouter({ employeeService, compensationService }),
+  );
   app.use(errorHandler);
   return app;
 }
 
 describe("createEmployeesRouter", () => {
+  const compensationService = {
+    recordCompensationChange: vi.fn(),
+  } as unknown as CompensationService;
+
   it("returns filter options from the employee service", async () => {
     const employeeService = {
       listEmployeeFilterOptions: vi.fn().mockResolvedValue({
@@ -25,9 +37,9 @@ describe("createEmployeesRouter", () => {
       listEmployees: vi.fn(),
     } as unknown as EmployeeService;
 
-    const response = await request(createTestApp(employeeService)).get(
-      "/employees/filter-options",
-    );
+    const response = await request(
+      createTestApp(employeeService, compensationService),
+    ).get("/employees/filter-options");
 
     expect(response.status).toBe(200);
     expect(response.body).toEqual({
@@ -46,7 +58,9 @@ describe("createEmployeesRouter", () => {
       }),
     } as unknown as EmployeeService;
 
-    const response = await request(createTestApp(employeeService)).get("/employees");
+    const response = await request(createTestApp(employeeService, compensationService)).get(
+      "/employees",
+    );
 
     expect(response.status).toBe(200);
     expect(response.body.meta.totalPages).toBe(0);
@@ -60,7 +74,7 @@ describe("createEmployeesRouter", () => {
       listEmployeeCompensationHistory: vi.fn(),
     } as unknown as EmployeeService;
 
-    const response = await request(createTestApp(employeeService)).get(
+    const response = await request(createTestApp(employeeService, compensationService)).get(
       "/employees/filter-options",
     );
 
@@ -83,7 +97,9 @@ describe("createEmployeesRouter", () => {
       listEmployeeCompensationHistory: vi.fn(),
     } as unknown as EmployeeService;
 
-    const response = await request(createTestApp(employeeService)).get("/employees/E001");
+    const response = await request(createTestApp(employeeService, compensationService)).get(
+      "/employees/E001",
+    );
 
     expect(response.status).toBe(200);
     expect(response.body.id).toBe("E001");
@@ -100,12 +116,76 @@ describe("createEmployeesRouter", () => {
       }),
     } as unknown as EmployeeService;
 
-    const response = await request(createTestApp(employeeService)).get(
+    const response = await request(createTestApp(employeeService, compensationService)).get(
       "/employees/E001/compensation",
     );
 
     expect(response.status).toBe(200);
     expect(response.body.employeeId).toBe("E001");
+  });
+
+  it("records a compensation change through the compensation service", async () => {
+    const employeeService = {
+      listEmployeeFilterOptions: vi.fn(),
+      listEmployees: vi.fn(),
+      getEmployeeProfile: vi.fn(),
+      listEmployeeCompensationHistory: vi.fn(),
+    } as unknown as EmployeeService;
+    const recordingService = {
+      recordCompensationChange: vi.fn().mockResolvedValue({
+        entry: {
+          id: 3,
+          previousSalary: 132_000,
+          baseSalary: 140_000,
+          currency: "USD",
+          effectiveDate: "2026-06-01",
+          reason: "Promotion",
+          changedBy: "HR Admin",
+          notes: null,
+          createdAt: "2026-06-02T10:00:00.000Z",
+        },
+      }),
+    } as unknown as CompensationService;
+
+    const response = await request(createTestApp(employeeService, recordingService))
+      .post("/employees/E001/compensation")
+      .send({
+        baseSalary: 140_000,
+        currency: "USD",
+        effectiveDate: "2026-06-01",
+        reason: "Promotion",
+        changedBy: "HR Admin",
+      });
+
+    expect(response.status).toBe(201);
+    expect(response.body.entry.baseSalary).toBe(140_000);
+  });
+
+  it("forwards compensation change validation errors to the error handler", async () => {
+    const employeeService = {
+      listEmployeeFilterOptions: vi.fn(),
+      listEmployees: vi.fn(),
+      getEmployeeProfile: vi.fn(),
+      listEmployeeCompensationHistory: vi.fn(),
+    } as unknown as EmployeeService;
+    const recordingService = {
+      recordCompensationChange: vi
+        .fn()
+        .mockRejectedValue(new AppError(404, "Employee E404 not found")),
+    } as unknown as CompensationService;
+
+    const response = await request(createTestApp(employeeService, recordingService))
+      .post("/employees/E404/compensation")
+      .send({
+        baseSalary: 140_000,
+        currency: "USD",
+        effectiveDate: "2026-06-01",
+        reason: "Promotion",
+        changedBy: "HR Admin",
+      });
+
+    expect(response.status).toBe(404);
+    expect(response.body.message).toBe("Employee E404 not found");
   });
 
   it("maps profile not found errors to 404", async () => {
@@ -118,7 +198,9 @@ describe("createEmployeesRouter", () => {
       listEmployeeCompensationHistory: vi.fn(),
     } as unknown as EmployeeService;
 
-    const response = await request(createTestApp(employeeService)).get("/employees/E404");
+    const response = await request(createTestApp(employeeService, compensationService)).get(
+      "/employees/E404",
+    );
 
     expect(response.status).toBe(404);
     expect(response.body.message).toBe("Employee E404 not found");
@@ -134,7 +216,7 @@ describe("createEmployeesRouter", () => {
         .mockRejectedValue(new AppError(404, "Employee E404 not found")),
     } as unknown as EmployeeService;
 
-    const response = await request(createTestApp(employeeService)).get(
+    const response = await request(createTestApp(employeeService, compensationService)).get(
       "/employees/E404/compensation",
     );
 

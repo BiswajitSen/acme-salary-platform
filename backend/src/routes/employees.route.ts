@@ -1,9 +1,11 @@
 import { Router } from "express";
 
+import type { CompensationService } from "../services/compensation.service.js";
 import type { EmployeeService } from "../services/employee.service.js";
 
 type EmployeeRouterDeps = {
   employeeService: EmployeeService;
+  compensationService: CompensationService;
 };
 
 export function createEmployeesRouter(deps: EmployeeRouterDeps) {
@@ -13,6 +15,18 @@ export function createEmployeesRouter(deps: EmployeeRouterDeps) {
     try {
       const options = await deps.employeeService.listEmployeeFilterOptions();
       res.json(options);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  router.post("/:id/compensation", async (req, res, next) => {
+    try {
+      const result = await deps.compensationService.recordCompensationChange(
+        req.params.id,
+        req.body,
+      );
+      res.status(201).json(result);
     } catch (error) {
       next(error);
     }

@@ -11,7 +11,10 @@ export function createApiRouter(container: Container) {
   router.use("/health", healthRouter);
   router.use(
     "/employees",
-    createEmployeesRouter({ employeeService: container.employeeService }),
+    createEmployeesRouter({
+      employeeService: container.employeeService,
+      compensationService: container.compensationService,
+    }),
   );
   router.use(
     "/import",
