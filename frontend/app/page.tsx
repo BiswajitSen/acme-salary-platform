@@ -1,3 +1,5 @@
+import Link from "next/link";
+
 import { SystemStatus } from "@/components/system-status";
 import { ApiRequestError, getHealthStatus } from "@/lib/api/health";
 
@@ -30,6 +32,10 @@ export default async function Home() {
       <p className={styles.subtitle}>
         Next.js frontend · Node.js API · SQLite database
       </p>
+
+      <nav className={styles.nav}>
+        <Link href="/employees">Open employee directory</Link>
+      </nav>
 
       {state.kind === "ready" ? (
         <SystemStatus health={state.health} />

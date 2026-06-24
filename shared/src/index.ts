@@ -26,6 +26,7 @@ export {
   listEmployeesQuerySchema,
   MAX_EMPLOYEE_LIMIT,
   type EmployeeSummary,
+  type EmployeeFilterOptions,
   type ListEmployeesQuery,
   type PaginatedEmployeesResponse,
   type PaginationMeta,

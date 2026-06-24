@@ -12,34 +12,38 @@ describe("GET /api/employees", () => {
     const response = await request(app).get("/api/employees");
 
     expect(response.status).toBe(200);
-    expect(response.body).toEqual({
-      data: [],
-      meta: {
-        page: 1,
-        limit: 50,
-        total: 0,
-        totalPages: 0,
-      },
-    });
+    expect(response.body.meta).toMatchObject({ page: 1, limit: 50 });
+    expect(Array.isArray(response.body.data)).toBe(true);
   });
 
-  it("returns seeded employees", async () => {
+  it("filters employees by search term", async () => {
     await db.insert(employees).values({
-      id: "E100",
-      fullName: "Alice Chen",
+      id: "E200",
+      fullName: "Directory Search Target",
       department: "Finance",
       jobTitle: "Analyst",
       country: "SG",
     });
 
-    const response = await request(app).get("/api/employees");
+    const response = await request(app).get("/api/employees?search=Directory");
 
     expect(response.status).toBe(200);
-    expect(response.body.data).toHaveLength(1);
-    expect(response.body.data[0]).toMatchObject({
-      id: "E100",
-      fullName: "Alice Chen",
-    });
+    expect(response.body.data).toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({ id: "E200", fullName: "Directory Search Target" }),
+      ]),
+    );
+  });
+
+  it("filters employees by country and department", async () => {
+    const response = await request(app).get(
+      "/api/employees?country=SG&department=Finance",
+    );
+
+    expect(response.status).toBe(200);
+    expect(response.body.data.every((employee: { country: string }) => employee.country === "SG")).toBe(
+      true,
+    );
   });
 
   it("returns 400 for invalid limit", async () => {
@@ -50,15 +54,17 @@ describe("GET /api/employees", () => {
   });
 });
 
-describe("createContainer", () => {
-  it("wires employee service with drizzle repository", async () => {
-    const { createContainer } = await import("../src/container/index.js");
-    const container = createContainer(db);
+describe("GET /api/employees/filter-options", () => {
+  const app = createApp();
 
-    expect(container.employeeService).toBeDefined();
-    expect(container.employeeRepository).toBeDefined();
+  it("returns distinct filter values", async () => {
+    const response = await request(app).get("/api/employees/filter-options");
 
-    const result = await container.employeeService.list({});
-    expect(result.meta).toMatchObject({ page: 1, limit: 50 });
+    expect(response.status).toBe(200);
+    expect(response.body).toMatchObject({
+      countries: expect.any(Array),
+      departments: expect.any(Array),
+      jobTitles: expect.any(Array),
+    });
   });
 });

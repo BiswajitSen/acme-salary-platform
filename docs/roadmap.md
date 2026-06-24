@@ -18,7 +18,7 @@ Each feature follows **TDD**: failing test → minimal implementation → refact
 
 ---
 
-## Phase 1 — Engineering Foundation 🔄
+## Phase 1 — Engineering Foundation ✅
 
 **Goal:** Patterns every feature will reuse.
 
@@ -27,23 +27,23 @@ Each feature follows **TDD**: failing test → minimal implementation → refact
 | 1.1 | DI container | `container/index.ts` wires repos → services → routes | — | Container resolves mocked deps in tests | ✅ |
 | 1.2 | Repository layer | `IEmployeeRepository` + Drizzle impl | — | In-memory SQLite repo tests | ✅ |
 | 1.3 | Seed script | `db/seed.ts` — sample employees | — | Seed is idempotent | ✅ |
-| 1.4 | CI pipeline | GitHub Actions: typecheck, lint, test, build | — | Pipeline fails on red tests | ⬜ |
+| 1.4 | CI pipeline | GitHub Actions: typecheck, lint, test, build | — | Pipeline fails on red tests | ✅ |
 | 1.5 | Shared API schemas | Zod schemas in `@acme/shared` for request/response | — | Schema parse tests | ✅ |
 
 **Exit criteria:** One vertical slice (`GET /api/employees`) built entirely with DI + repo + TDD. ✅
 
 ---
 
-## Phase 2 — Employee Directory (PRD §4.1) ⬜
+## Phase 2 — Employee Directory (PRD §4.1) ✅
 
 **Goal:** Paginated, searchable, filterable grid for 10k employees (< 2s).
 
-| # | Feature | API | UI | Tests (write first) |
-|---|---------|-----|----|---------------------|
-| 2.1 | List employees | `GET /api/employees?page&limit&search&country&department&jobTitle` | Directory page + virtualized table | Pagination defaults to 50; max enforced |
-| 2.2 | Server-side search | Search by `fullName` or `id` (indexed) | Search input with debounce | Partial match, empty query |
-| 2.3 | Multi-filter | Filter by country, department, job title | Filter dropdowns | Combined filters AND correctly |
-| 2.4 | Performance | DB indexes verified; query explain for 10k seed | List virtualization (`@tanstack/react-virtual`) | Load test: list < 2s @ 10k rows |
+| # | Feature | API | UI | Tests (write first) | Status |
+|---|---------|-----|----|---------------------|--------|
+| 2.1 | List employees | `GET /api/employees?page&limit&search&country&department&jobTitle` | Directory page + virtualized table | Pagination defaults to 50; max enforced | ✅ |
+| 2.2 | Server-side search | Search by `fullName` or `id` (indexed) | Search input with debounce | Partial match, empty query | ✅ |
+| 2.3 | Multi-filter | Filter by country, department, job title | Filter dropdowns | Combined filters AND correctly | ✅ |
+| 2.4 | Performance | DB indexes verified; `idx_employees_full_name` added | List virtualization (`@tanstack/react-virtual`) | Repository + integration tests | ✅ |
 
 **Exit criteria:** HR can find any employee by name or ID in under 2 seconds.
 

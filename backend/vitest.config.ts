@@ -13,6 +13,25 @@ export default defineConfig({
     setupFiles: ["./tests/setup.ts"],
     pool: "forks",
     fileParallelism: false,
+    coverage: {
+      provider: "v8",
+      include: [
+        "src/domain/**",
+        "src/services/employee.service.ts",
+        "src/repositories/drizzle/employee*.ts",
+        "src/routes/employees.route.ts",
+        "src/middleware/error-handler.ts",
+        "src/lib/errors.ts",
+        "src/db/migrate.ts",
+      ],
+      exclude: ["**/*.test.ts"],
+      thresholds: {
+        lines: 100,
+        functions: 100,
+        branches: 100,
+        statements: 100,
+      },
+    },
   },
   resolve: {
     alias: {

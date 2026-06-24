@@ -6,7 +6,21 @@
 
 .subtitle {
   color: #64748b;
-  margin: 0.5rem 0 2rem;
+  margin: 0.5rem 0 1rem;
+}
+
+.nav {
+  margin-bottom: 2rem;
+}
+
+.nav a {
+  color: #2563eb;
+  font-weight: 600;
+  text-decoration: none;
+}
+
+.nav a:hover {
+  text-decoration: underline;
 }
 
 .error {

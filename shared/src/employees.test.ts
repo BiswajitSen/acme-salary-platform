@@ -22,6 +22,24 @@ describe("listEmployeesQuerySchema", () => {
     });
   });
 
+  it("accepts search and filter params", () => {
+    expect(
+      listEmployeesQuerySchema.parse({
+        search: "Jane",
+        country: "US",
+        department: "Engineering",
+        jobTitle: "Senior Engineer",
+      }),
+    ).toEqual({
+      page: DEFAULT_EMPLOYEE_PAGE,
+      limit: DEFAULT_EMPLOYEE_LIMIT,
+      search: "Jane",
+      country: "US",
+      department: "Engineering",
+      jobTitle: "Senior Engineer",
+    });
+  });
+
   it("rejects limit above maximum", () => {
     expect(() =>
       listEmployeesQuerySchema.parse({ limit: MAX_EMPLOYEE_LIMIT + 1 }),

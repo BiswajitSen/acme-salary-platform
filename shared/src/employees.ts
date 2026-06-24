@@ -12,6 +12,10 @@ export const listEmployeesQuerySchema = z.object({
     .positive()
     .max(MAX_EMPLOYEE_LIMIT)
     .default(DEFAULT_EMPLOYEE_LIMIT),
+  search: z.string().trim().optional(),
+  country: z.string().trim().optional(),
+  department: z.string().trim().optional(),
+  jobTitle: z.string().trim().optional(),
 });
 
 export type ListEmployeesQuery = z.infer<typeof listEmployeesQuerySchema>;
@@ -34,4 +38,10 @@ export type PaginationMeta = {
 export type PaginatedEmployeesResponse = {
   data: EmployeeSummary[];
   meta: PaginationMeta;
+};
+
+export type EmployeeFilterOptions = {
+  countries: string[];
+  departments: string[];
+  jobTitles: string[];
 };
