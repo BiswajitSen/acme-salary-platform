@@ -23,6 +23,9 @@ export function SiteHeader() {
           <Link href="/analytics" className={styles.navLink}>
             Analytics
           </Link>
+          <Link href="/insights" className={styles.navLink}>
+            AI Insights
+          </Link>
         </nav>
       </div>
     </header>
