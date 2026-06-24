@@ -4,7 +4,7 @@ import type {
   CompensationImportValidationErrorResponse,
 } from "@acme/shared";
 
-import { ApiRequestError } from "./client";
+import { ApiRequestError, isApiRequestError } from "./client";
 
 const IMPORT_PREVIEW_URL = "/api/backend/import/compensation/preview";
 const IMPORT_CONFIRM_URL = "/api/backend/import/compensation/confirm";
@@ -61,10 +61,15 @@ export async function confirmCompensationImport(
 export function readCompensationImportValidationIssues(
   error: unknown,
 ): CompensationImportValidationErrorResponse["errors"] {
-  if (!(error instanceof ApiRequestError)) {
+  if (!isApiRequestError(error)) {
     return [];
   }
 
-  const body = error.body as CompensationImportValidationErrorResponse | undefined;
-  return body?.errors ?? [];
+  const body = error.body;
+
+  if (!body || !("errors" in body) || !Array.isArray(body.errors)) {
+    return [];
+  }
+
+  return body.errors;
 }

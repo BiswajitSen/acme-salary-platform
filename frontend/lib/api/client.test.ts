@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { ApiRequestError, apiFetch, apiPostJson } from "./client";
+import { ApiRequestError, apiFetch, apiPostJson, isApiRequestError } from "./client";
 
 describe("apiFetch", () => {
   it("returns parsed json for successful responses", async () => {
@@ -88,5 +88,23 @@ describe("ApiRequestError", () => {
     expect(error.name).toBe("ApiRequestError");
     expect(error.status).toBe(500);
     expect(error.body?.error).toBe("Internal Server Error");
+  });
+});
+
+describe("isApiRequestError", () => {
+  it("recognizes ApiRequestError instances", () => {
+    expect(isApiRequestError(new ApiRequestError("Failed", 400))).toBe(true);
+  });
+
+  it("recognizes duck-typed api errors from another module instance", () => {
+    const error = new Error("Failed") as ApiRequestError;
+    error.name = "ApiRequestError";
+    error.status = 400;
+
+    expect(isApiRequestError(error)).toBe(true);
+  });
+
+  it("returns false for other errors", () => {
+    expect(isApiRequestError(new Error("Network"))).toBe(false);
   });
 });

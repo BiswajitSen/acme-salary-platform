@@ -97,10 +97,20 @@ export function CompensationImport() {
 
       {isPreviewing && <StatusMessage isLoading message="Validating spreadsheet…" />}
 
-      {preview && !isPreviewing && (
+      {validationIssues.length > 0 && !preview && !isPreviewing && (
         <Card title="Import preview">
           <CompensationImportPreviewPanel
-            recordCount={preview.records.length}
+            recordCount={0}
+            validationIssues={validationIssues}
+            hiddenIssueCount={0}
+          />
+        </Card>
+      )}
+
+      {preview && !isPreviewing && !errorMessage && (
+        <Card title="Import preview">
+          <CompensationImportPreviewPanel
+            recordCount={preview.recordCount}
             validationIssues={validationIssues}
             hiddenIssueCount={hiddenIssueCount}
           />

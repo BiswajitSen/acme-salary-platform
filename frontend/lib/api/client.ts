@@ -11,6 +11,16 @@ export class ApiRequestError extends Error {
   }
 }
 
+export function isApiRequestError(error: unknown): error is ApiRequestError {
+  return (
+    error instanceof ApiRequestError ||
+    (error instanceof Error &&
+      error.name === "ApiRequestError" &&
+      "status" in error &&
+      typeof error.status === "number")
+  );
+}
+
 type RequestOptions = {
   cache?: RequestCache;
 };
