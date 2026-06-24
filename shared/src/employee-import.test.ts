@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import type { EmployeeImportPreviewResponse } from "./employee-import.js";
+import type { EmployeeImportPreviewResponse } from "./employee-import";
 
 describe("employee import contracts", () => {
   it("describes a valid preview response shape", () => {

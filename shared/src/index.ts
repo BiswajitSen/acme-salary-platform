@@ -9,7 +9,7 @@ export {
   type EmployeeProfileResponse,
   type RecordCompensationChangeInput,
   type RecordCompensationChangeResponse,
-} from "./compensation.js";
+} from "./compensation";
 
 export type HealthStatus = {
   status: "ok";
@@ -33,11 +33,11 @@ export {
   type ListEmployeesQuery,
   type PaginatedEmployeesResponse,
   type PaginationMeta,
-} from "./employees.js";
+} from "./employees";
 
 export type {
   EmployeeImportPreviewResponse,
   EmployeeImportResultResponse,
   EmployeeImportValidationErrorResponse,
   EmployeeImportValidationIssue,
-} from "./employee-import.js";
+} from "./employee-import";

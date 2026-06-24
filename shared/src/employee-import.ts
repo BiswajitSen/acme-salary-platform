@@ -1,4 +1,4 @@
-import type { EmployeeSummary } from "./employees.js";
+import type { EmployeeSummary } from "./employees";
 
 export type EmployeeImportValidationIssue = {
   rowNumber: number;

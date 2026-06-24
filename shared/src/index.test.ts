@@ -6,7 +6,7 @@ import {
   DEFAULT_EMPLOYEE_PAGE,
   listEmployeesQuerySchema,
   MAX_EMPLOYEE_LIMIT,
-} from "./index.js";
+} from "./index";
 
 describe("shared exports", () => {
   it("re-exports employee list contract symbols", () => {

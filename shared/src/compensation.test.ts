@@ -4,7 +4,7 @@ import {
   COMPENSATION_REASONS,
   recordCompensationChangeSchema,
   type EmployeeProfileResponse,
-} from "./compensation.js";
+} from "./compensation";
 
 describe("compensation contracts", () => {
   it("describes an employee profile with optional current compensation", () => {

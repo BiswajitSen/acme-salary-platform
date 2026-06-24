@@ -5,7 +5,7 @@ import {
   DEFAULT_EMPLOYEE_PAGE,
   listEmployeesQuerySchema,
   MAX_EMPLOYEE_LIMIT,
-} from "./employees.js";
+} from "./employees";
 
 describe("listEmployeesQuerySchema", () => {
   it("applies default page and limit", () => {
