@@ -47,6 +47,7 @@ export const DEFAULT_INSIGHT_CURRENCY = "USD";
 export const INSIGHT_EXECUTION_ERROR_KINDS = [
   "UNSUPPORTED_INTENT",
   "DEPARTMENT_NOT_FOUND",
+  "REJECTED_INPUT",
 ] as const;
 
 export type InsightExecutionErrorKind = (typeof INSIGHT_EXECUTION_ERROR_KINDS)[number];
