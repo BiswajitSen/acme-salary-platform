@@ -53,7 +53,7 @@ export class DrizzleEmployeeRepository implements IEmployeeRepository {
     };
   }
 
-  async findDistinctFilterValues() {
+  async findDistinctEmployeeFilterValues() {
     const [countries, departments, jobTitles] = await Promise.all([
       this.database
         .selectDistinct({ value: employees.country })
@@ -76,7 +76,7 @@ export class DrizzleEmployeeRepository implements IEmployeeRepository {
     };
   }
 
-  async upsertMany(rows: EmployeeSpreadsheetRow[]) {
+  async upsertManyEmployees(rows: EmployeeSpreadsheetRow[]) {
     const existingIds = new Set(
       (await this.database.select({ id: employees.id }).from(employees)).map(
         (employee) => employee.id,

@@ -7,28 +7,28 @@ import type {
 } from "./employee-import.types.js";
 import { employeeSpreadsheetRowSchema } from "./employee-import.types.js";
 import {
-  isSpreadsheetRowEmpty,
-  readSpreadsheetCell,
-  resolveSpreadsheetColumnIndex,
-  type SpreadsheetColumnIndex,
+  isEmployeeSpreadsheetRowEmpty,
+  readEmployeeSpreadsheetCell,
+  resolveEmployeeSpreadsheetColumnIndex,
+  type EmployeeSpreadsheetColumnIndex,
 } from "./employee-spreadsheet-columns.js";
 import { collectDuplicateEmployeeIdErrors } from "./validate-employee-import.js";
 
-function parseSpreadsheetRow(
+function parseEmployeeSpreadsheetRow(
   row: unknown[],
   rowNumber: number,
-  columnIndex: SpreadsheetColumnIndex,
+  columnIndex: EmployeeSpreadsheetColumnIndex,
 ): { employee?: EmployeeSpreadsheetRow; errors: EmployeeImportError[] } {
-  if (isSpreadsheetRowEmpty(row)) {
+  if (isEmployeeSpreadsheetRowEmpty(row)) {
     return { errors: [] };
   }
 
   const candidate = {
-    id: readSpreadsheetCell(row, columnIndex.id),
-    fullName: readSpreadsheetCell(row, columnIndex.fullName),
-    department: readSpreadsheetCell(row, columnIndex.department),
-    jobTitle: readSpreadsheetCell(row, columnIndex.jobTitle),
-    country: readSpreadsheetCell(row, columnIndex.country),
+    id: readEmployeeSpreadsheetCell(row, columnIndex.id),
+    fullName: readEmployeeSpreadsheetCell(row, columnIndex.fullName),
+    department: readEmployeeSpreadsheetCell(row, columnIndex.department),
+    jobTitle: readEmployeeSpreadsheetCell(row, columnIndex.jobTitle),
+    country: readEmployeeSpreadsheetCell(row, columnIndex.country),
   };
 
   const parsed = employeeSpreadsheetRowSchema.safeParse(candidate);
@@ -86,7 +86,7 @@ export function parseEmployeeSpreadsheetWorkbook(
   }
 
   const [headerRow, ...dataRows] = rows;
-  const columnIndex = resolveSpreadsheetColumnIndex(
+  const columnIndex = resolveEmployeeSpreadsheetColumnIndex(
     (headerRow ?? []).map((value) => String(value)),
   );
 
@@ -110,7 +110,11 @@ export function parseEmployeeSpreadsheetWorkbook(
 
   for (const [index, row] of dataRows.entries()) {
     const rowNumber = index + 2;
-    const result = parseSpreadsheetRow(Array.isArray(row) ? row : [], rowNumber, columnIndex);
+    const result = parseEmployeeSpreadsheetRow(
+      Array.isArray(row) ? row : [],
+      rowNumber,
+      columnIndex,
+    );
 
     if (result.employee) {
       employees.push(result.employee);

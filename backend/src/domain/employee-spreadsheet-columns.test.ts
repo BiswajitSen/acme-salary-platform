@@ -1,22 +1,22 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  isSpreadsheetRowEmpty,
-  normalizeSpreadsheetHeader,
-  readSpreadsheetCell,
-  resolveSpreadsheetColumnIndex,
+  isEmployeeSpreadsheetRowEmpty,
+  normalizeEmployeeSpreadsheetHeader,
+  readEmployeeSpreadsheetCell,
+  resolveEmployeeSpreadsheetColumnIndex,
 } from "./employee-spreadsheet-columns.js";
 
-describe("normalizeSpreadsheetHeader", () => {
+describe("normalizeEmployeeSpreadsheetHeader", () => {
   it("lowercases and trims header labels", () => {
-    expect(normalizeSpreadsheetHeader("  Full Name ")).toBe("full name");
+    expect(normalizeEmployeeSpreadsheetHeader("  Full Name ")).toBe("full name");
   });
 });
 
-describe("resolveSpreadsheetColumnIndex", () => {
+describe("resolveEmployeeSpreadsheetColumnIndex", () => {
   it("maps supported header aliases to column indexes", () => {
     expect(
-      resolveSpreadsheetColumnIndex([
+      resolveEmployeeSpreadsheetColumnIndex([
         "Employee ID",
         "Full Name",
         "Department",
@@ -33,24 +33,24 @@ describe("resolveSpreadsheetColumnIndex", () => {
   });
 
   it("returns null when a required column is missing", () => {
-    expect(resolveSpreadsheetColumnIndex(["Employee ID", "Full Name"])).toBeNull();
+    expect(resolveEmployeeSpreadsheetColumnIndex(["Employee ID", "Full Name"])).toBeNull();
   });
 });
 
-describe("isSpreadsheetRowEmpty", () => {
+describe("isEmployeeSpreadsheetRowEmpty", () => {
   it("returns true for blank rows", () => {
-    expect(isSpreadsheetRowEmpty(["", null, undefined])).toBe(true);
+    expect(isEmployeeSpreadsheetRowEmpty(["", null, undefined])).toBe(true);
   });
 });
 
-describe("readSpreadsheetCell", () => {
+describe("readEmployeeSpreadsheetCell", () => {
   it("returns an empty string for missing cell values", () => {
-    expect(readSpreadsheetCell([], 0)).toBe("");
-    expect(readSpreadsheetCell([null], 0)).toBe("");
-    expect(readSpreadsheetCell([undefined], 0)).toBe("");
+    expect(readEmployeeSpreadsheetCell([], 0)).toBe("");
+    expect(readEmployeeSpreadsheetCell([null], 0)).toBe("");
+    expect(readEmployeeSpreadsheetCell([undefined], 0)).toBe("");
   });
 
   it("trims string cell values", () => {
-    expect(readSpreadsheetCell(["  Jane Doe  "], 0)).toBe("Jane Doe");
+    expect(readEmployeeSpreadsheetCell(["  Jane Doe  "], 0)).toBe("Jane Doe");
   });
 });

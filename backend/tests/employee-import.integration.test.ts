@@ -34,7 +34,7 @@ describe("EmployeeImportService integration", () => {
     );
 
     const startedAt = performance.now();
-    const result = await importService.importSpreadsheet(spreadsheetBuffer);
+    const result = await importService.importEmployeeSpreadsheet(spreadsheetBuffer);
     const elapsedMs = performance.now() - startedAt;
 
     const countRows = await db.select({ value: count() }).from(employees);

@@ -6,12 +6,12 @@ import type { IEmployeeRepository } from "../repositories/interfaces/employee.re
 export class EmployeeImportService {
   constructor(private readonly employees: IEmployeeRepository) {}
 
-  previewSpreadsheet(spreadsheetBuffer: Buffer): EmployeeImportPreview {
+  previewEmployeeSpreadsheet(spreadsheetBuffer: Buffer): EmployeeImportPreview {
     return parseEmployeeSpreadsheet(spreadsheetBuffer);
   }
 
-  async importSpreadsheet(spreadsheetBuffer: Buffer) {
-    const preview = this.previewSpreadsheet(spreadsheetBuffer);
+  async importEmployeeSpreadsheet(spreadsheetBuffer: Buffer) {
+    const preview = this.previewEmployeeSpreadsheet(spreadsheetBuffer);
 
     if (!preview.isValid) {
       throw new EmployeeImportValidationError(
@@ -20,6 +20,6 @@ export class EmployeeImportService {
       );
     }
 
-    return this.employees.upsertMany(preview.employees);
+    return this.employees.upsertManyEmployees(preview.employees);
   }
 }

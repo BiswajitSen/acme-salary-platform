@@ -7,12 +7,12 @@ import { EmployeeImportService } from "./employee-import.service.js";
 function createMockRepository(): IEmployeeRepository {
   return {
     findPaginated: vi.fn(),
-    findDistinctFilterValues: vi.fn(),
-    upsertMany: vi.fn().mockResolvedValue({ inserted: 2, updated: 0, total: 2 }),
+    findDistinctEmployeeFilterValues: vi.fn(),
+    upsertManyEmployees: vi.fn().mockResolvedValue({ inserted: 2, updated: 0, total: 2 }),
   };
 }
 
-describe("EmployeeImportService.previewSpreadsheet", () => {
+describe("EmployeeImportService.previewEmployeeSpreadsheet", () => {
   it("returns parsed employees for a valid spreadsheet", () => {
     const service = new EmployeeImportService(createMockRepository());
     const buffer = buildEmployeeSpreadsheetBuffer([
@@ -25,11 +25,11 @@ describe("EmployeeImportService.previewSpreadsheet", () => {
       },
     ]);
 
-    expect(service.previewSpreadsheet(buffer).isValid).toBe(true);
+    expect(service.previewEmployeeSpreadsheet(buffer).isValid).toBe(true);
   });
 });
 
-describe("EmployeeImportService.importSpreadsheet", () => {
+describe("EmployeeImportService.importEmployeeSpreadsheet", () => {
   it("upserts employees when the spreadsheet is valid", async () => {
     const repository = createMockRepository();
     const service = new EmployeeImportService(repository);
@@ -50,12 +50,12 @@ describe("EmployeeImportService.importSpreadsheet", () => {
       },
     ]);
 
-    await expect(service.importSpreadsheet(buffer)).resolves.toEqual({
+    await expect(service.importEmployeeSpreadsheet(buffer)).resolves.toEqual({
       inserted: 2,
       updated: 0,
       total: 2,
     });
-    expect(repository.upsertMany).toHaveBeenCalledOnce();
+    expect(repository.upsertManyEmployees).toHaveBeenCalledOnce();
   });
 
   it("rejects invalid spreadsheets before writing to the database", async () => {
@@ -71,9 +71,9 @@ describe("EmployeeImportService.importSpreadsheet", () => {
       },
     ]);
 
-    await expect(service.importSpreadsheet(buffer)).rejects.toMatchObject({
+    await expect(service.importEmployeeSpreadsheet(buffer)).rejects.toMatchObject({
       name: "EmployeeImportValidationError",
     });
-    expect(repository.upsertMany).not.toHaveBeenCalled();
+    expect(repository.upsertManyEmployees).not.toHaveBeenCalled();
   });
 });

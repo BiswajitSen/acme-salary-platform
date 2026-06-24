@@ -17,10 +17,12 @@ export type PaginatedEmployeesResult = {
 
 export interface IEmployeeRepository {
   findPaginated(query: PaginatedEmployeesQuery): Promise<PaginatedEmployeesResult>;
-  findDistinctFilterValues(): Promise<{
+  findDistinctEmployeeFilterValues(): Promise<{
     countries: string[];
     departments: string[];
     jobTitles: string[];
   }>;
-  upsertMany(employees: EmployeeSpreadsheetRow[]): Promise<EmployeeImportResult>;
+  upsertManyEmployees(
+    employees: EmployeeSpreadsheetRow[],
+  ): Promise<EmployeeImportResult>;
 }

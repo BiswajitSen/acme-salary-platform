@@ -1,13 +1,16 @@
-export type SpreadsheetColumnKey =
+export type EmployeeSpreadsheetColumnKey =
   | "id"
   | "fullName"
   | "department"
   | "jobTitle"
   | "country";
 
-export type SpreadsheetColumnIndex = Record<SpreadsheetColumnKey, number>;
+export type EmployeeSpreadsheetColumnIndex = Record<
+  EmployeeSpreadsheetColumnKey,
+  number
+>;
 
-const HEADER_ALIASES: Record<SpreadsheetColumnKey, readonly string[]> = {
+const HEADER_ALIASES: Record<EmployeeSpreadsheetColumnKey, readonly string[]> = {
   id: ["id", "employee_id", "employee id", "employeeid"],
   fullName: ["full_name", "fullname", "full name", "name"],
   department: ["department", "dept"],
@@ -15,18 +18,18 @@ const HEADER_ALIASES: Record<SpreadsheetColumnKey, readonly string[]> = {
   country: ["country", "country_code", "country code"],
 };
 
-export function normalizeSpreadsheetHeader(value: string): string {
+export function normalizeEmployeeSpreadsheetHeader(value: string): string {
   return value.trim().toLowerCase().replace(/\s+/g, " ");
 }
 
-export function resolveSpreadsheetColumnIndex(
+export function resolveEmployeeSpreadsheetColumnIndex(
   headers: string[],
-): SpreadsheetColumnIndex | null {
-  const normalizedHeaders = headers.map(normalizeSpreadsheetHeader);
-  const columnIndex = {} as Partial<SpreadsheetColumnIndex>;
+): EmployeeSpreadsheetColumnIndex | null {
+  const normalizedHeaders = headers.map(normalizeEmployeeSpreadsheetHeader);
+  const columnIndex = {} as Partial<EmployeeSpreadsheetColumnIndex>;
 
   for (const [field, aliases] of Object.entries(HEADER_ALIASES) as Array<
-    [SpreadsheetColumnKey, readonly string[]]
+    [EmployeeSpreadsheetColumnKey, readonly string[]]
   >) {
     const matchIndex = normalizedHeaders.findIndex((header) =>
       aliases.includes(header),
@@ -39,10 +42,10 @@ export function resolveSpreadsheetColumnIndex(
     columnIndex[field] = matchIndex;
   }
 
-  return columnIndex as SpreadsheetColumnIndex;
+  return columnIndex as EmployeeSpreadsheetColumnIndex;
 }
 
-export function readSpreadsheetCell(
+export function readEmployeeSpreadsheetCell(
   row: unknown[],
   columnIndex: number,
 ): string {
@@ -50,7 +53,7 @@ export function readSpreadsheetCell(
   return value === undefined || value === null ? "" : String(value).trim();
 }
 
-export function isSpreadsheetRowEmpty(row: unknown[]): boolean {
+export function isEmployeeSpreadsheetRowEmpty(row: unknown[]): boolean {
   return row.every(
     (value) =>
       value === undefined ||

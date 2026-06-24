@@ -149,15 +149,15 @@ describe("DrizzleEmployeeRepository", () => {
   it("returns distinct filter values", async () => {
     await seedDirectoryFixtures();
 
-    const options = await repository.findDistinctFilterValues();
+    const options = await repository.findDistinctEmployeeFilterValues();
 
     expect(options.countries).toContain("US");
     expect(options.departments).toContain("Engineering");
     expect(options.jobTitles).toContain("Senior Engineer");
   });
 
-  it("inserts new employees through upsertMany", async () => {
-    const result = await repository.upsertMany([
+  it("inserts new employees through upsertManyEmployees", async () => {
+    const result = await repository.upsertManyEmployees([
       {
         id: "E500",
         fullName: "Import Target",
@@ -170,8 +170,8 @@ describe("DrizzleEmployeeRepository", () => {
     expect(result).toEqual({ inserted: 1, updated: 0, total: 1 });
   });
 
-  it("updates existing employees through upsertMany", async () => {
-    await repository.upsertMany([
+  it("updates existing employees through upsertManyEmployees", async () => {
+    await repository.upsertManyEmployees([
       {
         id: "E501",
         fullName: "Original Name",
@@ -181,7 +181,7 @@ describe("DrizzleEmployeeRepository", () => {
       },
     ]);
 
-    const result = await repository.upsertMany([
+    const result = await repository.upsertManyEmployees([
       {
         id: "E501",
         fullName: "Updated Name",

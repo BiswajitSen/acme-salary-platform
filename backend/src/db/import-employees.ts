@@ -15,7 +15,7 @@ export async function runEmployeeImport(
   const importService = new EmployeeImportService(new DrizzleEmployeeRepository(db));
 
   try {
-    const result = await importService.importSpreadsheet(spreadsheetBuffer);
+    const result = await importService.importEmployeeSpreadsheet(spreadsheetBuffer);
     logger.info({ file: absolutePath, ...result }, "Employee spreadsheet import complete");
   } catch (error) {
     if (error instanceof EmployeeImportValidationError) {
