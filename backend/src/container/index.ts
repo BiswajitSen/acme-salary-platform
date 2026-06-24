@@ -4,6 +4,7 @@ import { DrizzleEmployeeRepository } from "../repositories/drizzle/employee.repo
 import type { IAnalyticsRepository } from "../repositories/interfaces/analytics.repository.js";
 import type { ICompensationRepository } from "../repositories/interfaces/compensation.repository.js";
 import type { IEmployeeRepository } from "../repositories/interfaces/employee.repository.js";
+import { AiInsightsService } from "../services/ai-insights.service.js";
 import { AnalyticsService } from "../services/analytics.service.js";
 import { CompensationService } from "../services/compensation.service.js";
 import { CompensationImportService } from "../services/compensation-import.service.js";
@@ -20,6 +21,7 @@ export type Container = {
   analyticsService: AnalyticsService;
   employeeImportService: EmployeeImportService;
   compensationImportService: CompensationImportService;
+  aiInsightsService: AiInsightsService;
 };
 
 export function createContainer(database: Database): Container {
@@ -34,6 +36,7 @@ export function createContainer(database: Database): Container {
     employeeRepository,
     compensationRepository,
   );
+  const aiInsightsService = new AiInsightsService();
 
   return {
     employeeRepository,
@@ -44,5 +47,6 @@ export function createContainer(database: Database): Container {
     analyticsService,
     employeeImportService,
     compensationImportService,
+    aiInsightsService,
   };
 }
