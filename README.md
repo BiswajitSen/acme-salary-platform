@@ -108,6 +108,10 @@ Expected columns (header aliases supported): `employee_id`, `full_name`, `depart
 
 Open **Import** in the header (`/import`), upload an `.xlsx` file, preview validation results, then confirm to write employees to the database.
 
+### Employee compensation profile
+
+Click any row in the directory to open `/employees/:id` — summary cards, current salary, and a newest-first compensation timeline.
+
 ## Documentation
 
 | Doc | Purpose |

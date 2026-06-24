@@ -49,17 +49,17 @@ Each feature follows **TDD**: failing test → minimal implementation → refact
 
 ---
 
-## Phase 3 — Compensation Profile (PRD §4.2) ⬜
+## Phase 3 — Compensation Profile (PRD §4.2) ✅
 
 **Goal:** Employee detail page with current comp + full timeline.
 
-| # | Feature | API | UI | Tests (write first) |
-|---|---------|-----|----|---------------------|
-| 3.1 | Employee profile | `GET /api/employees/:id` | Summary cards (ID, name, dept, title, country) | 404 for unknown ID |
-| 3.2 | Current compensation | Derived: latest `compensation_history` by `effective_date` | Metric highlights (salary, currency, last updated) | Employee with no history |
-| 3.3 | Salary timeline | `GET /api/employees/:id/compensation` | Chronological grid (prev → new, reason, actor, date) | Ordered newest-first or oldest-first (pick one, document) |
+| # | Feature | API | UI | Tests (write first) | Status |
+|---|---------|-----|----|---------------------|--------|
+| 3.1 | Employee profile | `GET /api/employees/:id` | Summary cards (ID, name, dept, title, country) | 404 for unknown ID | ✅ |
+| 3.2 | Current compensation | Derived: latest `compensation_history` by `effective_date` | Metric highlights (salary, currency, last updated) | Employee with no history | ✅ |
+| 3.3 | Salary timeline | `GET /api/employees/:id/compensation` | Chronological grid (prev → new, reason, actor, date) | Ordered newest-first | ✅ |
 
-**Exit criteria:** Clicking a directory row opens a complete compensation profile.
+**Exit criteria:** Clicking a directory row opens a complete compensation profile. Timeline order: **newest effective date first** (`COMPENSATION_TIMELINE_ORDER` in `@acme/shared`).
 
 ---
 
@@ -94,7 +94,7 @@ Each feature follows **TDD**: failing test → minimal implementation → refact
 
 ---
 
-## Phase 6 — Spreadsheet Import (PRD §4.5) 🔄
+## Phase 6 — Spreadsheet Import (PRD §4.5) ✅
 
 **Goal:** All-or-nothing `.xlsx` import with dry-run preview.
 
