@@ -27,6 +27,7 @@ export default defineConfig({
         "src/services/employee-import.service.ts",
         "src/services/compensation-import.service.ts",
         "src/services/analytics.service.ts",
+        "src/services/insight-analytics.service.ts",
         "src/services/ai-insights.service.ts",
         "src/repositories/drizzle/employee*.ts",
         "src/repositories/drizzle/compensation.repository.ts",

@@ -6,10 +6,10 @@ import {
 
 import { executeParsedInsightQuery } from "../domain/execute-insight-query.js";
 import { parseInsightQuery } from "../domain/parse-insight-query.js";
-import type { AnalyticsService } from "./analytics.service.js";
+import type { InsightAnalyticsService } from "./insight-analytics.service.js";
 
 export class AiInsightsService {
-  constructor(private readonly analyticsService: AnalyticsService) {}
+  constructor(private readonly insightAnalyticsService: InsightAnalyticsService) {}
 
   parseQuery(body: unknown): ParseInsightQueryResponse {
     const { query } = insightQueryRequestSchema.parse(body);
@@ -21,10 +21,11 @@ export class AiInsightsService {
 
     return executeParsedInsightQuery(parsedQuery, {
       getAnalyticsSummary: (currency) =>
-        this.analyticsService.getAnalyticsSummary({ currency }),
+        this.insightAnalyticsService.getAnalyticsSummary({ currency }),
       getDepartmentSalaryStatistics: (currency) =>
-        this.analyticsService.getDepartmentSalaryStatistics({ currency }),
-      getTopEarners: (currency) => this.analyticsService.getTopEarners({ currency }),
+        this.insightAnalyticsService.getDepartmentSalaryStatistics({ currency }),
+      getTopEarners: (currency) =>
+        this.insightAnalyticsService.getTopEarners({ currency }),
     });
   }
 }
