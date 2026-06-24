@@ -1,6 +1,7 @@
 import { Router } from "express";
 
 import type { Container } from "../container/index.js";
+import { createAnalyticsRouter } from "./analytics.route.js";
 import { createCompensationImportRouter } from "./compensation-import.route.js";
 import { createEmployeeImportRouter } from "./employee-import.route.js";
 import { createEmployeesRouter } from "./employees.route.js";
@@ -27,6 +28,12 @@ export function createApiRouter(container: Container) {
     "/import/compensation",
     createCompensationImportRouter({
       compensationImportService: container.compensationImportService,
+    }),
+  );
+  router.use(
+    "/analytics",
+    createAnalyticsRouter({
+      analyticsService: container.analyticsService,
     }),
   );
 
