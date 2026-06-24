@@ -156,6 +156,16 @@ describe("DrizzleEmployeeRepository", () => {
     expect(options.jobTitles).toContain("Senior Engineer");
   });
 
+  it("returns an employee by id", async () => {
+    await seedDirectoryFixtures();
+
+    await expect(repository.findEmployeeById("E001")).resolves.toEqual(engineeringEmployee);
+  });
+
+  it("returns null when an employee id is unknown", async () => {
+    await expect(repository.findEmployeeById("E404")).resolves.toBeNull();
+  });
+
   it("inserts new employees through upsertManyEmployees", async () => {
     const result = await repository.upsertManyEmployees([
       {

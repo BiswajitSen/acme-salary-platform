@@ -1,4 +1,4 @@
-import { count, sql } from "drizzle-orm";
+import { count, eq, sql } from "drizzle-orm";
 import type { BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
 
 import type { EmployeeSpreadsheetRow } from "../../domain/employee-import.types.js";
@@ -51,6 +51,22 @@ export class DrizzleEmployeeRepository implements IEmployeeRepository {
       data: rows,
       total: readAggregateCount(totalRows),
     };
+  }
+
+  async findEmployeeById(id: string) {
+    const [employee] = await this.database
+      .select({
+        id: employees.id,
+        fullName: employees.fullName,
+        department: employees.department,
+        jobTitle: employees.jobTitle,
+        country: employees.country,
+      })
+      .from(employees)
+      .where(eq(employees.id, id))
+      .limit(1);
+
+    return employee ?? null;
   }
 
   async findDistinctEmployeeFilterValues() {
