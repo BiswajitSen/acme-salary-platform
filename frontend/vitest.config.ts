@@ -46,6 +46,7 @@ export default defineConfig({
         "components/analytics/analytics-top-earners-list.tsx",
         "components/ai-insights/insight-query-panel.tsx",
         "components/ai-insights/parsed-insight-summary.tsx",
+        "components/ai-insights/insight-execution-result.tsx",
         "components/employee-profile/employee-profile.tsx",
         "components/employee-profile/employee-profile-summary.tsx",
         "components/employee-profile/employee-current-compensation.tsx",

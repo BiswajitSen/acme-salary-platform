@@ -1,5 +1,6 @@
 "use client";
 
+import { InsightExecutionResult } from "@/components/ai-insights/insight-execution-result";
 import { ParsedInsightSummary } from "@/components/ai-insights/parsed-insight-summary";
 import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
@@ -19,8 +20,8 @@ const EXAMPLE_QUERIES = [
 export function InsightQueryPanel() {
   const {
     query,
-    parsedQuery,
-    isParsing,
+    response,
+    isSubmitting,
     errorMessage,
     updateQuery,
     submitQuery,
@@ -31,7 +32,7 @@ export function InsightQueryPanel() {
     <section className={styles.page}>
       <PageHeader
         title="AI Insights"
-        subtitle="Ask salary analytics questions in plain English. The parser maps each query to a safe intent."
+        subtitle="Ask salary analytics questions in plain English. Each query runs through a safe, whitelisted executor."
       />
 
       <Card title="Ask a question">
@@ -69,10 +70,10 @@ export function InsightQueryPanel() {
           </div>
 
           <div className={styles.actions}>
-            <Button type="submit" variant="primary" disabled={isParsing}>
-              Parse query
+            <Button type="submit" variant="primary" disabled={isSubmitting}>
+              Run query
             </Button>
-            <Button type="button" onClick={resetQuery} disabled={isParsing}>
+            <Button type="button" onClick={resetQuery} disabled={isSubmitting}>
               Clear
             </Button>
           </div>
@@ -81,9 +82,19 @@ export function InsightQueryPanel() {
 
       {errorMessage && <Alert variant="error">{errorMessage}</Alert>}
 
-      {isParsing && <StatusMessage isLoading message="Parsing query…" />}
+      {isSubmitting && <StatusMessage isLoading message="Running query…" />}
 
-      {!isParsing && parsedQuery && <ParsedInsightSummary parsedQuery={parsedQuery} />}
+      {!isSubmitting && response?.parsedQuery && (
+        <ParsedInsightSummary parsedQuery={response.parsedQuery} />
+      )}
+
+      {!isSubmitting && response?.error && (
+        <Alert variant="error">{response.error.message}</Alert>
+      )}
+
+      {!isSubmitting && response?.result && (
+        <InsightExecutionResult result={response.result} />
+      )}
     </section>
   );
 }

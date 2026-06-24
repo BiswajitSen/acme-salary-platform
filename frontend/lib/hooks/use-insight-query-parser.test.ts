@@ -3,25 +3,35 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 
 import { useInsightQueryParser } from "./use-insight-query-parser";
 
-const { parseInsightQueryMock } = vi.hoisted(() => ({
-  parseInsightQueryMock: vi.fn(),
+const { executeInsightQueryMock } = vi.hoisted(() => ({
+  executeInsightQueryMock: vi.fn(),
 }));
 
 vi.mock("@/lib/api/ai-insights", () => ({
-  parseInsightQuery: (...args: unknown[]) => parseInsightQueryMock(...args),
+  executeInsightQuery: (...args: unknown[]) => executeInsightQueryMock(...args),
 }));
 
 describe("useInsightQueryParser", () => {
   beforeEach(() => {
-    parseInsightQueryMock.mockReset();
+    executeInsightQueryMock.mockReset();
   });
 
-  it("parses a submitted natural language query", async () => {
-    parseInsightQueryMock.mockResolvedValue({
-      intent: "AVG_DEPT_SALARY",
-      originalQuery: "average salary in Engineering",
-      department: "Engineering",
-      currency: null,
+  it("executes a submitted natural language query", async () => {
+    executeInsightQueryMock.mockResolvedValue({
+      parsedQuery: {
+        intent: "AVG_DEPT_SALARY",
+        originalQuery: "average salary in Engineering",
+        department: "Engineering",
+        currency: null,
+      },
+      result: {
+        intent: "AVG_DEPT_SALARY",
+        currency: "USD",
+        department: "Engineering",
+        averageSalary: 120_000,
+        employeeCount: 10,
+      },
+      error: null,
     });
 
     const { result } = renderHook(() => useInsightQueryParser());
@@ -34,7 +44,7 @@ describe("useInsightQueryParser", () => {
     });
 
     await waitFor(() => {
-      expect(result.current.parsedQuery?.intent).toBe("AVG_DEPT_SALARY");
+      expect(result.current.response?.result?.intent).toBe("AVG_DEPT_SALARY");
     });
   });
 
@@ -46,11 +56,11 @@ describe("useInsightQueryParser", () => {
     });
 
     expect(result.current.errorMessage).toContain("Enter a question");
-    expect(parseInsightQueryMock).not.toHaveBeenCalled();
+    expect(executeInsightQueryMock).not.toHaveBeenCalled();
   });
 
-  it("surfaces an error when parsing fails", async () => {
-    parseInsightQueryMock.mockRejectedValue(new Error("Network error"));
+  it("surfaces an error when execution fails", async () => {
+    executeInsightQueryMock.mockRejectedValue(new Error("Network error"));
 
     const { result } = renderHook(() => useInsightQueryParser());
 
@@ -62,16 +72,24 @@ describe("useInsightQueryParser", () => {
     });
 
     await waitFor(() => {
-      expect(result.current.errorMessage).toContain("Unable to parse");
+      expect(result.current.errorMessage).toContain("Unable to run");
     });
   });
 
   it("clears state when resetQuery is called", async () => {
-    parseInsightQueryMock.mockResolvedValue({
-      intent: "TOP_EARNERS",
-      originalQuery: "top earners in USD",
-      department: null,
-      currency: "USD",
+    executeInsightQueryMock.mockResolvedValue({
+      parsedQuery: {
+        intent: "TOP_EARNERS",
+        originalQuery: "top earners in USD",
+        department: null,
+        currency: "USD",
+      },
+      result: {
+        intent: "TOP_EARNERS",
+        currency: "USD",
+        earners: [],
+      },
+      error: null,
     });
 
     const { result } = renderHook(() => useInsightQueryParser());
@@ -84,7 +102,7 @@ describe("useInsightQueryParser", () => {
     });
 
     await waitFor(() => {
-      expect(result.current.parsedQuery?.intent).toBe("TOP_EARNERS");
+      expect(result.current.response?.result?.intent).toBe("TOP_EARNERS");
     });
 
     act(() => {
@@ -92,6 +110,6 @@ describe("useInsightQueryParser", () => {
     });
 
     expect(result.current.query).toBe("");
-    expect(result.current.parsedQuery).toBeNull();
+    expect(result.current.response).toBeNull();
   });
 });

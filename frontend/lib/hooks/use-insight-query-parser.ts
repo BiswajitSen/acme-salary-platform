@@ -1,26 +1,26 @@
 "use client";
 
-import type { ParsedInsightQuery } from "@acme/shared";
+import type { ExecuteInsightQueryResponse } from "@acme/shared";
 import { useState } from "react";
 
-import { parseInsightQuery } from "@/lib/api/ai-insights";
+import { executeInsightQuery } from "@/lib/api/ai-insights";
 
 type InsightQueryParserState = {
   query: string;
-  parsedQuery: ParsedInsightQuery | null;
-  isParsing: boolean;
+  response: ExecuteInsightQueryResponse | null;
+  isSubmitting: boolean;
   errorMessage: string | null;
   updateQuery: (query: string) => void;
   submitQuery: () => Promise<void>;
   resetQuery: () => void;
 };
 
-const PARSE_ERROR_MESSAGE = "Unable to parse the insight query.";
+const EXECUTE_ERROR_MESSAGE = "Unable to run the insight query.";
 
 export function useInsightQueryParser(): InsightQueryParserState {
   const [query, setQuery] = useState("");
-  const [parsedQuery, setParsedQuery] = useState<ParsedInsightQuery | null>(null);
-  const [isParsing, setIsParsing] = useState(false);
+  const [response, setResponse] = useState<ExecuteInsightQueryResponse | null>(null);
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   function updateQuery(nextQuery: string) {
@@ -32,34 +32,34 @@ export function useInsightQueryParser(): InsightQueryParserState {
 
     if (!trimmedQuery) {
       setErrorMessage("Enter a question about salary analytics.");
-      setParsedQuery(null);
+      setResponse(null);
       return;
     }
 
-    setIsParsing(true);
+    setIsSubmitting(true);
     setErrorMessage(null);
 
     try {
-      const nextParsedQuery = await parseInsightQuery(trimmedQuery);
-      setParsedQuery(nextParsedQuery);
+      const nextResponse = await executeInsightQuery(trimmedQuery);
+      setResponse(nextResponse);
     } catch {
-      setParsedQuery(null);
-      setErrorMessage(PARSE_ERROR_MESSAGE);
+      setResponse(null);
+      setErrorMessage(EXECUTE_ERROR_MESSAGE);
     } finally {
-      setIsParsing(false);
+      setIsSubmitting(false);
     }
   }
 
   function resetQuery() {
     setQuery("");
-    setParsedQuery(null);
+    setResponse(null);
     setErrorMessage(null);
   }
 
   return {
     query,
-    parsedQuery,
-    isParsing,
+    response,
+    isSubmitting,
     errorMessage,
     updateQuery,
     submitQuery,
