@@ -12,7 +12,9 @@
     "test": "vitest run",
     "lint": "eslint src tests",
     "db:generate": "drizzle-kit generate",
-    "db:migrate": "tsx src/db/migrate.ts"
+    "db:migrate": "tsx src/db/migrate.ts",
+    "db:seed": "tsx src/db/seed.ts",
+    "db:reset": "rm -f data/acme.db && tsx src/db/migrate.ts"
   },
   "dependencies": {
     "@acme/shared": "*",

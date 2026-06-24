@@ -18,19 +18,19 @@ Each feature follows **TDD**: failing test → minimal implementation → refact
 
 ---
 
-## Phase 1 — Engineering Foundation ⬜
+## Phase 1 — Engineering Foundation 🔄
 
 **Goal:** Patterns every feature will reuse.
 
-| # | Feature | Backend | Frontend | Tests (write first) |
-|---|---------|---------|----------|---------------------|
-| 1.1 | DI container | `container/index.ts` wires repos → services → routes | — | Container resolves mocked deps in tests |
-| 1.2 | Repository layer | `IEmployeeRepository`, `ICompensationRepository` + Drizzle impl | — | In-memory SQLite repo tests |
-| 1.3 | Seed script | `db/seed.ts` — 50–100 sample employees + history | — | Seed is idempotent |
-| 1.4 | CI pipeline | GitHub Actions: typecheck, lint, test, build | — | Pipeline fails on red tests |
-| 1.5 | Shared API schemas | Zod schemas in `@acme/shared` for request/response | — | Schema parse tests |
+| # | Feature | Backend | Frontend | Tests (write first) | Status |
+|---|---------|---------|----------|---------------------|--------|
+| 1.1 | DI container | `container/index.ts` wires repos → services → routes | — | Container resolves mocked deps in tests | ✅ |
+| 1.2 | Repository layer | `IEmployeeRepository` + Drizzle impl | — | In-memory SQLite repo tests | ✅ |
+| 1.3 | Seed script | `db/seed.ts` — sample employees | — | Seed is idempotent | ✅ |
+| 1.4 | CI pipeline | GitHub Actions: typecheck, lint, test, build | — | Pipeline fails on red tests | ⬜ |
+| 1.5 | Shared API schemas | Zod schemas in `@acme/shared` for request/response | — | Schema parse tests | ✅ |
 
-**Exit criteria:** One vertical slice (`GET /api/employees`) built entirely with DI + repo + TDD.
+**Exit criteria:** One vertical slice (`GET /api/employees`) built entirely with DI + repo + TDD. ✅
 
 ---
 

@@ -66,6 +66,14 @@ npm run dev:frontend  # terminal 2 → http://localhost:3000
 
 **Next.js lockfile warnings in monorepo** — already suppressed via `NEXT_IGNORE_INCORRECT_LOCKFILE=1` in frontend scripts. Run `npm install` only from the **project root**, not inside `backend/` or `frontend/`.
 
+**Backend fails on startup with `table employees already exists`** — your SQLite file predates Drizzle migration tracking. Either restart (auto-baseline is applied) or reset cleanly:
+
+```bash
+npm run db:reset -w backend
+npm run db:seed -w backend
+npm run dev:backend
+```
+
 ## API
 
 - Health check: `GET /api/health`
