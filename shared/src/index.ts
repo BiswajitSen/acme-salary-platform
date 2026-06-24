@@ -61,3 +61,14 @@ export {
   type DepartmentSalaryStatistics,
   type TopEarner,
 } from "./analytics";
+
+export {
+  AI_INSIGHT_INTENTS,
+  INSIGHT_QUERY_DEPARTMENTS,
+  insightQueryRequestSchema,
+  type AiInsightIntent,
+  type InsightQueryDepartment,
+  type InsightQueryRequest,
+  type ParseInsightQueryResponse,
+  type ParsedInsightQuery,
+} from "./ai-insights";
