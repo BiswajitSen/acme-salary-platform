@@ -5,7 +5,10 @@ const envSchema = z.object({
     .enum(["development", "test", "production"])
     .default("development"),
   PORT: z.coerce.number().int().positive().default(8000),
-  DATABASE_URL: z.string().min(1).default("./data/acme.db"),
+  DATABASE_URL: z
+    .string()
+    .min(1)
+    .default("postgresql://acme:acme@localhost:5433/acme_salary"),
   CORS_ORIGIN: z.string().url().default("http://localhost:3000"),
   LOG_LEVEL: z
     .enum(["fatal", "error", "warn", "info", "debug", "trace"])
