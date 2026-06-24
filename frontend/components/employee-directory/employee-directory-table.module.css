@@ -1,0 +1,33 @@
+.shell {
+  overflow: hidden;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.header {
+  display: grid;
+  grid-template-columns: 1.1fr 1.4fr 1.2fr 1.4fr 0.8fr;
+  gap: 1rem;
+  align-items: center;
+  min-height: 44px;
+  padding: 0 1rem;
+  border-bottom: 1px solid var(--border);
+  background: var(--surface-muted);
+  font-size: 0.75rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-muted);
+}
+
+.body {
+  height: 480px;
+  overflow: auto;
+}
+
+.virtualRows {
+  position: relative;
+  width: 100%;
+}

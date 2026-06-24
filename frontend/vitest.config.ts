@@ -13,7 +13,11 @@ export default defineConfig({
         "lib/api/employees.ts",
         "lib/api/client.ts",
         "lib/hooks/use-debounced-value.ts",
+        "lib/hooks/use-employee-directory.ts",
         "components/employee-directory/employee-directory.tsx",
+        "components/employee-directory/employee-directory-filters.tsx",
+        "components/employee-directory/employee-directory-table.tsx",
+        "components/employee-directory/employee-row.tsx",
       ],
       thresholds: {
         lines: 100,

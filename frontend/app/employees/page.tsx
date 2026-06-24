@@ -1,5 +1,5 @@
-import { EmployeeDirectory } from "@/components/employee-directory/employee-directory";
+import { redirect } from "next/navigation";
 
 export default function EmployeesPage() {
-  return <EmployeeDirectory />;
+  redirect("/");
 }
