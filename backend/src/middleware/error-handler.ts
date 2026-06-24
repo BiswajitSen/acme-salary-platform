@@ -3,6 +3,7 @@ import { ZodError } from "zod";
 
 import { logger } from "../config/logger.js";
 import { isAppError } from "../lib/errors.js";
+import { EmployeeImportValidationError } from "../lib/employee-import-validation-error.js";
 
 export function notFoundHandler(_req: Request, res: Response): void {
   res.status(404).json({
@@ -21,6 +22,15 @@ export function errorHandler(
     res.status(400).json({
       error: "Validation Error",
       message: error.errors.map((issue) => issue.message).join(", "),
+    });
+    return;
+  }
+
+  if (error instanceof EmployeeImportValidationError) {
+    res.status(400).json({
+      error: error.name,
+      message: error.message,
+      errors: error.errors,
     });
     return;
   }
