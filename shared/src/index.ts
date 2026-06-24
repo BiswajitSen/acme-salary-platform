@@ -36,6 +36,14 @@ export {
 } from "./employees";
 
 export type {
+  CompensationImportPreviewResponse,
+  CompensationImportRecord,
+  CompensationImportResultResponse,
+  CompensationImportValidationErrorResponse,
+  CompensationImportValidationIssue,
+} from "./compensation-import";
+
+export type {
   EmployeeImportPreviewResponse,
   EmployeeImportResultResponse,
   EmployeeImportValidationErrorResponse,
