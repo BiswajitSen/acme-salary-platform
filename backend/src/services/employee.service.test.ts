@@ -12,11 +12,12 @@ function createMockRepository(
 ): IEmployeeRepository {
   return {
     findPaginated: vi.fn().mockResolvedValue(result),
-    findDistinctFilterValues: vi.fn().mockResolvedValue({
+    findDistinctEmployeeFilterValues: vi.fn().mockResolvedValue({
       countries: [],
       departments: [],
       jobTitles: [],
     }),
+    upsertManyEmployees: vi.fn(),
   };
 }
 
@@ -99,7 +100,7 @@ describe("EmployeeService.listEmployees", () => {
 describe("EmployeeService.listEmployeeFilterOptions", () => {
   it("returns distinct filter values from the repository", async () => {
     const repository = createMockRepository();
-    vi.mocked(repository.findDistinctFilterValues).mockResolvedValue({
+    vi.mocked(repository.findDistinctEmployeeFilterValues).mockResolvedValue({
       countries: ["US"],
       departments: ["Engineering"],
       jobTitles: ["Senior Engineer"],

@@ -108,7 +108,7 @@ export function createEmployeeRouter(deps: { employeeService: EmployeeService })
   router.get("/", async (req, res, next) => {
     try {
       const query = listEmployeesSchema.parse(req.query);
-      const result = await deps.employeeService.list(query);
+      const result = await deps.employeeService.listEmployees(query);
       res.json(result);
     } catch (err) {
       next(err);

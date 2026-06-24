@@ -58,6 +58,9 @@ npm run dev:frontend  # terminal 2 → http://localhost:3000
 | `npm run lint` | Lint all packages |
 | `npm run db:migrate` | Apply pending migrations |
 | `npm run db:generate` | Generate migration from schema changes |
+| `npm run db:seed` | Seed sample employees (backend workspace) |
+| `npm run db:generate-spreadsheet -w backend` | Generate 10k-row employee `.xlsx` fixture |
+| `npm run db:import -w backend -- <path>` | Import employees from Excel (CLI) |
 | `npm run typecheck` | Type-check backend + frontend |
 
 ## Troubleshooting
@@ -89,6 +92,21 @@ Schema (PRD-aligned):
 - `compensation_history` — append-only salary events with FK to employees
 
 Migrations run automatically on backend startup. WAL mode and foreign keys are enabled.
+
+### Bulk import from Excel
+
+Generate a 10,000-row fixture and import it:
+
+```bash
+npm run db:generate-spreadsheet -w backend
+npm run db:import -w backend -- fixtures/employees-10000.xlsx
+```
+
+Expected columns (header aliases supported): `employee_id`, `full_name`, `department`, `job_title`, `country`. Import validates all rows before writing; duplicate employee IDs are rejected. Re-importing the same file upserts by employee ID.
+
+### Import in the HR UI
+
+Open **Import** in the header (`/import`), upload an `.xlsx` file, preview validation results, then confirm to write employees to the database.
 
 ## Documentation
 

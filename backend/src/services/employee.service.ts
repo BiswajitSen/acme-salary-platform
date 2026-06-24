@@ -32,6 +32,6 @@ export class EmployeeService {
   }
 
   async listEmployeeFilterOptions(): Promise<EmployeeFilterOptions> {
-    return this.employees.findDistinctFilterValues();
+    return this.employees.findDistinctEmployeeFilterValues();
   }
 }

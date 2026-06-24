@@ -7,11 +7,14 @@
     "dev:frontend": "npm run dev -w frontend",
     "build": "npm run build -w backend && npm run build -w frontend",
     "test": "npm test -w shared && npm test -w backend && npm test -w frontend",
+    "test:coverage": "npm run test:coverage -w shared && npm run test:coverage -w backend && npm run test:coverage -w frontend",
     "typecheck": "npm run typecheck -w backend && npm run typecheck -w frontend",
     "lint": "npm run lint -w backend && npm run lint -w frontend",
     "format": "prettier --write \"**/*.{ts,tsx,json,md}\"",
     "db:generate": "npm run db:generate -w backend",
-    "db:migrate": "npm run db:migrate -w backend"
+    "db:migrate": "npm run db:migrate -w backend",
+    "db:import": "npm run db:import -w backend",
+    "db:generate-spreadsheet": "npm run db:generate-spreadsheet -w backend"
   },
   "devDependencies": {
     "prettier": "^3.4.2"
