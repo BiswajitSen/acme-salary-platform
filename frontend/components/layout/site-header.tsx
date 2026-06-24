@@ -20,6 +20,9 @@ export function SiteHeader() {
           <Link href="/import/compensation" className={styles.navLink}>
             Import Compensation
           </Link>
+          <Link href="/analytics" className={styles.navLink}>
+            Analytics
+          </Link>
         </nav>
       </div>
     </header>
