@@ -5,6 +5,7 @@ import {
   COMPENSATION_REASONS,
   DEFAULT_EMPLOYEE_LIMIT,
   DEFAULT_EMPLOYEE_PAGE,
+  insightQueryRequestSchema,
   listEmployeesQuerySchema,
   MAX_EMPLOYEE_LIMIT,
 } from "./index";
@@ -28,6 +29,12 @@ describe("shared exports", () => {
   it("re-exports analytics summary contract symbols", () => {
     expect(analyticsSummaryQuerySchema.parse({ currency: "EUR" })).toEqual({
       currency: "EUR",
+    });
+  });
+
+  it("re-exports ai insight query contract symbols", () => {
+    expect(insightQueryRequestSchema.parse({ query: "average salary in Engineering" })).toEqual({
+      query: "average salary in Engineering",
     });
   });
 });
