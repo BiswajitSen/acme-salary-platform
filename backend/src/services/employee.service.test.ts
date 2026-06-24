@@ -1,17 +1,29 @@
 import type { EmployeeSummary } from "@acme/shared";
 import { describe, expect, it, vi } from "vitest";
 
+import type { CompensationHistoryRecord } from "../domain/compensation.types.js";
+import type { ICompensationRepository } from "../repositories/interfaces/compensation.repository.js";
 import type {
   IEmployeeRepository,
   PaginatedEmployeesResult,
 } from "../repositories/interfaces/employee.repository.js";
+import { AppError } from "../lib/errors.js";
 import { EmployeeService } from "./employee.service.js";
+
+function createMockCompensationRepository(
+  history: CompensationHistoryRecord[] = [],
+): ICompensationRepository {
+  return {
+    findCompensationHistoryByEmployeeId: vi.fn().mockResolvedValue(history),
+  };
+}
 
 function createMockRepository(
   result: PaginatedEmployeesResult = { data: [], total: 0 },
 ): IEmployeeRepository {
   return {
     findPaginated: vi.fn().mockResolvedValue(result),
+    findEmployeeById: vi.fn(),
     findDistinctEmployeeFilterValues: vi.fn().mockResolvedValue({
       countries: [],
       departments: [],
@@ -29,13 +41,45 @@ const sampleEmployee: EmployeeSummary = {
   country: "US",
 };
 
+const sampleHistory: CompensationHistoryRecord[] = [
+  {
+    id: 1,
+    employeeId: "E001",
+    baseSalary: 120_000,
+    currency: "USD",
+    effectiveDate: "2024-01-01",
+    reason: "New Hire",
+    changedBy: "HR Admin",
+    notes: null,
+    createdAt: "2024-01-02T10:00:00.000Z",
+  },
+  {
+    id: 2,
+    employeeId: "E001",
+    baseSalary: 132_000,
+    currency: "USD",
+    effectiveDate: "2025-01-01",
+    reason: "Annual Increment",
+    changedBy: "HR Admin",
+    notes: "Merit increase",
+    createdAt: "2025-01-02T10:00:00.000Z",
+  },
+];
+
+function createService(
+  repository: IEmployeeRepository,
+  compensation: ICompensationRepository = createMockCompensationRepository(),
+) {
+  return new EmployeeService(repository, compensation);
+}
+
 describe("EmployeeService.listEmployees", () => {
   it("returns paginated employees with meta", async () => {
     const repository = createMockRepository({
       data: [sampleEmployee],
       total: 1,
     });
-    const service = new EmployeeService(repository);
+    const service = createService(repository);
 
     const result = await service.listEmployees({});
 
@@ -57,7 +101,7 @@ describe("EmployeeService.listEmployees", () => {
   });
 
   it("returns zero total pages when no employees match", async () => {
-    const service = new EmployeeService(createMockRepository({ data: [], total: 0 }));
+    const service = createService(createMockRepository({ data: [], total: 0 }));
 
     const result = await service.listEmployees({});
 
@@ -66,7 +110,7 @@ describe("EmployeeService.listEmployees", () => {
 
   it("forwards search and filters to the repository", async () => {
     const repository = createMockRepository();
-    const service = new EmployeeService(repository);
+    const service = createService(repository);
 
     await service.listEmployees({
       page: 2,
@@ -91,7 +135,7 @@ describe("EmployeeService.listEmployees", () => {
   });
 
   it("rejects invalid query params", async () => {
-    const service = new EmployeeService(createMockRepository());
+    const service = createService(createMockRepository());
 
     await expect(service.listEmployees({ limit: 200 })).rejects.toThrow();
   });
@@ -105,12 +149,79 @@ describe("EmployeeService.listEmployeeFilterOptions", () => {
       departments: ["Engineering"],
       jobTitles: ["Senior Engineer"],
     });
-    const service = new EmployeeService(repository);
+    const service = createService(repository);
 
     await expect(service.listEmployeeFilterOptions()).resolves.toEqual({
       countries: ["US"],
       departments: ["Engineering"],
       jobTitles: ["Senior Engineer"],
     });
+  });
+});
+
+describe("EmployeeService.getEmployeeProfile", () => {
+  it("returns an employee profile with current compensation", async () => {
+    const repository = createMockRepository();
+    vi.mocked(repository.findEmployeeById).mockResolvedValue(sampleEmployee);
+    const compensation = createMockCompensationRepository(sampleHistory);
+    const service = createService(repository, compensation);
+
+    await expect(service.getEmployeeProfile("E001")).resolves.toEqual({
+      ...sampleEmployee,
+      currentCompensation: {
+        baseSalary: 132_000,
+        currency: "USD",
+        effectiveDate: "2025-01-01",
+        reason: "Annual Increment",
+        changedBy: "HR Admin",
+        lastUpdated: "2025-01-02T10:00:00.000Z",
+      },
+    });
+  });
+
+  it("returns null current compensation when history is empty", async () => {
+    const repository = createMockRepository();
+    vi.mocked(repository.findEmployeeById).mockResolvedValue(sampleEmployee);
+    const service = createService(repository);
+
+    await expect(service.getEmployeeProfile("E001")).resolves.toEqual({
+      ...sampleEmployee,
+      currentCompensation: null,
+    });
+  });
+
+  it("throws a 404 when the employee does not exist", async () => {
+    const repository = createMockRepository();
+    vi.mocked(repository.findEmployeeById).mockResolvedValue(null);
+    const service = createService(repository);
+
+    await expect(service.getEmployeeProfile("E404")).rejects.toEqual(
+      new AppError(404, "Employee E404 not found"),
+    );
+  });
+});
+
+describe("EmployeeService.listEmployeeCompensationHistory", () => {
+  it("returns a newest-first compensation timeline", async () => {
+    const repository = createMockRepository();
+    vi.mocked(repository.findEmployeeById).mockResolvedValue(sampleEmployee);
+    const compensation = createMockCompensationRepository(sampleHistory);
+    const service = createService(repository, compensation);
+
+    const result = await service.listEmployeeCompensationHistory("E001");
+
+    expect(result.employeeId).toBe("E001");
+    expect(result.entries.map((entry) => entry.id)).toEqual([2, 1]);
+    expect(result.entries[0]?.previousSalary).toBe(120_000);
+  });
+
+  it("throws a 404 when the employee does not exist", async () => {
+    const repository = createMockRepository();
+    vi.mocked(repository.findEmployeeById).mockResolvedValue(null);
+    const service = createService(repository);
+
+    await expect(service.listEmployeeCompensationHistory("E404")).rejects.toEqual(
+      new AppError(404, "Employee E404 not found"),
+    );
   });
 });

@@ -7,6 +7,7 @@ import { EmployeeImportService } from "./employee-import.service.js";
 function createMockRepository(): IEmployeeRepository {
   return {
     findPaginated: vi.fn(),
+    findEmployeeById: vi.fn(),
     findDistinctEmployeeFilterValues: vi.fn(),
     upsertManyEmployees: vi.fn().mockResolvedValue({ inserted: 2, updated: 0, total: 2 }),
   };

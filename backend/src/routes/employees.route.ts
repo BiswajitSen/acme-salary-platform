@@ -18,6 +18,26 @@ export function createEmployeesRouter(deps: EmployeeRouterDeps) {
     }
   });
 
+  router.get("/:id/compensation", async (req, res, next) => {
+    try {
+      const history = await deps.employeeService.listEmployeeCompensationHistory(
+        req.params.id,
+      );
+      res.json(history);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  router.get("/:id", async (req, res, next) => {
+    try {
+      const profile = await deps.employeeService.getEmployeeProfile(req.params.id);
+      res.json(profile);
+    } catch (error) {
+      next(error);
+    }
+  });
+
   router.get("/", async (req, res, next) => {
     try {
       const result = await deps.employeeService.listEmployees(req.query);
