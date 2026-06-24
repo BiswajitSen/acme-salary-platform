@@ -1,3 +1,4 @@
+import { eq } from "drizzle-orm";
 import type { EmployeeSummary } from "@acme/shared";
 import { describe, expect, it } from "vitest";
 
@@ -148,10 +149,60 @@ describe("DrizzleEmployeeRepository", () => {
   it("returns distinct filter values", async () => {
     await seedDirectoryFixtures();
 
-    const options = await repository.findDistinctFilterValues();
+    const options = await repository.findDistinctEmployeeFilterValues();
 
     expect(options.countries).toContain("US");
     expect(options.departments).toContain("Engineering");
     expect(options.jobTitles).toContain("Senior Engineer");
+  });
+
+  it("inserts new employees through upsertManyEmployees", async () => {
+    const result = await repository.upsertManyEmployees([
+      {
+        id: "E500",
+        fullName: "Import Target",
+        department: "Finance",
+        jobTitle: "Analyst",
+        country: "SG",
+      },
+    ]);
+
+    expect(result).toEqual({ inserted: 1, updated: 0, total: 1 });
+  });
+
+  it("updates existing employees through upsertManyEmployees", async () => {
+    await repository.upsertManyEmployees([
+      {
+        id: "E501",
+        fullName: "Original Name",
+        department: "Engineering",
+        jobTitle: "Engineer",
+        country: "US",
+      },
+    ]);
+
+    const result = await repository.upsertManyEmployees([
+      {
+        id: "E501",
+        fullName: "Updated Name",
+        department: "Engineering",
+        jobTitle: "Senior Engineer",
+        country: "US",
+      },
+    ]);
+
+    const [employee] = await db
+      .select({
+        fullName: employees.fullName,
+        jobTitle: employees.jobTitle,
+      })
+      .from(employees)
+      .where(eq(employees.id, "E501"));
+
+    expect(result).toEqual({ inserted: 0, updated: 1, total: 1 });
+    expect(employee).toEqual({
+      fullName: "Updated Name",
+      jobTitle: "Senior Engineer",
+    });
   });
 });

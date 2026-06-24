@@ -1,6 +1,7 @@
 import type { EmployeeSummary } from "@acme/shared";
 
 import type { EmployeeListFilters } from "../../domain/employee-list-filters.js";
+import type { EmployeeSpreadsheetRow, EmployeeImportResult } from "../../domain/employee-import.types.js";
 
 export type PaginatedEmployeesQuery = {
   page: number;
@@ -16,9 +17,12 @@ export type PaginatedEmployeesResult = {
 
 export interface IEmployeeRepository {
   findPaginated(query: PaginatedEmployeesQuery): Promise<PaginatedEmployeesResult>;
-  findDistinctFilterValues(): Promise<{
+  findDistinctEmployeeFilterValues(): Promise<{
     countries: string[];
     departments: string[];
     jobTitles: string[];
   }>;
+  upsertManyEmployees(
+    employees: EmployeeSpreadsheetRow[],
+  ): Promise<EmployeeImportResult>;
 }
