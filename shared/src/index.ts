@@ -26,7 +26,15 @@ export {
   listEmployeesQuerySchema,
   MAX_EMPLOYEE_LIMIT,
   type EmployeeSummary,
+  type EmployeeFilterOptions,
   type ListEmployeesQuery,
   type PaginatedEmployeesResponse,
   type PaginationMeta,
 } from "./employees.js";
+
+export type {
+  EmployeeImportPreviewResponse,
+  EmployeeImportResultResponse,
+  EmployeeImportValidationErrorResponse,
+  EmployeeImportValidationIssue,
+} from "./employee-import.js";
