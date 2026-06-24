@@ -11,6 +11,9 @@ import {
   type ParsedInsightQuery,
 } from "@acme/shared";
 
+import { parseSafeInsightCurrency } from "./insight-query-safety.js";
+import { validateInsightExecutionSafety } from "./validate-insight-execution.js";
+
 export type InsightExecutorContext = {
   getAnalyticsSummary(currency: string): Promise<AnalyticsSummaryResponse>;
   getDepartmentSalaryStatistics(
@@ -20,7 +23,22 @@ export type InsightExecutorContext = {
 };
 
 function resolveInsightCurrency(currency: string | null): string {
-  return currency ?? DEFAULT_INSIGHT_CURRENCY;
+  if (currency === null) {
+    return DEFAULT_INSIGHT_CURRENCY;
+  }
+
+  return parseSafeInsightCurrency(currency)!;
+}
+
+function buildRejectedInputResponse(
+  parsedQuery: ParsedInsightQuery,
+  error: InsightExecutionError,
+): ExecuteInsightQueryResponse {
+  return {
+    parsedQuery,
+    result: null,
+    error,
+  };
 }
 
 function buildUnsupportedIntentResponse(
@@ -193,6 +211,12 @@ export async function executeParsedInsightQuery(
   parsedQuery: ParsedInsightQuery,
   context: InsightExecutorContext,
 ): Promise<ExecuteInsightQueryResponse> {
+  const safetyError = validateInsightExecutionSafety(parsedQuery);
+
+  if (safetyError) {
+    return buildRejectedInputResponse(parsedQuery, safetyError);
+  }
+
   if (parsedQuery.intent === "UNKNOWN") {
     return buildUnsupportedIntentResponse(parsedQuery);
   }

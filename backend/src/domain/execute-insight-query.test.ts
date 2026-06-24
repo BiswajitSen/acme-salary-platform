@@ -213,4 +213,25 @@ describe("executeParsedInsightQuery", () => {
       message: "No salary data found for the requested department in USD.",
     });
   });
+
+  it("rejects unsafe parsed queries before calling analytics", async () => {
+    const context = createContext();
+
+    const response = await executeParsedInsightQuery(
+      {
+        intent: "HEADCOUNT",
+        originalQuery: "headcount; DROP TABLE employees",
+        department: null,
+        currency: "USD",
+      },
+      context,
+    );
+
+    expect(response.result).toBeNull();
+    expect(response.error).toEqual({
+      kind: "REJECTED_INPUT",
+      message: "Invalid or unsafe query input.",
+    });
+    expect(context.getAnalyticsSummary).not.toHaveBeenCalled();
+  });
 });

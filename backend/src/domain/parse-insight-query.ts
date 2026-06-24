@@ -4,10 +4,9 @@ import {
   type ParsedInsightQuery,
 } from "@acme/shared";
 
-const ISO_CURRENCY_PATTERN = /\b(USD|GBP|EUR|INR|SGD)\b/i;
+import { looksLikeSqlInjection } from "./insight-query-safety.js";
 
-const SQL_INJECTION_PATTERN =
-  /(\b(select|insert|update|delete|drop|alter|truncate)\b|--|;)/i;
+const ISO_CURRENCY_PATTERN = /\b(USD|GBP|EUR|INR|SGD)\b/i;
 
 const INTENT_PATTERNS: ReadonlyArray<{
   intent: Exclude<AiInsightIntent, "UNKNOWN">;
@@ -34,10 +33,6 @@ const INTENT_PATTERNS: ReadonlyArray<{
 
 function normalizeInsightQuery(query: string): string {
   return query.trim().replace(/\s+/g, " ");
-}
-
-function looksLikeSqlInjection(normalizedQuery: string): boolean {
-  return SQL_INJECTION_PATTERN.test(normalizedQuery);
 }
 
 function extractInsightCurrency(normalizedQuery: string): string | null {
