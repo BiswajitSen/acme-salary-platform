@@ -38,4 +38,8 @@ describe("normalizePagination", () => {
   it("floors page at 1", () => {
     expect(normalizePagination({ page: 0, limit: 50 }).page).toBe(1);
   });
+
+  it("floors limit at 1", () => {
+    expect(normalizePagination({ page: 1, limit: 0 }).limit).toBe(1);
+  });
 });
