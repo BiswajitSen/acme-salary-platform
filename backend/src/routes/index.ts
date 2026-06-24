@@ -1,6 +1,7 @@
 import { Router } from "express";
 
 import type { Container } from "../container/index.js";
+import { createAiInsightsRouter } from "./ai-insights.route.js";
 import { createAnalyticsRouter } from "./analytics.route.js";
 import { createCompensationImportRouter } from "./compensation-import.route.js";
 import { createEmployeeImportRouter } from "./employee-import.route.js";
@@ -34,6 +35,12 @@ export function createApiRouter(container: Container) {
     "/analytics",
     createAnalyticsRouter({
       analyticsService: container.analyticsService,
+    }),
+  );
+  router.use(
+    "/insights",
+    createAiInsightsRouter({
+      aiInsightsService: container.aiInsightsService,
     }),
   );
 
