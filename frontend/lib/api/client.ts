@@ -26,19 +26,36 @@ export async function apiFetch<T>(
     },
   });
 
+  return parseJsonResponse<T>(response);
+}
+
+export async function apiPostJson<T>(url: string, body: unknown): Promise<T> {
+  const response = await fetch(url, {
+    method: "POST",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body),
+  });
+
+  return parseJsonResponse<T>(response);
+}
+
+async function parseJsonResponse<T>(response: Response): Promise<T> {
   if (!response.ok) {
-    let body: ApiError | undefined;
+    let parsedBody: ApiError | undefined;
 
     try {
-      body = (await response.json()) as ApiError;
+      parsedBody = (await response.json()) as ApiError;
     } catch {
-      body = undefined;
+      parsedBody = undefined;
     }
 
     throw new ApiRequestError(
-      body?.message ?? `Request failed with status ${response.status}`,
+      parsedBody?.message ?? `Request failed with status ${response.status}`,
       response.status,
-      body,
+      parsedBody,
     );
   }
 

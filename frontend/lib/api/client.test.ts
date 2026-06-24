@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { ApiRequestError, apiFetch } from "./client";
+import { ApiRequestError, apiFetch, apiPostJson } from "./client";
 
 describe("apiFetch", () => {
   it("returns parsed json for successful responses", async () => {
@@ -46,6 +46,33 @@ describe("apiFetch", () => {
         status: 502,
       }),
     );
+
+    global.fetch = originalFetch;
+  });
+});
+
+describe("apiPostJson", () => {
+  it("posts json and returns parsed response bodies", async () => {
+    const originalFetch = global.fetch;
+    global.fetch = async (input, init) => {
+      expect(String(input)).toBe("/api/backend/employees/E001/compensation");
+      expect(init?.method).toBe("POST");
+      expect(init?.headers).toMatchObject({
+        "Content-Type": "application/json",
+      });
+      expect(init?.body).toBe(JSON.stringify({ baseSalary: 100_000 }));
+
+      return new Response(JSON.stringify({ entry: { id: 1 } }), {
+        status: 201,
+        headers: { "Content-Type": "application/json" },
+      });
+    };
+
+    await expect(
+      apiPostJson<{ entry: { id: number } }>("/api/backend/employees/E001/compensation", {
+        baseSalary: 100_000,
+      }),
+    ).resolves.toEqual({ entry: { id: 1 } });
 
     global.fetch = originalFetch;
   });

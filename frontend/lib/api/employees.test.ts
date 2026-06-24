@@ -1,6 +1,6 @@
 import { describe, expect, it } from "vitest";
 
-import { listEmployeeFilterOptions, listEmployees, getEmployeeProfile, listEmployeeCompensationHistory } from "./employees";
+import { listEmployeeFilterOptions, listEmployees, getEmployeeProfile, listEmployeeCompensationHistory, recordCompensationChange } from "./employees";
 
 describe("listEmployees", () => {
   it("builds query string from employee list params", async () => {
@@ -114,6 +114,44 @@ describe("listEmployeeCompensationHistory", () => {
       employeeId: "E001",
       entries: [],
     });
+    global.fetch = originalFetch;
+  });
+});
+
+describe("recordCompensationChange", () => {
+  it("posts a compensation change for an employee", async () => {
+    const originalFetch = global.fetch;
+    global.fetch = async (input, init) => {
+      expect(String(input)).toBe("/api/backend/employees/E001/compensation");
+      expect(init?.method).toBe("POST");
+      return new Response(
+        JSON.stringify({
+          entry: {
+            id: 3,
+            baseSalary: 140_000,
+            currency: "USD",
+            effectiveDate: "2026-06-01",
+            reason: "Promotion",
+            changedBy: "HR Admin",
+            notes: null,
+            previousSalary: 132_000,
+            createdAt: "2026-06-02T10:00:00.000Z",
+          },
+        }),
+        { status: 201, headers: { "Content-Type": "application/json" } },
+      );
+    };
+
+    await expect(
+      recordCompensationChange("E001", {
+        baseSalary: 140_000,
+        currency: "USD",
+        effectiveDate: "2026-06-01",
+        reason: "Promotion",
+        changedBy: "HR Admin",
+      }),
+    ).resolves.toMatchObject({ entry: { baseSalary: 140_000 } });
+
     global.fetch = originalFetch;
   });
 });

@@ -1,10 +1,11 @@
 "use client";
 
+import { useCallback, useEffect, useState } from "react";
+
 import type {
   EmployeeCompensationHistoryResponse,
   EmployeeProfileResponse,
 } from "@acme/shared";
-import { useEffect, useState } from "react";
 
 import {
   getEmployeeProfile,
@@ -18,6 +19,7 @@ type EmployeeProfileState = {
   isLoading: boolean;
   errorMessage: string | null;
   notFound: boolean;
+  reloadProfile: () => Promise<void>;
 };
 
 export function useEmployeeProfile(employeeId: string): EmployeeProfileState {
@@ -28,48 +30,36 @@ export function useEmployeeProfile(employeeId: string): EmployeeProfileState {
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [notFound, setNotFound] = useState(false);
 
-  useEffect(() => {
-    let isActive = true;
+  const reloadProfile = useCallback(async () => {
+    setIsLoading(true);
+    setErrorMessage(null);
+    setNotFound(false);
 
-    void (async () => {
-      setIsLoading(true);
-      setErrorMessage(null);
-      setNotFound(false);
+    try {
+      const [nextProfile, nextHistory] = await Promise.all([
+        getEmployeeProfile(employeeId),
+        listEmployeeCompensationHistory(employeeId),
+      ]);
 
-      try {
-        const [nextProfile, nextHistory] = await Promise.all([
-          getEmployeeProfile(employeeId),
-          listEmployeeCompensationHistory(employeeId),
-        ]);
-
-        if (isActive) {
-          setProfile(nextProfile);
-          setCompensationHistory(nextHistory);
-        }
-      } catch (error) {
-        if (!isActive) {
-          return;
-        }
-
-        if (error instanceof ApiRequestError && error.status === 404) {
-          setNotFound(true);
-          setProfile(null);
-          setCompensationHistory(null);
-          return;
-        }
-
-        setErrorMessage("Unable to load the employee profile. Is the backend running?");
-      } finally {
-        if (isActive) {
-          setIsLoading(false);
-        }
+      setProfile(nextProfile);
+      setCompensationHistory(nextHistory);
+    } catch (error) {
+      if (error instanceof ApiRequestError && error.status === 404) {
+        setNotFound(true);
+        setProfile(null);
+        setCompensationHistory(null);
+        return;
       }
-    })();
 
-    return () => {
-      isActive = false;
-    };
+      setErrorMessage("Unable to load the employee profile. Is the backend running?");
+    } finally {
+      setIsLoading(false);
+    }
   }, [employeeId]);
+
+  useEffect(() => {
+    void reloadProfile();
+  }, [reloadProfile]);
 
   return {
     profile,
@@ -77,5 +67,6 @@ export function useEmployeeProfile(employeeId: string): EmployeeProfileState {
     isLoading,
     errorMessage,
     notFound,
+    reloadProfile,
   };
 }

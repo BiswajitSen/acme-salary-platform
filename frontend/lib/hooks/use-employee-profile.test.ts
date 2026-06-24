@@ -76,4 +76,40 @@ describe("useEmployeeProfile", () => {
     unmount();
     rejectProfile?.(new Error("Network error"));
   });
+
+  it("reloads profile data when reloadProfile is called", async () => {
+    getEmployeeProfile.mockResolvedValue({
+      id: "E001",
+      fullName: "Jane Doe",
+      department: "Engineering",
+      jobTitle: "Senior Engineer",
+      country: "US",
+      currentCompensation: null,
+    });
+    listEmployeeCompensationHistory.mockResolvedValue({
+      employeeId: "E001",
+      entries: [],
+    });
+
+    const { result } = renderHook(() => useEmployeeProfile("E001"));
+
+    await waitFor(() => {
+      expect(result.current.profile?.fullName).toBe("Jane Doe");
+    });
+
+    getEmployeeProfile.mockResolvedValue({
+      id: "E001",
+      fullName: "Jane Doe",
+      department: "Engineering",
+      jobTitle: "Principal Engineer",
+      country: "US",
+      currentCompensation: null,
+    });
+
+    await result.current.reloadProfile();
+
+    await waitFor(() => {
+      expect(result.current.profile?.jobTitle).toBe("Principal Engineer");
+    });
+  });
 });

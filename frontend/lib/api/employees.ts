@@ -4,9 +4,11 @@ import type {
   EmployeeProfileResponse,
   ListEmployeesQuery,
   PaginatedEmployeesResponse,
+  RecordCompensationChangeInput,
+  RecordCompensationChangeResponse,
 } from "@acme/shared";
 
-import { apiFetch } from "./client";
+import { ApiRequestError, apiFetch, apiPostJson } from "./client";
 
 export type EmployeeListParams = Partial<
   Pick<ListEmployeesQuery, "page" | "limit" | "search" | "country" | "department" | "jobTitle">
@@ -51,3 +53,15 @@ export async function listEmployeeCompensationHistory(
     `/api/backend/employees/${employeeId}/compensation`,
   );
 }
+
+export async function recordCompensationChange(
+  employeeId: string,
+  input: RecordCompensationChangeInput,
+): Promise<RecordCompensationChangeResponse> {
+  return apiPostJson<RecordCompensationChangeResponse>(
+    `/api/backend/employees/${employeeId}/compensation`,
+    input,
+  );
+}
+
+export { ApiRequestError };
