@@ -38,11 +38,11 @@ CREATE TABLE IF NOT EXISTS "compensation_history_2024_06"
 --> statement-breakpoint
 CREATE TABLE IF NOT EXISTS "compensation_history_2025_01"
   PARTITION OF "compensation_history"
-  FOR VALUES FROM ('2025-01-01') TO ('2026-01-01');
+  FOR VALUES FROM ('2025-01-01') TO ('2025-02-01');
 --> statement-breakpoint
 INSERT INTO "compensation_month_partitions" ("month_key", "partition_table_name", "range_start", "range_end")
 VALUES
   ('2024-01', 'compensation_history_2024_01', '2024-01-01', '2024-02-01'),
   ('2024-06', 'compensation_history_2024_06', '2024-06-01', '2024-07-01'),
-  ('2025-01', 'compensation_history_2025_01', '2025-01-01', '2026-01-01')
+  ('2025-01', 'compensation_history_2025_01', '2025-01-01', '2025-02-01')
 ON CONFLICT ("month_key") DO NOTHING;
