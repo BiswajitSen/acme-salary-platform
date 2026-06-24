@@ -114,11 +114,11 @@ Each feature follows **TDD**: failing test → minimal implementation → refact
 
 **Goal:** Natural language → safe, whitelisted analytics. **No raw SQL from AI.**
 
-| # | Feature | API | UI | Tests (write first) |
-|---|---------|-----|----|---------------------|
-| 7.1 | Intent parser | Map phrases → enum intents | Chat / query input | "avg salary in Engineering" → `AVG_DEPT_SALARY` |
-| 7.2 | Whitelisted executors | One function per intent; parameterized queries only | Result display | Unknown intent → graceful error |
-| 7.3 | Safety | Read-only DB access; no string interpolation in SQL | — | Injection-style inputs rejected |
+| # | Feature | API | UI | Tests (write first) | Status |
+|---|---------|-----|----|---------------------|--------|
+| 7.1 | Intent parser | `POST /api/insights/parse` | Chat / query input on `/insights` | "avg salary in Engineering" → `AVG_DEPT_SALARY` | ✅ |
+| 7.2 | Whitelisted executors | One function per intent; parameterized queries only | Result display | Unknown intent → graceful error | ⬜ |
+| 7.3 | Safety | Read-only DB access; no string interpolation in SQL | — | Injection-style inputs rejected | ⬜ |
 
 **Exit criteria:** HR asks plain-English questions; system never executes unstructured SQL.
 
