@@ -17,16 +17,16 @@
     "db:seed": "tsx src/db/seed.ts",
     "db:import": "tsx src/db/import-employees.ts",
     "db:generate-spreadsheet": "tsx scripts/generate-employee-spreadsheet.ts",
-    "db:reset": "rm -f data/acme.db && tsx src/db/migrate.ts"
+    "db:reset": "docker compose exec -T postgres psql -U acme -d acme_salary -c 'DROP SCHEMA public CASCADE; CREATE SCHEMA public;' && tsx src/db/migrate.ts && tsx src/db/seed.ts"
   },
   "dependencies": {
     "@acme/shared": "*",
-    "better-sqlite3": "^11.7.0",
     "cors": "^2.8.5",
     "drizzle-orm": "^0.38.3",
     "express": "^4.21.2",
     "helmet": "^8.0.0",
     "multer": "^2.2.0",
+    "pg": "^8.13.1",
     "pino": "^9.6.0",
     "pino-http": "^10.3.0",
     "xlsx": "^0.18.5",
@@ -34,11 +34,11 @@
   },
   "devDependencies": {
     "@eslint/js": "^9.17.0",
-    "@types/better-sqlite3": "^7.6.12",
     "@types/cors": "^2.8.17",
     "@types/express": "^5.0.0",
     "@types/multer": "^2.1.0",
     "@types/node": "^22.10.2",
+    "@types/pg": "^8.11.10",
     "@types/supertest": "^6.0.2",
     "@vitest/coverage-v8": "^3.2.6",
     "drizzle-kit": "^0.30.1",
