@@ -34,6 +34,17 @@ describe("DrizzleAnalyticsRepository", () => {
     ).resolves.toBe(0);
   });
 
+  it("sums latest compensation salaries for the requested currency", async () => {
+    await runSeed(db);
+
+    await expect(repository.sumLatestCompensationSalariesInCurrency("USD")).resolves.toBe(
+      132_000,
+    );
+    await expect(repository.sumLatestCompensationSalariesInCurrency("GBP")).resolves.toBe(
+      85_000,
+    );
+  });
+
   it("uses the newest effective date when determining latest compensation currency", async () => {
     await runSeed(db);
 

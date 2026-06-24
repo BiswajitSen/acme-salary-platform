@@ -17,6 +17,7 @@ describe("GET /api/analytics/summary", () => {
     expect(response.body).toEqual({
       currency: "USD",
       headcount: 1,
+      totalPayroll: 132_000,
     });
   });
 

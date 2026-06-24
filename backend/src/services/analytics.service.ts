@@ -12,10 +12,13 @@ export class AnalyticsService {
     const { currency } = analyticsSummaryQuerySchema.parse(query);
     const headcount =
       await this.analytics.countEmployeesWithLatestCompensationInCurrency(currency);
+    const totalPayroll =
+      await this.analytics.sumLatestCompensationSalariesInCurrency(currency);
 
     return {
       currency,
       headcount,
+      totalPayroll,
     };
   }
 }

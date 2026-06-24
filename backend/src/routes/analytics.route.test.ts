@@ -19,6 +19,7 @@ describe("createAnalyticsRouter", () => {
       getAnalyticsSummary: vi.fn().mockResolvedValue({
         currency: "USD",
         headcount: 3,
+        totalPayroll: 396_000,
       }),
     } as unknown as AnalyticsService;
 
@@ -27,7 +28,7 @@ describe("createAnalyticsRouter", () => {
     );
 
     expect(response.status).toBe(200);
-    expect(response.body).toEqual({ currency: "USD", headcount: 3 });
+    expect(response.body).toEqual({ currency: "USD", headcount: 3, totalPayroll: 396_000 });
     expect(analyticsService.getAnalyticsSummary).toHaveBeenCalledWith({
       currency: "USD",
     });

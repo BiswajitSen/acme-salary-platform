@@ -14,4 +14,5 @@ export type AnalyticsSummaryQuery = z.infer<typeof analyticsSummaryQuerySchema>;
 export type AnalyticsSummaryResponse = {
   currency: string;
   headcount: number;
+  totalPayroll: number;
 };
