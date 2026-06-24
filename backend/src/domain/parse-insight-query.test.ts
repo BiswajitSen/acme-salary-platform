@@ -48,6 +48,15 @@ describe("parseInsightQuery", () => {
     });
   });
 
+  it("recognizes alternate headcount phrasing", () => {
+    expect(parseInsightQuery("How many employees are in USD?")).toEqual({
+      intent: "HEADCOUNT",
+      originalQuery: "How many employees are in USD?",
+      department: null,
+      currency: "USD",
+    });
+  });
+
   it("maps payroll questions to TOTAL_PAYROLL", () => {
     expect(parseInsightQuery("total payroll in USD")).toEqual({
       intent: "TOTAL_PAYROLL",
