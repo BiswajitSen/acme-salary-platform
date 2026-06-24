@@ -1,6 +1,7 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
+import type Database from "better-sqlite3";
 import { migrate } from "drizzle-orm/better-sqlite3/migrator";
 import { readMigrationFiles } from "drizzle-orm/migrator";
 
@@ -14,8 +15,8 @@ const migrationsFolder = path.join(
   "drizzle",
 );
 
-function ensureMigrationsTable(): void {
-  sqlite.exec(`
+export function ensureMigrationJournalTable(database: Database.Database): void {
+  database.exec(`
     CREATE TABLE IF NOT EXISTS __drizzle_migrations (
       id INTEGER PRIMARY KEY AUTOINCREMENT,
       hash text NOT NULL,
@@ -24,13 +25,11 @@ function ensureMigrationsTable(): void {
   `);
 }
 
-/**
- * The initial scaffold created tables via raw SQL before Drizzle migrations
- * were tracked. If tables exist but the journal is empty, baseline it so
- * migrate() does not attempt to recreate existing tables.
- */
-function baselineLegacySchemaIfNeeded(): void {
-  const employeesTable = sqlite
+export function baselineMigrationJournalWhenTablesExistWithoutHistory(
+  database: Database.Database,
+  migrationsFolderPath: string,
+): void {
+  const employeesTable = database
     .prepare(
       "SELECT name FROM sqlite_master WHERE type='table' AND name='employees'",
     )
@@ -40,7 +39,7 @@ function baselineLegacySchemaIfNeeded(): void {
     return;
   }
 
-  const { count } = sqlite
+  const { count } = database
     .prepare("SELECT COUNT(*) AS count FROM __drizzle_migrations")
     .get() as { count: number };
 
@@ -52,10 +51,10 @@ function baselineLegacySchemaIfNeeded(): void {
     "Legacy database detected (tables without migration journal) — baselining",
   );
 
-  const migrations = readMigrationFiles({ migrationsFolder });
+  const migrations = readMigrationFiles({ migrationsFolder: migrationsFolderPath });
 
   for (const migration of migrations) {
-    sqlite
+    database
       .prepare(
         "INSERT INTO __drizzle_migrations (hash, created_at) VALUES (?, ?)",
       )
@@ -64,14 +63,16 @@ function baselineLegacySchemaIfNeeded(): void {
 }
 
 export function runMigrations(): void {
-  ensureMigrationsTable();
-  baselineLegacySchemaIfNeeded();
+  ensureMigrationJournalTable(sqlite);
+  baselineMigrationJournalWhenTablesExistWithoutHistory(sqlite, migrationsFolder);
   migrate(db, { migrationsFolder });
   logger.info("Database migrations applied");
 }
 
-const isDirectRun = process.argv[1]?.endsWith("migrate.ts");
-
-if (isDirectRun) {
-  runMigrations();
+export function runMigrateCli(argv: string[] = process.argv): void {
+  if (argv[1]?.endsWith("migrate.ts")) {
+    runMigrations();
+  }
 }
+
+void runMigrateCli();
