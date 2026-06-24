@@ -24,6 +24,7 @@ describe("seedEmployees", () => {
   });
 
   it("does not duplicate compensation records on subsequent runs", async () => {
+    await seedEmployees(db);
     await seedCompensationHistory(db);
     const countAfterFirst = (
       await db.select({ id: compensationHistory.id }).from(compensationHistory)

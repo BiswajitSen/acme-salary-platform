@@ -1,8 +1,8 @@
 import { and, eq } from "drizzle-orm";
-import type { BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
 
 import { logger } from "../config/logger.js";
-import type * as schema from "./schema.js";
+import { ensureCompensationMonthPartitionExists } from "./ensure-compensation-month-partition.js";
+import type { Database } from "./index.js";
 import { compensationHistory, employees } from "./schema.js";
 
 const sampleEmployees = [
@@ -62,9 +62,7 @@ const sampleCompensationHistory = [
   },
 ] as const;
 
-export async function seedEmployees(
-  database: BetterSQLite3Database<typeof schema>,
-): Promise<number> {
+export async function seedEmployees(database: Database): Promise<number> {
   let inserted = 0;
 
   for (const employee of sampleEmployees) {
@@ -82,12 +80,12 @@ export async function seedEmployees(
   return inserted;
 }
 
-export async function seedCompensationHistory(
-  database: BetterSQLite3Database<typeof schema>,
-): Promise<number> {
+export async function seedCompensationHistory(database: Database): Promise<number> {
   let inserted = 0;
 
   for (const record of sampleCompensationHistory) {
+    await ensureCompensationMonthPartitionExists(database, record.effectiveDate);
+
     const existing = await database
       .select({ id: compensationHistory.id })
       .from(compensationHistory)
@@ -116,7 +114,7 @@ export async function seedCompensationHistory(
   return inserted;
 }
 
-export async function runSeed(database: BetterSQLite3Database<typeof schema>): Promise<void> {
+export async function runSeed(database: Database): Promise<void> {
   const insertedEmployees = await seedEmployees(database);
   const insertedCompensation = await seedCompensationHistory(database);
 
@@ -134,6 +132,10 @@ export async function runSeed(database: BetterSQLite3Database<typeof schema>): P
 const isDirectRun = process.argv[1]?.endsWith("seed.ts");
 
 if (isDirectRun) {
+  const { closeDatabaseConnection, runMigrations } = await import("./migrate.js");
   const { db: database } = await import("./index.js");
+
+  await runMigrations();
   await runSeed(database);
+  await closeDatabaseConnection();
 }

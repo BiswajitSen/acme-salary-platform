@@ -5,6 +5,11 @@ export type NewCompensationHistoryRecord = Omit<
   "id" | "createdAt"
 >;
 
+export type CompensationImportResult = {
+  inserted: number;
+  total: number;
+};
+
 export interface ICompensationRepository {
   findCompensationHistoryByEmployeeId(
     employeeId: string,
@@ -12,4 +17,7 @@ export interface ICompensationRepository {
   insertCompensationHistoryRecord(
     record: NewCompensationHistoryRecord,
   ): Promise<CompensationHistoryRecord>;
+  insertManyCompensationHistoryRecords(
+    records: NewCompensationHistoryRecord[],
+  ): Promise<CompensationImportResult>;
 }

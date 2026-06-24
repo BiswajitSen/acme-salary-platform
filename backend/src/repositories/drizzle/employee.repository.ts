@@ -1,8 +1,7 @@
 import { count, eq, sql } from "drizzle-orm";
-import type { BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
 
 import type { EmployeeSpreadsheetRow } from "../../domain/employee-import.types.js";
-import type * as schema from "../../db/schema.js";
+import type { Database } from "../../db/index.js";
 import { employees } from "../../db/schema.js";
 import type {
   IEmployeeRepository,
@@ -16,8 +15,6 @@ const UPSERT_BATCH_SIZE = 500;
 export function readAggregateCount(rows: { value: number }[]): number {
   return rows[0]?.value ?? 0;
 }
-
-type Database = BetterSQLite3Database<typeof schema>;
 
 export class DrizzleEmployeeRepository implements IEmployeeRepository {
   constructor(private readonly database: Database) {}
@@ -99,11 +96,11 @@ export class DrizzleEmployeeRepository implements IEmployeeRepository {
       ),
     );
 
-    await this.database.transaction((transaction) => {
+    await this.database.transaction(async (transaction) => {
       for (let index = 0; index < rows.length; index += UPSERT_BATCH_SIZE) {
         const batch = rows.slice(index, index + UPSERT_BATCH_SIZE);
 
-        transaction
+        await transaction
           .insert(employees)
           .values(batch)
           .onConflictDoUpdate({
@@ -114,8 +111,7 @@ export class DrizzleEmployeeRepository implements IEmployeeRepository {
               jobTitle: sql`excluded.job_title`,
               country: sql`excluded.country`,
             },
-          })
-          .run();
+          });
       }
     });
 
