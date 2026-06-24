@@ -1,13 +1,16 @@
-import { cleanup, render, screen } from "@testing-library/react";
+import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
+import userEvent from "@testing-library/user-event";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { ApiRequestError } from "@/lib/api/client";
 import { EmployeeProfile } from "./employee-profile";
 
-const { getEmployeeProfile, listEmployeeCompensationHistory } = vi.hoisted(() => ({
-  getEmployeeProfile: vi.fn(),
-  listEmployeeCompensationHistory: vi.fn(),
-}));
+const { getEmployeeProfile, listEmployeeCompensationHistory, recordCompensationChange } =
+  vi.hoisted(() => ({
+    getEmployeeProfile: vi.fn(),
+    listEmployeeCompensationHistory: vi.fn(),
+    recordCompensationChange: vi.fn(),
+  }));
 
 const { useEmployeeProfileMock } = vi.hoisted(() => ({
   useEmployeeProfileMock: vi.fn(),
@@ -33,6 +36,7 @@ vi.mock("@/lib/hooks/use-employee-profile", async () => {
 vi.mock("@/lib/api/employees", () => ({
   getEmployeeProfile,
   listEmployeeCompensationHistory,
+  recordCompensationChange,
 }));
 
 describe("EmployeeProfile", () => {
@@ -121,5 +125,54 @@ describe("EmployeeProfile", () => {
     render(<EmployeeProfile employeeId="E001" />);
 
     expect(screen.getByText(/No compensation changes recorded yet/i)).toBeInTheDocument();
+  });
+
+  it("reloads the profile after a compensation change is recorded", async () => {
+    const reloadProfile = vi.fn().mockResolvedValue(undefined);
+
+    useEmployeeProfileMock.mockReturnValue({
+      profile: {
+        id: "E001",
+        fullName: "Jane Doe",
+        department: "Engineering",
+        jobTitle: "Senior Engineer",
+        country: "US",
+        currentCompensation: null,
+      },
+      compensationHistory: { employeeId: "E001", entries: [] },
+      isLoading: false,
+      errorMessage: null,
+      notFound: false,
+      reloadProfile,
+    });
+    recordCompensationChange.mockResolvedValue({
+      entry: {
+        id: 3,
+        previousSalary: null,
+        baseSalary: 140_000,
+        currency: "USD",
+        effectiveDate: "2026-06-01",
+        reason: "Promotion",
+        changedBy: "HR Admin",
+        notes: null,
+        createdAt: "2026-06-02T10:00:00.000Z",
+      },
+    });
+
+    const user = userEvent.setup();
+    render(<EmployeeProfile employeeId="E001" />);
+
+    await user.type(screen.getByLabelText("Base salary"), "140000");
+    await user.type(screen.getByLabelText("Currency"), "USD");
+    fireEvent.change(screen.getByLabelText("Effective date"), {
+      target: { value: "2026-06-01" },
+    });
+    await user.selectOptions(screen.getByLabelText("Reason"), "Promotion");
+    await user.type(screen.getByLabelText("Changed by"), "HR Admin");
+    fireEvent.submit(document.querySelector("form")!);
+
+    await waitFor(() => {
+      expect(reloadProfile).toHaveBeenCalledOnce();
+    });
   });
 });

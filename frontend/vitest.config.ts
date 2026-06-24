@@ -26,6 +26,7 @@ export default defineConfig({
         "components/employee-profile/employee-profile-summary.tsx",
         "components/employee-profile/employee-current-compensation.tsx",
         "components/employee-profile/compensation-timeline.tsx",
+        "components/employee-profile/record-compensation-change-form.tsx",
         "lib/hooks/use-employee-profile.ts",
       ],
       thresholds: {

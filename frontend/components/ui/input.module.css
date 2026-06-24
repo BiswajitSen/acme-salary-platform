@@ -32,3 +32,8 @@
 .input::placeholder {
   color: var(--text-subtle);
 }
+
+.error {
+  color: var(--color-danger);
+  font-size: 0.8125rem;
+}

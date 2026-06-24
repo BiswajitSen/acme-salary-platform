@@ -5,6 +5,7 @@ import Link from "next/link";
 import { CompensationTimeline } from "@/components/employee-profile/compensation-timeline";
 import { EmployeeCurrentCompensation } from "@/components/employee-profile/employee-current-compensation";
 import { EmployeeProfileSummary } from "@/components/employee-profile/employee-profile-summary";
+import { RecordCompensationChangeForm } from "@/components/employee-profile/record-compensation-change-form";
 import { Alert } from "@/components/ui/alert";
 import { PageHeader } from "@/components/ui/page-header";
 import { StatusMessage } from "@/components/ui/status-message";
@@ -17,7 +18,7 @@ type EmployeeProfileProps = {
 };
 
 export function EmployeeProfile({ employeeId }: EmployeeProfileProps) {
-  const { profile, compensationHistory, isLoading, errorMessage, notFound } =
+  const { profile, compensationHistory, isLoading, errorMessage, notFound, reloadProfile } =
     useEmployeeProfile(employeeId);
 
   return (
@@ -43,6 +44,12 @@ export function EmployeeProfile({ employeeId }: EmployeeProfileProps) {
       {!isLoading && profile && (
         <>
           <EmployeeProfileSummary profile={profile} />
+          <RecordCompensationChangeForm
+            employeeId={employeeId}
+            onRecorded={() => {
+              void reloadProfile();
+            }}
+          />
           <EmployeeCurrentCompensation
             currentCompensation={profile.currentCompensation}
           />
