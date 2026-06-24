@@ -1,4 +1,5 @@
 import type { EmployeeSummary } from "@acme/shared";
+import Link from "next/link";
 
 import { Badge } from "@/components/ui/badge";
 
@@ -11,7 +12,8 @@ type EmployeeRowProps = {
 
 export function EmployeeRow({ employee, offsetY }: EmployeeRowProps) {
   return (
-    <div
+    <Link
+      href={`/employees/${employee.id}`}
       className={styles.row}
       style={{ transform: `translateY(${offsetY}px)` }}
       data-testid={`employee-row-${employee.id}`}
@@ -21,6 +23,6 @@ export function EmployeeRow({ employee, offsetY }: EmployeeRowProps) {
       <span className={styles.muted}>{employee.department}</span>
       <span className={styles.muted}>{employee.jobTitle}</span>
       <Badge label={employee.country} />
-    </div>
+    </Link>
   );
 }

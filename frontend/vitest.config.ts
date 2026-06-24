@@ -22,6 +22,11 @@ export default defineConfig({
         "components/employee-directory/employee-row.tsx",
         "components/employee-import/employee-import.tsx",
         "components/employee-import/employee-import-preview.tsx",
+        "components/employee-profile/employee-profile.tsx",
+        "components/employee-profile/employee-profile-summary.tsx",
+        "components/employee-profile/employee-current-compensation.tsx",
+        "components/employee-profile/compensation-timeline.tsx",
+        "lib/hooks/use-employee-profile.ts",
       ],
       thresholds: {
         lines: 100,

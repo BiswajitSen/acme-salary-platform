@@ -10,6 +10,8 @@
   height: 52px;
   padding: 0 1rem;
   border-bottom: 1px solid var(--border);
+  color: inherit;
+  text-decoration: none;
   transition: background 0.12s ease;
 }
 
