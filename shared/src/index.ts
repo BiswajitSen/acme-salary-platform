@@ -1,12 +1,12 @@
-export const COMPENSATION_REASONS = [
-  "Annual Increment",
-  "Promotion",
-  "Market Adjustment",
-  "Correction",
-  "New Hire",
-] as const;
-
-export type CompensationReason = (typeof COMPENSATION_REASONS)[number];
+export {
+  COMPENSATION_REASONS,
+  COMPENSATION_TIMELINE_ORDER,
+  type CompensationReason,
+  type CompensationTimelineEntry,
+  type CurrentCompensation,
+  type EmployeeCompensationHistoryResponse,
+  type EmployeeProfileResponse,
+} from "./compensation.js";
 
 export type HealthStatus = {
   status: "ok";
