@@ -9,6 +9,15 @@ type AnalyticsRouterDeps = {
 export function createAnalyticsRouter(deps: AnalyticsRouterDeps) {
   const router = Router();
 
+  router.get("/currencies", async (_req, res, next) => {
+    try {
+      const currencies = await deps.analyticsService.getAvailableCurrencies();
+      res.json(currencies);
+    } catch (error) {
+      next(error);
+    }
+  });
+
   router.get("/summary", async (req, res, next) => {
     try {
       const summary = await deps.analyticsService.getAnalyticsSummary(req.query);

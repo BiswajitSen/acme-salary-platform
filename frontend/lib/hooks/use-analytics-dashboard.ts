@@ -8,6 +8,7 @@ import type {
 import { useEffect, useState } from "react";
 
 import {
+  getAnalyticsCurrencies,
   getAnalyticsSummary,
   getDepartmentSalaryStatistics,
   getTopEarners,
@@ -15,6 +16,7 @@ import {
 
 type AnalyticsDashboardState = {
   currency: string;
+  availableCurrencies: string[];
   summary: AnalyticsSummaryResponse | null;
   departmentStatistics: AnalyticsDepartmentStatisticsResponse | null;
   topEarners: AnalyticsTopEarnersResponse | null;
@@ -27,12 +29,48 @@ export function useAnalyticsDashboard(
   initialCurrency = "USD",
 ): AnalyticsDashboardState {
   const [currency, setCurrency] = useState(initialCurrency);
+  const [availableCurrencies, setAvailableCurrencies] = useState<string[]>([]);
   const [summary, setSummary] = useState<AnalyticsSummaryResponse | null>(null);
   const [departmentStatistics, setDepartmentStatistics] =
     useState<AnalyticsDepartmentStatisticsResponse | null>(null);
   const [topEarners, setTopEarners] = useState<AnalyticsTopEarnersResponse | null>(null);
   const [isLoading, setIsLoading] = useState(true);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    let isCancelled = false;
+
+    async function loadAvailableCurrencies() {
+      try {
+        const response = await getAnalyticsCurrencies();
+
+        if (isCancelled) {
+          return;
+        }
+
+        setAvailableCurrencies(response.currencies);
+
+        if (
+          response.currencies.length > 0 &&
+          !response.currencies.includes(currency)
+        ) {
+          setCurrency(response.currencies[0]!);
+        }
+      } catch {
+        if (isCancelled) {
+          return;
+        }
+
+        setAvailableCurrencies([]);
+      }
+    }
+
+    void loadAvailableCurrencies();
+
+    return () => {
+      isCancelled = true;
+    };
+  }, []);
 
   useEffect(() => {
     let isCancelled = false;
@@ -84,6 +122,7 @@ export function useAnalyticsDashboard(
 
   return {
     currency,
+    availableCurrencies,
     summary,
     departmentStatistics,
     topEarners,

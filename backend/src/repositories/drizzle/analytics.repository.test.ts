@@ -13,11 +13,13 @@ describe("DrizzleAnalyticsRepository", () => {
     await expect(
       repository.countEmployeesWithLatestCompensationInCurrency("USD"),
     ).resolves.toBe(0);
+    await expect(repository.findAvailableCurrencies()).resolves.toEqual([]);
   });
 
   it("counts employees whose latest compensation is in the requested currency", async () => {
     await runSeed(db);
 
+    await expect(repository.findAvailableCurrencies()).resolves.toEqual(["GBP", "USD"]);
     await expect(
       repository.countEmployeesWithLatestCompensationInCurrency("USD"),
     ).resolves.toBe(1);
@@ -119,5 +121,6 @@ describe("DrizzleAnalyticsRepository", () => {
     await expect(
       repository.countEmployeesWithLatestCompensationInCurrency("EUR"),
     ).resolves.toBe(1);
+    await expect(repository.findAvailableCurrencies()).resolves.toEqual(["EUR", "GBP"]);
   });
 });

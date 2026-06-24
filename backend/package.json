@@ -17,6 +17,8 @@
     "db:seed": "tsx src/db/seed.ts",
     "db:import": "tsx src/db/import-employees.ts",
     "db:generate-spreadsheet": "tsx scripts/generate-employee-spreadsheet.ts",
+    "db:generate-compensation-spreadsheet": "tsx scripts/generate-compensation-spreadsheet.ts",
+    "db:generate-fixtures": "tsx scripts/generate-fixtures.ts",
     "db:reset": "docker compose exec -T postgres psql -U acme -d acme_salary -c 'DROP SCHEMA public CASCADE; CREATE SCHEMA public;' && tsx src/db/migrate.ts && tsx src/db/seed.ts"
   },
   "dependencies": {

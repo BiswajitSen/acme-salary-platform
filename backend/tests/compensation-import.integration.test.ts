@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 
 import { db } from "../src/db/index.js";
 import { compensationHistory } from "../src/db/schema.js";
+import { buildEmployeeSpreadsheetRows } from "../src/domain/bulk-import-fixtures.js";
 import { buildCompensationSpreadsheetBuffer } from "../src/domain/parse-compensation-spreadsheet.js";
 import { buildEmployeeSpreadsheetBuffer } from "../src/domain/parse-employee-spreadsheet.js";
 import { DrizzleCompensationRepository } from "../src/repositories/drizzle/compensation.repository.js";
@@ -10,24 +11,7 @@ import { DrizzleEmployeeRepository } from "../src/repositories/drizzle/employee.
 import { CompensationImportService } from "../src/services/compensation-import.service.js";
 import { EmployeeImportService } from "../src/services/employee-import.service.js";
 
-const departments = ["Engineering", "HR", "Finance", "Sales", "Operations"];
-const countries = ["US", "UK", "SG", "DE", "IN"];
-const jobTitles = ["Analyst", "Manager", "Engineer", "Director", "Coordinator"];
 const reasons = ["New Hire", "Annual Increment", "Promotion"] as const;
-
-function buildEmployeeSpreadsheetRows(totalEmployees: number) {
-  return Array.from({ length: totalEmployees }, (_, index) => {
-    const employeeNumber = index + 1;
-
-    return {
-      employee_id: `E${String(employeeNumber).padStart(5, "0")}`,
-      full_name: `Employee ${employeeNumber}`,
-      department: departments[index % departments.length]!,
-      job_title: jobTitles[index % jobTitles.length]!,
-      country: countries[index % countries.length]!,
-    };
-  });
-}
 
 function buildCompensationSpreadsheetRows(totalEmployees: number, recordsPerEmployee: number) {
   const rows: Array<Record<string, string | number>> = [];

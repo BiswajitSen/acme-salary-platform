@@ -3,47 +3,16 @@ import { describe, expect, it } from "vitest";
 
 import { createApp } from "../src/app.js";
 import { db } from "../src/db/index.js";
+import {
+  buildCompensationSpreadsheetRows,
+  buildEmployeeSpreadsheetRows,
+} from "../src/domain/bulk-import-fixtures.js";
 import { buildCompensationSpreadsheetBuffer } from "../src/domain/parse-compensation-spreadsheet.js";
 import { buildEmployeeSpreadsheetBuffer } from "../src/domain/parse-employee-spreadsheet.js";
 import { DrizzleCompensationRepository } from "../src/repositories/drizzle/compensation.repository.js";
 import { DrizzleEmployeeRepository } from "../src/repositories/drizzle/employee.repository.js";
 import { CompensationImportService } from "../src/services/compensation-import.service.js";
 import { EmployeeImportService } from "../src/services/employee-import.service.js";
-
-const departments = ["Engineering", "HR", "Finance", "Sales", "Operations"];
-const countries = ["US", "UK", "SG", "DE", "IN"];
-const jobTitles = ["Analyst", "Manager", "Engineer", "Director", "Coordinator"];
-const reasons = ["New Hire", "Annual Increment", "Promotion"] as const;
-
-function buildEmployeeSpreadsheetRows(totalEmployees: number) {
-  return Array.from({ length: totalEmployees }, (_, index) => {
-    const employeeNumber = index + 1;
-
-    return {
-      employee_id: `E${String(employeeNumber).padStart(5, "0")}`,
-      full_name: `Employee ${employeeNumber}`,
-      department: departments[index % departments.length]!,
-      job_title: jobTitles[index % jobTitles.length]!,
-      country: countries[index % countries.length]!,
-    };
-  });
-}
-
-function buildCompensationSpreadsheetRows(totalEmployees: number) {
-  return Array.from({ length: totalEmployees }, (_, index) => {
-    const employeeNumber = index + 1;
-
-    return {
-      employee_id: `E${String(employeeNumber).padStart(5, "0")}`,
-      base_salary: 80_000 + employeeNumber,
-      currency: "USD",
-      effective_date: "2025-01-01",
-      reason: reasons[index % reasons.length]!,
-      changed_by: "HR Admin",
-      notes: "",
-    };
-  });
-}
 
 describe("Analytics API performance", () => {
   const app = createApp();

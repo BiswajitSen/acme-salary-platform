@@ -3,8 +3,25 @@ import { describe, expect, it, vi } from "vitest";
 import { AnalyticsService } from "./analytics.service.js";
 
 describe("AnalyticsService", () => {
+  it("returns available currencies from latest compensation records", async () => {
+    const analyticsRepository = {
+      findAvailableCurrencies: vi.fn().mockResolvedValue(["GBP", "INR", "USD"]),
+      countEmployeesWithLatestCompensationInCurrency: vi.fn(),
+      sumLatestCompensationSalariesInCurrency: vi.fn(),
+      findDepartmentSalaryStatisticsByCurrency: vi.fn(),
+      findTopEarnersByCurrency: vi.fn(),
+    };
+
+    const service = new AnalyticsService(analyticsRepository);
+
+    await expect(service.getAvailableCurrencies()).resolves.toEqual({
+      currencies: ["GBP", "INR", "USD"],
+    });
+  });
+
   it("returns headcount for the requested currency", async () => {
     const analyticsRepository = {
+      findAvailableCurrencies: vi.fn(),
       countEmployeesWithLatestCompensationInCurrency: vi.fn().mockResolvedValue(42),
       sumLatestCompensationSalariesInCurrency: vi.fn().mockResolvedValue(5_280_000),
       findDepartmentSalaryStatisticsByCurrency: vi.fn(),
@@ -28,9 +45,11 @@ describe("AnalyticsService", () => {
 
   it("rejects invalid currency query params", async () => {
     const service = new AnalyticsService({
+      findAvailableCurrencies: vi.fn(),
       countEmployeesWithLatestCompensationInCurrency: vi.fn(),
       sumLatestCompensationSalariesInCurrency: vi.fn(),
       findDepartmentSalaryStatisticsByCurrency: vi.fn(),
+      findTopEarnersByCurrency: vi.fn(),
     });
 
     await expect(service.getAnalyticsSummary({ currency: "US" })).rejects.toThrow();
@@ -38,6 +57,7 @@ describe("AnalyticsService", () => {
 
   it("returns department salary statistics for the requested currency", async () => {
     const analyticsRepository = {
+      findAvailableCurrencies: vi.fn(),
       countEmployeesWithLatestCompensationInCurrency: vi.fn(),
       sumLatestCompensationSalariesInCurrency: vi.fn(),
       findDepartmentSalaryStatisticsByCurrency: vi.fn().mockResolvedValue([
@@ -67,6 +87,7 @@ describe("AnalyticsService", () => {
 
   it("returns top earners for the requested currency", async () => {
     const analyticsRepository = {
+      findAvailableCurrencies: vi.fn(),
       countEmployeesWithLatestCompensationInCurrency: vi.fn(),
       sumLatestCompensationSalariesInCurrency: vi.fn(),
       findDepartmentSalaryStatisticsByCurrency: vi.fn(),

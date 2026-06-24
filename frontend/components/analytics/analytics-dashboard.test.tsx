@@ -20,27 +20,28 @@ describe("AnalyticsDashboard", () => {
 
   it("renders KPI cards and analytics sections when data is loaded", async () => {
     useAnalyticsDashboardMock.mockReturnValue({
-      currency: "USD",
-      summary: { currency: "USD", headcount: 3, totalPayroll: 396_000 },
+      currency: "INR",
+      availableCurrencies: ["INR", "USD"],
+      summary: { currency: "INR", headcount: 3, totalPayroll: 396_000 },
       departmentStatistics: {
-        currency: "USD",
+        currency: "INR",
         departments: [
           {
-            department: "Engineering",
+            department: "Operations",
             employeeCount: 2,
-            averageSalary: 120_000,
-            medianSalary: 120_000,
+            averageSalary: 96_000,
+            medianSalary: 96_000,
           },
         ],
       },
       topEarners: {
-        currency: "USD",
+        currency: "INR",
         earners: [
           {
-            employeeId: "E001",
-            fullName: "Jane Doe",
-            department: "Engineering",
-            baseSalary: 132_000,
+            employeeId: "E00005",
+            fullName: "Employee 5",
+            department: "Operations",
+            baseSalary: 96_199,
           },
         ],
       },
@@ -56,12 +57,14 @@ describe("AnalyticsDashboard", () => {
     expect(screen.getByText("Total payroll")).toBeTruthy();
     expect(screen.getByText("Salary by department")).toBeTruthy();
     expect(screen.getByText("Top earners")).toBeTruthy();
-    expect(screen.getByText("Jane Doe")).toBeTruthy();
+    expect(screen.getByText("Employee 5")).toBeTruthy();
+    expect(screen.getByText("INR")).toBeTruthy();
   });
 
   it("shows a loading state while analytics data is fetched", () => {
     useAnalyticsDashboardMock.mockReturnValue({
       currency: "USD",
+      availableCurrencies: [],
       summary: null,
       departmentStatistics: null,
       topEarners: null,
@@ -75,9 +78,29 @@ describe("AnalyticsDashboard", () => {
     expect(screen.getByText("Loading analytics…")).toBeTruthy();
   });
 
+  it("shows an empty state when no currencies are available", () => {
+    useAnalyticsDashboardMock.mockReturnValue({
+      currency: "USD",
+      availableCurrencies: [],
+      summary: null,
+      departmentStatistics: null,
+      topEarners: null,
+      isLoading: false,
+      errorMessage: null,
+      selectCurrency: vi.fn(),
+    });
+
+    render(<AnalyticsDashboard />);
+
+    expect(
+      screen.getByText("No compensation data is available for analytics yet."),
+    ).toBeTruthy();
+  });
+
   it("shows an error alert when loading fails", () => {
     useAnalyticsDashboardMock.mockReturnValue({
       currency: "USD",
+      availableCurrencies: ["USD"],
       summary: null,
       departmentStatistics: null,
       topEarners: null,
@@ -95,6 +118,7 @@ describe("AnalyticsDashboard", () => {
     const selectCurrency = vi.fn();
     useAnalyticsDashboardMock.mockReturnValue({
       currency: "USD",
+      availableCurrencies: ["GBP", "USD"],
       summary: { currency: "USD", headcount: 1, totalPayroll: 100_000 },
       departmentStatistics: { currency: "USD", departments: [] },
       topEarners: { currency: "USD", earners: [] },

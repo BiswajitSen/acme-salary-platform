@@ -10,6 +10,21 @@ import type { IAnalyticsRepository } from "../interfaces/analytics.repository.js
 export class DrizzleAnalyticsRepository implements IAnalyticsRepository {
   constructor(private readonly database: Database) {}
 
+  async findAvailableCurrencies(): Promise<string[]> {
+    const result = await this.database.execute<{ currency: string }>(sql`
+      SELECT DISTINCT currency
+      FROM (
+        SELECT DISTINCT ON (employee_id)
+          currency
+        FROM compensation_history
+        ORDER BY employee_id, effective_date DESC, id DESC
+      ) latest_compensation
+      ORDER BY currency ASC
+    `);
+
+    return result.rows.map((row) => row.currency);
+  }
+
   async countEmployeesWithLatestCompensationInCurrency(
     currency: string,
   ): Promise<number> {

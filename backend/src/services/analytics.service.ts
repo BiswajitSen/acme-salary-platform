@@ -1,6 +1,7 @@
 import {
   ANALYTICS_TOP_EARNERS_LIMIT,
   analyticsSummaryQuerySchema,
+  type AnalyticsCurrenciesResponse,
   type AnalyticsDepartmentStatisticsResponse,
   type AnalyticsSummaryResponse,
   type AnalyticsTopEarnersResponse,
@@ -10,6 +11,12 @@ import type { IAnalyticsRepository } from "../repositories/interfaces/analytics.
 
 export class AnalyticsService {
   constructor(private readonly analytics: IAnalyticsRepository) {}
+
+  async getAvailableCurrencies(): Promise<AnalyticsCurrenciesResponse> {
+    const currencies = await this.analytics.findAvailableCurrencies();
+
+    return { currencies };
+  }
 
   async getAnalyticsSummary(query: unknown): Promise<AnalyticsSummaryResponse> {
     const { currency } = analyticsSummaryQuerySchema.parse(query);

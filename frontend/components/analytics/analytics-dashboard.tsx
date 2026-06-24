@@ -11,11 +11,10 @@ import { useAnalyticsDashboard } from "@/lib/hooks/use-analytics-dashboard";
 
 import styles from "./analytics-dashboard.module.css";
 
-const SUPPORTED_CURRENCIES = ["USD", "GBP", "EUR"] as const;
-
 export function AnalyticsDashboard() {
   const {
     currency,
+    availableCurrencies,
     summary,
     departmentStatistics,
     topEarners,
@@ -25,6 +24,7 @@ export function AnalyticsDashboard() {
   } = useAnalyticsDashboard();
 
   const hasData = summary !== null && departmentStatistics !== null && topEarners !== null;
+  const hasCurrencies = availableCurrencies.length > 0;
 
   return (
     <section className={styles.page}>
@@ -32,18 +32,20 @@ export function AnalyticsDashboard() {
         title="Analytics Dashboard"
         subtitle="Leadership metrics grouped by currency"
         actions={
-          <Select
-            id="analytics-currency"
-            label="Currency"
-            value={currency}
-            onChange={(event) => selectCurrency(event.target.value)}
-          >
-            {SUPPORTED_CURRENCIES.map((option) => (
-              <option key={option} value={option}>
-                {option}
-              </option>
-            ))}
-          </Select>
+          hasCurrencies ? (
+            <Select
+              id="analytics-currency"
+              label="Currency"
+              value={currency}
+              onChange={(event) => selectCurrency(event.target.value)}
+            >
+              {availableCurrencies.map((option) => (
+                <option key={option} value={option}>
+                  {option}
+                </option>
+              ))}
+            </Select>
+          ) : undefined
         }
       />
 
@@ -51,7 +53,11 @@ export function AnalyticsDashboard() {
 
       {isLoading && <StatusMessage isLoading message="Loading analytics…" />}
 
-      {!isLoading && hasData && (
+      {!isLoading && !hasCurrencies && (
+        <StatusMessage message="No compensation data is available for analytics yet." />
+      )}
+
+      {!isLoading && hasCurrencies && hasData && (
         <>
           <AnalyticsKpiCards
             currency={summary.currency}

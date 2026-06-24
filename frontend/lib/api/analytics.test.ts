@@ -1,10 +1,30 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  getAnalyticsCurrencies,
   getAnalyticsSummary,
   getDepartmentSalaryStatistics,
   getTopEarners,
 } from "./analytics";
+
+describe("getAnalyticsCurrencies", () => {
+  it("fetches available currencies from compensation data", async () => {
+    const originalFetch = global.fetch;
+    global.fetch = async (input) => {
+      expect(String(input)).toBe("/api/backend/analytics/currencies");
+
+      return new Response(JSON.stringify({ currencies: ["GBP", "INR", "USD"] }), {
+        status: 200,
+        headers: { "Content-Type": "application/json" },
+      });
+    };
+
+    await expect(getAnalyticsCurrencies()).resolves.toEqual({
+      currencies: ["GBP", "INR", "USD"],
+    });
+    global.fetch = originalFetch;
+  });
+});
 
 describe("getAnalyticsSummary", () => {
   it("fetches summary metrics for a currency", async () => {

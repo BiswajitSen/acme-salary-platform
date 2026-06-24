@@ -14,6 +14,21 @@ function createTestApp(analyticsService: AnalyticsService) {
 }
 
 describe("createAnalyticsRouter", () => {
+  it("returns available currencies", async () => {
+    const analyticsService = {
+      getAvailableCurrencies: vi.fn().mockResolvedValue({
+        currencies: ["GBP", "INR", "USD"],
+      }),
+    } as unknown as AnalyticsService;
+
+    const response = await request(createTestApp(analyticsService)).get(
+      "/analytics/currencies",
+    );
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({ currencies: ["GBP", "INR", "USD"] });
+  });
+
   it("returns analytics summary for a valid currency query", async () => {
     const analyticsService = {
       getAnalyticsSummary: vi.fn().mockResolvedValue({
@@ -36,6 +51,7 @@ describe("createAnalyticsRouter", () => {
 
   it("returns 400 when currency query validation fails", async () => {
     const analyticsService = new AnalyticsService({
+      findAvailableCurrencies: vi.fn(),
       countEmployeesWithLatestCompensationInCurrency: vi.fn(),
       sumLatestCompensationSalariesInCurrency: vi.fn(),
       findDepartmentSalaryStatisticsByCurrency: vi.fn(),

@@ -3,27 +3,10 @@ import { describe, expect, it } from "vitest";
 
 import { db } from "../src/db/index.js";
 import { employees } from "../src/db/schema.js";
+import { buildEmployeeSpreadsheetRows } from "../src/domain/bulk-import-fixtures.js";
 import { buildEmployeeSpreadsheetBuffer } from "../src/domain/parse-employee-spreadsheet.js";
 import { DrizzleEmployeeRepository } from "../src/repositories/drizzle/employee.repository.js";
 import { EmployeeImportService } from "../src/services/employee-import.service.js";
-
-const departments = ["Engineering", "HR", "Finance", "Sales", "Operations"];
-const countries = ["US", "UK", "SG", "DE", "IN"];
-const jobTitles = ["Analyst", "Manager", "Engineer", "Director", "Coordinator"];
-
-function buildEmployeeSpreadsheetRows(totalRows: number) {
-  return Array.from({ length: totalRows }, (_, index) => {
-    const employeeNumber = index + 1;
-
-    return {
-      employee_id: `E${String(employeeNumber).padStart(5, "0")}`,
-      full_name: `Employee ${employeeNumber}`,
-      department: departments[index % departments.length]!,
-      job_title: jobTitles[index % jobTitles.length]!,
-      country: countries[index % countries.length]!,
-    };
-  });
-}
 
 describe("EmployeeImportService integration", () => {
   const importService = new EmployeeImportService(new DrizzleEmployeeRepository(db));

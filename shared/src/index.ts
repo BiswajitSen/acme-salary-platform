@@ -53,6 +53,7 @@ export type {
 export {
   ANALYTICS_TOP_EARNERS_LIMIT,
   analyticsSummaryQuerySchema,
+  type AnalyticsCurrenciesResponse,
   type AnalyticsDepartmentStatisticsResponse,
   type AnalyticsSummaryQuery,
   type AnalyticsSummaryResponse,

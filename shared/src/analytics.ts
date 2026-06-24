@@ -42,3 +42,7 @@ export type AnalyticsTopEarnersResponse = {
   currency: string;
   earners: TopEarner[];
 };
+
+export type AnalyticsCurrenciesResponse = {
+  currencies: string[];
+};

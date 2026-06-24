@@ -1,4 +1,5 @@
 import type {
+  AnalyticsCurrenciesResponse,
   AnalyticsDepartmentStatisticsResponse,
   AnalyticsSummaryResponse,
   AnalyticsTopEarnersResponse,
@@ -8,6 +9,10 @@ import { apiFetch } from "./client";
 
 function buildAnalyticsQuery(currency: string): string {
   return `?currency=${encodeURIComponent(currency)}`;
+}
+
+export async function getAnalyticsCurrencies(): Promise<AnalyticsCurrenciesResponse> {
+  return apiFetch<AnalyticsCurrenciesResponse>("/api/backend/analytics/currencies");
 }
 
 export async function getAnalyticsSummary(

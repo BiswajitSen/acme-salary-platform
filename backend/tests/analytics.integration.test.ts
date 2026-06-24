@@ -8,6 +8,15 @@ import { runSeed } from "../src/db/seed.js";
 describe("GET /api/analytics/summary", () => {
   const app = createApp();
 
+  it("returns available currencies from latest compensation records", async () => {
+    await runSeed(db);
+
+    const response = await request(app).get("/api/analytics/currencies");
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({ currencies: ["GBP", "USD"] });
+  });
+
   it("returns headcount for employees with latest compensation in the currency", async () => {
     await runSeed(db);
 

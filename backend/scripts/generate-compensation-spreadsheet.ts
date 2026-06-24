@@ -2,8 +2,8 @@ import fs from "node:fs/promises";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
-import { buildEmployeeSpreadsheetRows } from "../src/domain/bulk-import-fixtures.js";
-import { buildEmployeeSpreadsheetBuffer } from "../src/domain/parse-employee-spreadsheet.js";
+import { buildCompensationSpreadsheetRows } from "../src/domain/bulk-import-fixtures.js";
+import { buildCompensationSpreadsheetBuffer } from "../src/domain/parse-compensation-spreadsheet.js";
 import { logger } from "../src/config/logger.js";
 
 function parseCountArgument(defaultCount: number): number {
@@ -25,12 +25,12 @@ function parseOutputArgument(defaultOutput: string): string {
     : String(process.argv[outputFlagIndex + 1]);
 }
 
-export async function generateEmployeeSpreadsheet(
+export async function generateCompensationSpreadsheet(
   totalRows: number,
   outputPath: string,
 ): Promise<void> {
-  const spreadsheetBuffer = buildEmployeeSpreadsheetBuffer(
-    buildEmployeeSpreadsheetRows(totalRows),
+  const spreadsheetBuffer = buildCompensationSpreadsheetBuffer(
+    buildCompensationSpreadsheetRows(totalRows),
   );
 
   await fs.mkdir(path.dirname(outputPath), { recursive: true });
@@ -38,13 +38,13 @@ export async function generateEmployeeSpreadsheet(
 }
 
 const backendRoot = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
-const defaultOutput = path.join(backendRoot, "fixtures", "employees-10000.xlsx");
-const isDirectRun = process.argv[1]?.endsWith("generate-employee-spreadsheet.ts");
+const defaultOutput = path.join(backendRoot, "fixtures", "compensation-10000.xlsx");
+const isDirectRun = process.argv[1]?.endsWith("generate-compensation-spreadsheet.ts");
 
 if (isDirectRun) {
   const totalRows = parseCountArgument(10_000);
   const outputPath = path.resolve(parseOutputArgument(defaultOutput));
 
-  await generateEmployeeSpreadsheet(totalRows, outputPath);
-  logger.info({ totalRows, outputPath }, "Employee spreadsheet generated");
+  await generateCompensationSpreadsheet(totalRows, outputPath);
+  logger.info({ totalRows, outputPath }, "Compensation spreadsheet generated");
 }
