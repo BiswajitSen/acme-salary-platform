@@ -1,113 +1,48 @@
-import path from "node:path";
-import { fileURLToPath } from "node:url";
+import { describe, expect, it, vi, afterEach } from "vitest";
 
-import Database from "better-sqlite3";
-import { describe, expect, it } from "vitest";
+import { logger } from "../config/logger.js";
+import { pool } from "./index.js";
+import { runMigrateCli, runMigrations } from "./migrate.js";
 
-import {
-  baselineMigrationJournalWhenTablesExistWithoutHistory,
-  ensureMigrationJournalTable,
-  runMigrateCli,
-  runMigrations,
-} from "./migrate.js";
-
-const migrationsFolder = path.join(
-  path.dirname(fileURLToPath(import.meta.url)),
-  "..",
-  "..",
-  "drizzle",
-);
-
-function createLegacyEmployeesTable(database: Database.Database): void {
-  database.exec(`
-    CREATE TABLE employees (
-      id text PRIMARY KEY NOT NULL,
-      full_name text NOT NULL,
-      department text NOT NULL,
-      job_title text NOT NULL,
-      country text NOT NULL
-    );
-  `);
-}
-
-describe("ensureMigrationJournalTable", () => {
-  it("creates the drizzle migration journal table", () => {
-    const database = new Database(":memory:");
-
-    ensureMigrationJournalTable(database);
-
-    const journalTable = database
-      .prepare(
-        "SELECT name FROM sqlite_master WHERE type='table' AND name='__drizzle_migrations'",
-      )
-      .get();
-
-    expect(journalTable).toBeDefined();
-    database.close();
-  });
-});
-
-describe("baselineMigrationJournalWhenTablesExistWithoutHistory", () => {
-  it("inserts migration hashes when legacy employee tables exist", () => {
-    const database = new Database(":memory:");
-    createLegacyEmployeesTable(database);
-    ensureMigrationJournalTable(database);
-
-    baselineMigrationJournalWhenTablesExistWithoutHistory(database, migrationsFolder);
-
-    const { count } = database
-      .prepare("SELECT COUNT(*) AS count FROM __drizzle_migrations")
-      .get() as { count: number };
-
-    expect(count).toBeGreaterThan(0);
-    database.close();
-  });
-
-  it("skips baselining when the employees table does not exist", () => {
-    const database = new Database(":memory:");
-    ensureMigrationJournalTable(database);
-
-    baselineMigrationJournalWhenTablesExistWithoutHistory(database, migrationsFolder);
-
-    const { count } = database
-      .prepare("SELECT COUNT(*) AS count FROM __drizzle_migrations")
-      .get() as { count: number };
-
-    expect(count).toBe(0);
-    database.close();
-  });
-
-  it("skips baselining when the journal already contains entries", () => {
-    const database = new Database(":memory:");
-    createLegacyEmployeesTable(database);
-    ensureMigrationJournalTable(database);
-    database
-      .prepare("INSERT INTO __drizzle_migrations (hash, created_at) VALUES (?, ?)")
-      .run("existing-hash", Date.now());
-
-    baselineMigrationJournalWhenTablesExistWithoutHistory(database, migrationsFolder);
-
-    const { count } = database
-      .prepare("SELECT COUNT(*) AS count FROM __drizzle_migrations")
-      .get() as { count: number };
-
-    expect(count).toBe(1);
-    database.close();
+describe("runMigrations", () => {
+  it("applies migrations to the configured database", async () => {
+    await expect(runMigrations()).resolves.toBeUndefined();
   });
 });
 
 describe("runMigrateCli", () => {
-  it("runs migrations when invoked as a script entrypoint", () => {
-    expect(() => runMigrateCli(["node", "migrate.ts"])).not.toThrow();
+  afterEach(() => {
+    vi.restoreAllMocks();
+    process.exitCode = undefined;
+  });
+
+  it("runs migrations when invoked as a script entrypoint", async () => {
+    const endSpy = vi.spyOn(pool, "end").mockResolvedValue(undefined);
+
+    await expect(
+      Promise.resolve(runMigrateCli(["node", "migrate.ts"])),
+    ).resolves.toBeUndefined();
+
+    await vi.waitFor(() => {
+      expect(endSpy).toHaveBeenCalledOnce();
+    });
+  });
+
+  it("sets a non-zero exit code when migrations fail from the cli entrypoint", async () => {
+    vi.spyOn(pool, "end").mockResolvedValue(undefined);
+    vi.spyOn(logger, "error").mockImplementation(() => undefined);
+
+    runMigrateCli(["node", "migrate.ts"], {
+      runMigrationsImpl: vi.fn().mockRejectedValue(new Error("migration failed")),
+    });
+
+    await vi.waitFor(() => {
+      expect(process.exitCode).toBe(1);
+    });
+    expect(logger.error).toHaveBeenCalledOnce();
   });
 
   it("skips migrations when imported as a module", () => {
     expect(() => runMigrateCli(["node", "vitest"])).not.toThrow();
-  });
-});
-
-describe("runMigrations", () => {
-  it("applies migrations to the configured database", () => {
-    expect(() => runMigrations()).not.toThrow();
   });
 });
