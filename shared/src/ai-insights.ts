@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import type { TopEarner } from "./analytics";
+
 export const AI_INSIGHT_INTENTS = [
   "AVG_DEPT_SALARY",
   "MEDIAN_DEPT_SALARY",
@@ -39,3 +41,64 @@ export type ParsedInsightQuery = {
 };
 
 export type ParseInsightQueryResponse = ParsedInsightQuery;
+
+export const DEFAULT_INSIGHT_CURRENCY = "USD";
+
+export const INSIGHT_EXECUTION_ERROR_KINDS = [
+  "UNSUPPORTED_INTENT",
+  "DEPARTMENT_NOT_FOUND",
+] as const;
+
+export type InsightExecutionErrorKind = (typeof INSIGHT_EXECUTION_ERROR_KINDS)[number];
+
+export type InsightExecutionError = {
+  kind: InsightExecutionErrorKind;
+  message: string;
+};
+
+export type InsightAvgDeptSalaryResult = {
+  intent: "AVG_DEPT_SALARY";
+  currency: string;
+  department: string;
+  averageSalary: number;
+  employeeCount: number;
+};
+
+export type InsightMedianDeptSalaryResult = {
+  intent: "MEDIAN_DEPT_SALARY";
+  currency: string;
+  department: string;
+  medianSalary: number;
+  employeeCount: number;
+};
+
+export type InsightHeadcountResult = {
+  intent: "HEADCOUNT";
+  currency: string;
+  headcount: number;
+};
+
+export type InsightTotalPayrollResult = {
+  intent: "TOTAL_PAYROLL";
+  currency: string;
+  totalPayroll: number;
+};
+
+export type InsightTopEarnersResult = {
+  intent: "TOP_EARNERS";
+  currency: string;
+  earners: TopEarner[];
+};
+
+export type InsightExecutionResult =
+  | InsightAvgDeptSalaryResult
+  | InsightMedianDeptSalaryResult
+  | InsightHeadcountResult
+  | InsightTotalPayrollResult
+  | InsightTopEarnersResult;
+
+export type ExecuteInsightQueryResponse = {
+  parsedQuery: ParsedInsightQuery;
+  result: InsightExecutionResult | null;
+  error: InsightExecutionError | null;
+};

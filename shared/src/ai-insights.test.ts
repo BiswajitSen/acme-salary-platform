@@ -1,6 +1,11 @@
 import { describe, expect, it } from "vitest";
 
-import { AI_INSIGHT_INTENTS, insightQueryRequestSchema } from "./ai-insights";
+import {
+  AI_INSIGHT_INTENTS,
+  DEFAULT_INSIGHT_CURRENCY,
+  INSIGHT_EXECUTION_ERROR_KINDS,
+  insightQueryRequestSchema,
+} from "./ai-insights";
 
 describe("insightQueryRequestSchema", () => {
   it("requires a non-empty query string", () => {
@@ -25,5 +30,16 @@ describe("AI_INSIGHT_INTENTS", () => {
     expect(AI_INSIGHT_INTENTS).toContain("AVG_DEPT_SALARY");
     expect(AI_INSIGHT_INTENTS).toContain("TOP_EARNERS");
     expect(AI_INSIGHT_INTENTS).toContain("UNKNOWN");
+  });
+});
+
+describe("insight execution contracts", () => {
+  it("defines a default currency for queries without one", () => {
+    expect(DEFAULT_INSIGHT_CURRENCY).toBe("USD");
+  });
+
+  it("includes execution error kinds for unsupported and missing data cases", () => {
+    expect(INSIGHT_EXECUTION_ERROR_KINDS).toContain("UNSUPPORTED_INTENT");
+    expect(INSIGHT_EXECUTION_ERROR_KINDS).toContain("DEPARTMENT_NOT_FOUND");
   });
 });
