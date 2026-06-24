@@ -1,5 +1,6 @@
 import {
   analyticsSummaryQuerySchema,
+  type AnalyticsDepartmentStatisticsResponse,
   type AnalyticsSummaryResponse,
 } from "@acme/shared";
 
@@ -19,6 +20,19 @@ export class AnalyticsService {
       currency,
       headcount,
       totalPayroll,
+    };
+  }
+
+  async getDepartmentSalaryStatistics(
+    query: unknown,
+  ): Promise<AnalyticsDepartmentStatisticsResponse> {
+    const { currency } = analyticsSummaryQuerySchema.parse(query);
+    const departments =
+      await this.analytics.findDepartmentSalaryStatisticsByCurrency(currency);
+
+    return {
+      currency,
+      departments,
     };
   }
 }

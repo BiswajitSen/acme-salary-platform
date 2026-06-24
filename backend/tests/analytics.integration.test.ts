@@ -28,3 +28,26 @@ describe("GET /api/analytics/summary", () => {
     expect(response.body.error).toBe("Validation Error");
   });
 });
+
+describe("GET /api/analytics/departments", () => {
+  const app = createApp();
+
+  it("returns average and median salaries grouped by department", async () => {
+    await runSeed(db);
+
+    const response = await request(app).get("/api/analytics/departments?currency=USD");
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({
+      currency: "USD",
+      departments: [
+        {
+          department: "Engineering",
+          employeeCount: 1,
+          averageSalary: 132_000,
+          medianSalary: 132_000,
+        },
+      ],
+    });
+  });
+});

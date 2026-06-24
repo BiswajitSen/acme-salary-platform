@@ -18,5 +18,16 @@ export function createAnalyticsRouter(deps: AnalyticsRouterDeps) {
     }
   });
 
+  router.get("/departments", async (req, res, next) => {
+    try {
+      const statistics = await deps.analyticsService.getDepartmentSalaryStatistics(
+        req.query,
+      );
+      res.json(statistics);
+    } catch (error) {
+      next(error);
+    }
+  });
+
   return router;
 }

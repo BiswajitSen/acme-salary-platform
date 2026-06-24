@@ -52,6 +52,8 @@ export type {
 
 export {
   analyticsSummaryQuerySchema,
+  type AnalyticsDepartmentStatisticsResponse,
   type AnalyticsSummaryQuery,
   type AnalyticsSummaryResponse,
+  type DepartmentSalaryStatistics,
 } from "./analytics";

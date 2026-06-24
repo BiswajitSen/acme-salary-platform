@@ -45,6 +45,19 @@ describe("DrizzleAnalyticsRepository", () => {
     );
   });
 
+  it("returns average and median salaries grouped by department", async () => {
+    await runSeed(db);
+
+    await expect(repository.findDepartmentSalaryStatisticsByCurrency("USD")).resolves.toEqual([
+      {
+        department: "Engineering",
+        employeeCount: 1,
+        averageSalary: 132_000,
+        medianSalary: 132_000,
+      },
+    ]);
+  });
+
   it("uses the newest effective date when determining latest compensation currency", async () => {
     await runSeed(db);
 

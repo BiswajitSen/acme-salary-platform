@@ -37,6 +37,8 @@ describe("createAnalyticsRouter", () => {
   it("returns 400 when currency query validation fails", async () => {
     const analyticsService = new AnalyticsService({
       countEmployeesWithLatestCompensationInCurrency: vi.fn(),
+      sumLatestCompensationSalariesInCurrency: vi.fn(),
+      findDepartmentSalaryStatisticsByCurrency: vi.fn(),
     });
 
     const response = await request(createTestApp(analyticsService)).get(
@@ -45,5 +47,28 @@ describe("createAnalyticsRouter", () => {
 
     expect(response.status).toBe(400);
     expect(response.body.error).toBe("Validation Error");
+  });
+
+  it("returns department salary statistics for a valid currency query", async () => {
+    const analyticsService = {
+      getDepartmentSalaryStatistics: vi.fn().mockResolvedValue({
+        currency: "USD",
+        departments: [
+          {
+            department: "Engineering",
+            employeeCount: 2,
+            averageSalary: 120_000,
+            medianSalary: 120_000,
+          },
+        ],
+      }),
+    } as unknown as AnalyticsService;
+
+    const response = await request(createTestApp(analyticsService)).get(
+      "/analytics/departments?currency=USD",
+    );
+
+    expect(response.status).toBe(200);
+    expect(response.body.departments).toHaveLength(1);
   });
 });

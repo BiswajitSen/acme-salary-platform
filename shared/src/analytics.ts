@@ -16,3 +16,15 @@ export type AnalyticsSummaryResponse = {
   headcount: number;
   totalPayroll: number;
 };
+
+export type DepartmentSalaryStatistics = {
+  department: string;
+  employeeCount: number;
+  averageSalary: number;
+  medianSalary: number;
+};
+
+export type AnalyticsDepartmentStatisticsResponse = {
+  currency: string;
+  departments: DepartmentSalaryStatistics[];
+};
