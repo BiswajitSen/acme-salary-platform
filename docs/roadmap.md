@@ -110,7 +110,7 @@ Each feature follows **TDD**: failing test → minimal implementation → refact
 
 ---
 
-## Phase 7 — AI Insights (PRD §4.6) ⬜
+## Phase 7 — AI Insights (PRD §4.6) ✅
 
 **Goal:** Natural language → safe, whitelisted analytics. **No raw SQL from AI.**
 
@@ -118,7 +118,7 @@ Each feature follows **TDD**: failing test → minimal implementation → refact
 |---|---------|-----|----|---------------------|--------|
 | 7.1 | Intent parser | `POST /api/insights/parse` | Chat / query input on `/insights` | "avg salary in Engineering" → `AVG_DEPT_SALARY` | ✅ |
 | 7.2 | Whitelisted executors | `POST /api/insights/execute` | Result display on `/insights` | Unknown intent → graceful error | ✅ |
-| 7.3 | Safety | Read-only DB access; no string interpolation in SQL | — | Injection-style inputs rejected | ⬜ |
+| 7.3 | Safety | Read-only DB access; no string interpolation in SQL | — | Injection-style inputs rejected | ✅ |
 
 **Exit criteria:** HR asks plain-English questions; system never executes unstructured SQL.
 
