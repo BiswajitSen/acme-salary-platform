@@ -3,6 +3,7 @@ import { describe, expect, it, vi } from "vitest";
 import { ZodError, z } from "zod";
 
 import { AppError } from "../lib/errors.js";
+import { CompensationImportValidationError } from "../lib/compensation-import-validation-error.js";
 import { EmployeeImportValidationError } from "../lib/employee-import-validation-error.js";
 import { errorHandler, notFoundHandler } from "./error-handler.js";
 
@@ -92,6 +93,29 @@ describe("errorHandler", () => {
       error: "EmployeeImportValidationError",
       message: "Employee spreadsheet validation failed",
       errors: [{ rowNumber: 2, field: "id", message: "Employee ID is required" }],
+    });
+  });
+
+  it("maps compensation import validation errors to 400 with row details", () => {
+    const response = createMockResponse();
+
+    errorHandler(
+      new CompensationImportValidationError(
+        "Compensation spreadsheet validation failed",
+        [{ rowNumber: 2, field: "employeeId", message: "Employee ID is required" }],
+      ),
+      {} as Request,
+      response,
+      vi.fn() as NextFunction,
+    );
+
+    expect(response.statusCode).toBe(400);
+    expect(response.body).toEqual({
+      error: "CompensationImportValidationError",
+      message: "Compensation spreadsheet validation failed",
+      errors: [
+        { rowNumber: 2, field: "employeeId", message: "Employee ID is required" },
+      ],
     });
   });
 

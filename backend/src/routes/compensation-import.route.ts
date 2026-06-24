@@ -1,17 +1,17 @@
 import { Router } from "express";
 
-import type { EmployeeImportService } from "../services/employee-import.service.js";
+import type { CompensationImportService } from "../services/compensation-import.service.js";
 import {
   readUploadedSpreadsheetBuffer,
   SPREADSHEET_FIELD_NAME,
   uploadSpreadsheet,
 } from "./spreadsheet-upload.js";
 
-type EmployeeImportRouterDeps = {
-  employeeImportService: EmployeeImportService;
+type CompensationImportRouterDeps = {
+  compensationImportService: CompensationImportService;
 };
 
-export function createEmployeeImportRouter(deps: EmployeeImportRouterDeps) {
+export function createCompensationImportRouter(deps: CompensationImportRouterDeps) {
   const router = Router();
 
   router.post(
@@ -21,7 +21,9 @@ export function createEmployeeImportRouter(deps: EmployeeImportRouterDeps) {
       try {
         const spreadsheetBuffer = readUploadedSpreadsheetBuffer(req.file);
         const preview =
-          deps.employeeImportService.previewEmployeeSpreadsheet(spreadsheetBuffer);
+          await deps.compensationImportService.previewCompensationSpreadsheet(
+            spreadsheetBuffer,
+          );
         res.json(preview);
       } catch (error) {
         next(error);
@@ -36,7 +38,9 @@ export function createEmployeeImportRouter(deps: EmployeeImportRouterDeps) {
       try {
         const spreadsheetBuffer = readUploadedSpreadsheetBuffer(req.file);
         const result =
-          await deps.employeeImportService.importEmployeeSpreadsheet(spreadsheetBuffer);
+          await deps.compensationImportService.importCompensationSpreadsheet(
+            spreadsheetBuffer,
+          );
         res.json(result);
       } catch (error) {
         next(error);
