@@ -1,6 +1,7 @@
 import type { EmployeeSummary } from "@acme/shared";
 
 import type { EmployeeListFilters } from "../../domain/employee-list-filters.js";
+import type { EmployeeSpreadsheetRow, EmployeeImportResult } from "../../domain/employee-import.types.js";
 
 export type PaginatedEmployeesQuery = {
   page: number;
@@ -21,4 +22,5 @@ export interface IEmployeeRepository {
     departments: string[];
     jobTitles: string[];
   }>;
+  upsertMany(employees: EmployeeSpreadsheetRow[]): Promise<EmployeeImportResult>;
 }

@@ -18,6 +18,7 @@ export default defineConfig({
       include: [
         "src/domain/**",
         "src/services/employee.service.ts",
+        "src/services/employee-import.service.ts",
         "src/repositories/drizzle/employee*.ts",
         "src/routes/employees.route.ts",
         "src/middleware/error-handler.ts",

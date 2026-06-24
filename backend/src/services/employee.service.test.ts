@@ -17,6 +17,7 @@ function createMockRepository(
       departments: [],
       jobTitles: [],
     }),
+    upsertMany: vi.fn(),
   };
 }
 
