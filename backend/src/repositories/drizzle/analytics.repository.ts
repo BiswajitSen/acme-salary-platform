@@ -4,8 +4,40 @@ import type {
   DepartmentSalaryStatisticsRecord,
   TopEarnerRecord,
 } from "../../domain/analytics.types.js";
+import {
+  latestCompensationCurrencies,
+  latestCompensationRows,
+} from "../../domain/analytics-latest-compensation.js";
 import type { Database } from "../../db/index.js";
 import type { IAnalyticsRepository } from "../interfaces/analytics.repository.js";
+
+function mapDepartmentSalaryRow(row: {
+  department: string;
+  employee_count: number;
+  average_salary: number;
+  median_salary: number;
+}): DepartmentSalaryStatisticsRecord {
+  return {
+    department: row.department,
+    employeeCount: row.employee_count,
+    averageSalary: row.average_salary,
+    medianSalary: row.median_salary,
+  };
+}
+
+function mapTopEarnerRow(row: {
+  employee_id: string;
+  full_name: string;
+  department: string;
+  base_salary: number;
+}): TopEarnerRecord {
+  return {
+    employeeId: row.employee_id,
+    fullName: row.full_name,
+    department: row.department,
+    baseSalary: row.base_salary,
+  };
+}
 
 export class DrizzleAnalyticsRepository implements IAnalyticsRepository {
   constructor(private readonly database: Database) {}
@@ -13,12 +45,7 @@ export class DrizzleAnalyticsRepository implements IAnalyticsRepository {
   async findAvailableCurrencies(): Promise<string[]> {
     const result = await this.database.execute<{ currency: string }>(sql`
       SELECT DISTINCT currency
-      FROM (
-        SELECT DISTINCT ON (employee_id)
-          currency
-        FROM compensation_history
-        ORDER BY employee_id, effective_date DESC, id DESC
-      ) latest_compensation
+      FROM (${latestCompensationCurrencies}) latest_compensation
       ORDER BY currency ASC
     `);
 
@@ -30,13 +57,7 @@ export class DrizzleAnalyticsRepository implements IAnalyticsRepository {
   ): Promise<number> {
     const result = await this.database.execute<{ headcount: number }>(sql`
       SELECT COUNT(*)::int AS headcount
-      FROM (
-        SELECT DISTINCT ON (employee_id)
-          employee_id,
-          currency
-        FROM compensation_history
-        ORDER BY employee_id, effective_date DESC, id DESC
-      ) latest_compensation
+      FROM (${latestCompensationRows}) latest_compensation
       WHERE currency = ${currency}
     `);
 
@@ -46,14 +67,7 @@ export class DrizzleAnalyticsRepository implements IAnalyticsRepository {
   async sumLatestCompensationSalariesInCurrency(currency: string): Promise<number> {
     const result = await this.database.execute<{ total_payroll: number }>(sql`
       SELECT COALESCE(SUM(base_salary), 0)::float8 AS total_payroll
-      FROM (
-        SELECT DISTINCT ON (employee_id)
-          employee_id,
-          base_salary,
-          currency
-        FROM compensation_history
-        ORDER BY employee_id, effective_date DESC, id DESC
-      ) latest_compensation
+      FROM (${latestCompensationRows}) latest_compensation
       WHERE currency = ${currency}
     `);
 
@@ -69,14 +83,7 @@ export class DrizzleAnalyticsRepository implements IAnalyticsRepository {
       average_salary: number;
       median_salary: number;
     }>(sql`
-      WITH latest_compensation AS (
-        SELECT DISTINCT ON (employee_id)
-          employee_id,
-          base_salary,
-          currency
-        FROM compensation_history
-        ORDER BY employee_id, effective_date DESC, id DESC
-      )
+      WITH latest_compensation AS (${latestCompensationRows})
       SELECT
         e.department,
         COUNT(*)::int AS employee_count,
@@ -89,12 +96,7 @@ export class DrizzleAnalyticsRepository implements IAnalyticsRepository {
       ORDER BY e.department ASC
     `);
 
-    return result.rows.map((row) => ({
-      department: row.department,
-      employeeCount: row.employee_count,
-      averageSalary: row.average_salary,
-      medianSalary: row.median_salary,
-    }));
+    return result.rows.map(mapDepartmentSalaryRow);
   }
 
   async findTopEarnersByCurrency(
@@ -107,14 +109,7 @@ export class DrizzleAnalyticsRepository implements IAnalyticsRepository {
       department: string;
       base_salary: number;
     }>(sql`
-      WITH latest_compensation AS (
-        SELECT DISTINCT ON (employee_id)
-          employee_id,
-          base_salary,
-          currency
-        FROM compensation_history
-        ORDER BY employee_id, effective_date DESC, id DESC
-      )
+      WITH latest_compensation AS (${latestCompensationRows})
       SELECT
         lc.employee_id,
         e.full_name,
@@ -127,11 +122,6 @@ export class DrizzleAnalyticsRepository implements IAnalyticsRepository {
       LIMIT ${limit}
     `);
 
-    return result.rows.map((row) => ({
-      employeeId: row.employee_id,
-      fullName: row.full_name,
-      department: row.department,
-      baseSalary: row.base_salary,
-    }));
+    return result.rows.map(mapTopEarnerRow);
   }
 }

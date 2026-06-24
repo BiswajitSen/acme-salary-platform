@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 
 import { db } from "../src/db/index.js";
 import { employees } from "../src/db/schema.js";
-import { buildEmployeeSpreadsheetRows } from "../src/domain/bulk-import-fixtures.js";
+import { createEmployeeSpreadsheetRows } from "../src/domain/fixtures/index.js";
 import { buildEmployeeSpreadsheetBuffer } from "../src/domain/parse-employee-spreadsheet.js";
 import { DrizzleEmployeeRepository } from "../src/repositories/drizzle/employee.repository.js";
 import { EmployeeImportService } from "../src/services/employee-import.service.js";
@@ -13,7 +13,7 @@ describe("EmployeeImportService integration", () => {
 
   it("imports ten thousand employees from an xlsx spreadsheet", async () => {
     const spreadsheetBuffer = buildEmployeeSpreadsheetBuffer(
-      buildEmployeeSpreadsheetRows(10_000),
+      createEmployeeSpreadsheetRows(10_000),
     );
 
     const startedAt = performance.now();

@@ -24,6 +24,7 @@ export default defineConfig({
         "lib/api/analytics.ts",
         "lib/api/client.ts",
         "lib/format-salary.ts",
+        "lib/analytics/fetch-analytics-dashboard.ts",
         "lib/hooks/use-debounced-value.ts",
         "lib/hooks/use-employee-directory.ts",
         "lib/hooks/use-employee-import.ts",

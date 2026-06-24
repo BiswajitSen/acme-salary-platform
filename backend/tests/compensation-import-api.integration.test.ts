@@ -4,7 +4,7 @@ import { describe, expect, it } from "vitest";
 import { createApp } from "../src/app.js";
 import { db } from "../src/db/index.js";
 import { runSeed } from "../src/db/seed.js";
-import { buildEmployeeSpreadsheetRows } from "../src/domain/bulk-import-fixtures.js";
+import { createEmployeeSpreadsheetRows } from "../src/domain/fixtures/index.js";
 import { buildCompensationSpreadsheetBuffer } from "../src/domain/parse-compensation-spreadsheet.js";
 import { buildEmployeeSpreadsheetBuffer } from "../src/domain/parse-employee-spreadsheet.js";
 import { DrizzleEmployeeRepository } from "../src/repositories/drizzle/employee.repository.js";
@@ -115,7 +115,7 @@ describe("Compensation import API", () => {
 
   it("imports twenty-one thousand compensation records through confirm", async () => {
     await employeeImportService.importEmployeeSpreadsheet(
-      buildEmployeeSpreadsheetBuffer(buildEmployeeSpreadsheetRows(10_000)),
+      buildEmployeeSpreadsheetBuffer(createEmployeeSpreadsheetRows(10_000)),
     );
 
     const spreadsheetBuffer = buildCompensationSpreadsheetBuffer(

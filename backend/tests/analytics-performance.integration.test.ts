@@ -4,9 +4,9 @@ import { describe, expect, it } from "vitest";
 import { createApp } from "../src/app.js";
 import { db } from "../src/db/index.js";
 import {
-  buildCompensationSpreadsheetRows,
-  buildEmployeeSpreadsheetRows,
-} from "../src/domain/bulk-import-fixtures.js";
+  createCompensationSpreadsheetRows,
+  createEmployeeSpreadsheetRows,
+} from "../src/domain/fixtures/index.js";
 import { buildCompensationSpreadsheetBuffer } from "../src/domain/parse-compensation-spreadsheet.js";
 import { buildEmployeeSpreadsheetBuffer } from "../src/domain/parse-employee-spreadsheet.js";
 import { DrizzleCompensationRepository } from "../src/repositories/drizzle/compensation.repository.js";
@@ -26,10 +26,10 @@ describe("Analytics API performance", () => {
 
   it("responds to analytics endpoints in under two seconds with ten thousand employees", async () => {
     await employeeImportService.importEmployeeSpreadsheet(
-      buildEmployeeSpreadsheetBuffer(buildEmployeeSpreadsheetRows(10_000)),
+      buildEmployeeSpreadsheetBuffer(createEmployeeSpreadsheetRows(10_000)),
     );
     await compensationImportService.importCompensationSpreadsheet(
-      buildCompensationSpreadsheetBuffer(buildCompensationSpreadsheetRows(10_000)),
+      buildCompensationSpreadsheetBuffer(createCompensationSpreadsheetRows(10_000)),
     );
 
     const endpoints = [

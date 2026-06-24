@@ -1,24 +1,14 @@
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 
+import { FIXTURE_DEFAULT_EMPLOYEE_COUNT } from "../src/domain/fixtures/index.js";
 import { logger } from "../src/config/logger.js";
 import { generateCompensationSpreadsheet } from "./generate-compensation-spreadsheet.js";
 import { generateEmployeeSpreadsheet } from "./generate-employee-spreadsheet.js";
-
-function parseCountArgument(defaultCount: number): number {
-  const countFlagIndex = process.argv.findIndex((argument) => argument === "--count");
-  const countValue = countFlagIndex === -1 ? undefined : process.argv[countFlagIndex + 1];
-  const parsedCount = Number(countValue ?? defaultCount);
-
-  if (!Number.isInteger(parsedCount) || parsedCount <= 0) {
-    throw new Error("Count must be a positive integer");
-  }
-
-  return parsedCount;
-}
+import { parseSpreadsheetRowCountArgument } from "./spreadsheet-script-options.js";
 
 const backendRoot = path.join(path.dirname(fileURLToPath(import.meta.url)), "..");
-const totalRows = parseCountArgument(10_000);
+const totalRows = parseSpreadsheetRowCountArgument(FIXTURE_DEFAULT_EMPLOYEE_COUNT);
 
 await generateEmployeeSpreadsheet(
   totalRows,

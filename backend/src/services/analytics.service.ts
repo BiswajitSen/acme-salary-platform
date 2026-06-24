@@ -1,12 +1,12 @@
 import {
   ANALYTICS_TOP_EARNERS_LIMIT,
-  analyticsSummaryQuerySchema,
   type AnalyticsCurrenciesResponse,
   type AnalyticsDepartmentStatisticsResponse,
   type AnalyticsSummaryResponse,
   type AnalyticsTopEarnersResponse,
 } from "@acme/shared";
 
+import { parseAnalyticsCurrencyQuery } from "../domain/analytics-query.js";
 import type { IAnalyticsRepository } from "../repositories/interfaces/analytics.repository.js";
 
 export class AnalyticsService {
@@ -19,7 +19,7 @@ export class AnalyticsService {
   }
 
   async getAnalyticsSummary(query: unknown): Promise<AnalyticsSummaryResponse> {
-    const { currency } = analyticsSummaryQuerySchema.parse(query);
+    const currency = parseAnalyticsCurrencyQuery(query);
     const headcount =
       await this.analytics.countEmployeesWithLatestCompensationInCurrency(currency);
     const totalPayroll =
@@ -35,7 +35,7 @@ export class AnalyticsService {
   async getDepartmentSalaryStatistics(
     query: unknown,
   ): Promise<AnalyticsDepartmentStatisticsResponse> {
-    const { currency } = analyticsSummaryQuerySchema.parse(query);
+    const currency = parseAnalyticsCurrencyQuery(query);
     const departments =
       await this.analytics.findDepartmentSalaryStatisticsByCurrency(currency);
 
@@ -46,7 +46,7 @@ export class AnalyticsService {
   }
 
   async getTopEarners(query: unknown): Promise<AnalyticsTopEarnersResponse> {
-    const { currency } = analyticsSummaryQuerySchema.parse(query);
+    const currency = parseAnalyticsCurrencyQuery(query);
     const earners = await this.analytics.findTopEarnersByCurrency(
       currency,
       ANALYTICS_TOP_EARNERS_LIMIT,

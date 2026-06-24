@@ -3,7 +3,7 @@ import { describe, expect, it } from "vitest";
 
 import { db } from "../src/db/index.js";
 import { compensationHistory } from "../src/db/schema.js";
-import { buildEmployeeSpreadsheetRows } from "../src/domain/bulk-import-fixtures.js";
+import { createEmployeeSpreadsheetRows } from "../src/domain/fixtures/index.js";
 import { buildCompensationSpreadsheetBuffer } from "../src/domain/parse-compensation-spreadsheet.js";
 import { buildEmployeeSpreadsheetBuffer } from "../src/domain/parse-employee-spreadsheet.js";
 import { DrizzleCompensationRepository } from "../src/repositories/drizzle/compensation.repository.js";
@@ -47,7 +47,7 @@ describe("CompensationImportService integration", () => {
 
   it("imports twenty thousand compensation records from an xlsx spreadsheet", async () => {
     await employeeImportService.importEmployeeSpreadsheet(
-      buildEmployeeSpreadsheetBuffer(buildEmployeeSpreadsheetRows(10_000)),
+      buildEmployeeSpreadsheetBuffer(createEmployeeSpreadsheetRows(10_000)),
     );
 
     const spreadsheetBuffer = buildCompensationSpreadsheetBuffer(

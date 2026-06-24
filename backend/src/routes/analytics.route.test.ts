@@ -111,4 +111,30 @@ describe("createAnalyticsRouter", () => {
     expect(response.status).toBe(200);
     expect(response.body.earners).toHaveLength(1);
   });
+
+  it("forwards service errors to the error handler", async () => {
+    const analyticsService = {
+      getAvailableCurrencies: vi.fn().mockRejectedValue(new Error("Database unavailable")),
+      getAnalyticsSummary: vi.fn().mockRejectedValue(new Error("Database unavailable")),
+      getDepartmentSalaryStatistics: vi
+        .fn()
+        .mockRejectedValue(new Error("Database unavailable")),
+      getTopEarners: vi.fn().mockRejectedValue(new Error("Database unavailable")),
+    } as unknown as AnalyticsService;
+
+    const app = createTestApp(analyticsService);
+
+    await expect(request(app).get("/analytics/currencies")).resolves.toMatchObject({
+      status: 500,
+    });
+    await expect(request(app).get("/analytics/summary?currency=USD")).resolves.toMatchObject({
+      status: 500,
+    });
+    await expect(request(app).get("/analytics/departments?currency=USD")).resolves.toMatchObject({
+      status: 500,
+    });
+    await expect(request(app).get("/analytics/top-earners?currency=USD")).resolves.toMatchObject({
+      status: 500,
+    });
+  });
 });

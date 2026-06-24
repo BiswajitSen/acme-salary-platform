@@ -8,11 +8,9 @@ import type {
 import { useEffect, useState } from "react";
 
 import {
-  getAnalyticsCurrencies,
-  getAnalyticsSummary,
-  getDepartmentSalaryStatistics,
-  getTopEarners,
-} from "@/lib/api/analytics";
+  fetchAnalyticsCurrencies,
+  fetchAnalyticsDashboardMetrics,
+} from "@/lib/analytics/fetch-analytics-dashboard";
 
 type AnalyticsDashboardState = {
   currency: string;
@@ -24,6 +22,8 @@ type AnalyticsDashboardState = {
   errorMessage: string | null;
   selectCurrency: (currency: string) => void;
 };
+
+const ANALYTICS_LOAD_ERROR_MESSAGE = "Unable to load analytics dashboard data.";
 
 export function useAnalyticsDashboard(
   initialCurrency = "USD",
@@ -42,26 +42,21 @@ export function useAnalyticsDashboard(
 
     async function loadAvailableCurrencies() {
       try {
-        const response = await getAnalyticsCurrencies();
+        const currencies = await fetchAnalyticsCurrencies();
 
         if (isCancelled) {
           return;
         }
 
-        setAvailableCurrencies(response.currencies);
+        setAvailableCurrencies(currencies);
 
-        if (
-          response.currencies.length > 0 &&
-          !response.currencies.includes(currency)
-        ) {
-          setCurrency(response.currencies[0]!);
+        if (currencies.length > 0 && !currencies.includes(currency)) {
+          setCurrency(currencies[0]!);
         }
       } catch {
-        if (isCancelled) {
-          return;
+        if (!isCancelled) {
+          setAvailableCurrencies([]);
         }
-
-        setAvailableCurrencies([]);
       }
     }
 
@@ -75,24 +70,20 @@ export function useAnalyticsDashboard(
   useEffect(() => {
     let isCancelled = false;
 
-    async function loadAnalyticsDashboard() {
+    async function loadDashboardMetrics() {
       setIsLoading(true);
       setErrorMessage(null);
 
       try {
-        const [nextSummary, nextDepartmentStatistics, nextTopEarners] = await Promise.all([
-          getAnalyticsSummary(currency),
-          getDepartmentSalaryStatistics(currency),
-          getTopEarners(currency),
-        ]);
+        const metrics = await fetchAnalyticsDashboardMetrics(currency);
 
         if (isCancelled) {
           return;
         }
 
-        setSummary(nextSummary);
-        setDepartmentStatistics(nextDepartmentStatistics);
-        setTopEarners(nextTopEarners);
+        setSummary(metrics.summary);
+        setDepartmentStatistics(metrics.departmentStatistics);
+        setTopEarners(metrics.topEarners);
       } catch {
         if (isCancelled) {
           return;
@@ -101,7 +92,7 @@ export function useAnalyticsDashboard(
         setSummary(null);
         setDepartmentStatistics(null);
         setTopEarners(null);
-        setErrorMessage("Unable to load analytics dashboard data.");
+        setErrorMessage(ANALYTICS_LOAD_ERROR_MESSAGE);
       } finally {
         if (!isCancelled) {
           setIsLoading(false);
@@ -109,7 +100,7 @@ export function useAnalyticsDashboard(
       }
     }
 
-    void loadAnalyticsDashboard();
+    void loadDashboardMetrics();
 
     return () => {
       isCancelled = true;
