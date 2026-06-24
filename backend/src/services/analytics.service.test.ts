@@ -8,6 +8,7 @@ describe("AnalyticsService", () => {
       countEmployeesWithLatestCompensationInCurrency: vi.fn().mockResolvedValue(42),
       sumLatestCompensationSalariesInCurrency: vi.fn().mockResolvedValue(5_280_000),
       findDepartmentSalaryStatisticsByCurrency: vi.fn(),
+      findTopEarnersByCurrency: vi.fn(),
     };
 
     const service = new AnalyticsService(analyticsRepository);
@@ -62,5 +63,36 @@ describe("AnalyticsService", () => {
         },
       ],
     });
+  });
+
+  it("returns top earners for the requested currency", async () => {
+    const analyticsRepository = {
+      countEmployeesWithLatestCompensationInCurrency: vi.fn(),
+      sumLatestCompensationSalariesInCurrency: vi.fn(),
+      findDepartmentSalaryStatisticsByCurrency: vi.fn(),
+      findTopEarnersByCurrency: vi.fn().mockResolvedValue([
+        {
+          employeeId: "E001",
+          fullName: "Jane Doe",
+          department: "Engineering",
+          baseSalary: 132_000,
+        },
+      ]),
+    };
+
+    const service = new AnalyticsService(analyticsRepository);
+
+    await expect(service.getTopEarners({ currency: "USD" })).resolves.toEqual({
+      currency: "USD",
+      earners: [
+        {
+          employeeId: "E001",
+          fullName: "Jane Doe",
+          department: "Engineering",
+          baseSalary: 132_000,
+        },
+      ],
+    });
+    expect(analyticsRepository.findTopEarnersByCurrency).toHaveBeenCalledWith("USD", 10);
   });
 });

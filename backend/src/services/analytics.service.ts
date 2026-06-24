@@ -1,7 +1,9 @@
 import {
+  ANALYTICS_TOP_EARNERS_LIMIT,
   analyticsSummaryQuerySchema,
   type AnalyticsDepartmentStatisticsResponse,
   type AnalyticsSummaryResponse,
+  type AnalyticsTopEarnersResponse,
 } from "@acme/shared";
 
 import type { IAnalyticsRepository } from "../repositories/interfaces/analytics.repository.js";
@@ -33,6 +35,19 @@ export class AnalyticsService {
     return {
       currency,
       departments,
+    };
+  }
+
+  async getTopEarners(query: unknown): Promise<AnalyticsTopEarnersResponse> {
+    const { currency } = analyticsSummaryQuerySchema.parse(query);
+    const earners = await this.analytics.findTopEarnersByCurrency(
+      currency,
+      ANALYTICS_TOP_EARNERS_LIMIT,
+    );
+
+    return {
+      currency,
+      earners,
     };
   }
 }

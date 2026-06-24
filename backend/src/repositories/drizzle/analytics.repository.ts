@@ -1,6 +1,9 @@
 import { sql } from "drizzle-orm";
 
-import type { DepartmentSalaryStatisticsRecord } from "../../domain/analytics.types.js";
+import type {
+  DepartmentSalaryStatisticsRecord,
+  TopEarnerRecord,
+} from "../../domain/analytics.types.js";
 import type { Database } from "../../db/index.js";
 import type { IAnalyticsRepository } from "../interfaces/analytics.repository.js";
 
@@ -76,6 +79,44 @@ export class DrizzleAnalyticsRepository implements IAnalyticsRepository {
       employeeCount: row.employee_count,
       averageSalary: row.average_salary,
       medianSalary: row.median_salary,
+    }));
+  }
+
+  async findTopEarnersByCurrency(
+    currency: string,
+    limit: number,
+  ): Promise<TopEarnerRecord[]> {
+    const result = await this.database.execute<{
+      employee_id: string;
+      full_name: string;
+      department: string;
+      base_salary: number;
+    }>(sql`
+      WITH latest_compensation AS (
+        SELECT DISTINCT ON (employee_id)
+          employee_id,
+          base_salary,
+          currency
+        FROM compensation_history
+        ORDER BY employee_id, effective_date DESC, id DESC
+      )
+      SELECT
+        lc.employee_id,
+        e.full_name,
+        e.department,
+        lc.base_salary
+      FROM latest_compensation lc
+      INNER JOIN employees e ON e.id = lc.employee_id
+      WHERE lc.currency = ${currency}
+      ORDER BY lc.base_salary DESC, lc.employee_id ASC
+      LIMIT ${limit}
+    `);
+
+    return result.rows.map((row) => ({
+      employeeId: row.employee_id,
+      fullName: row.full_name,
+      department: row.department,
+      baseSalary: row.base_salary,
     }));
   }
 }

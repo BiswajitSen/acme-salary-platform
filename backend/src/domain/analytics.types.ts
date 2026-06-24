@@ -4,3 +4,10 @@ export type DepartmentSalaryStatisticsRecord = {
   averageSalary: number;
   medianSalary: number;
 };
+
+export type TopEarnerRecord = {
+  employeeId: string;
+  fullName: string;
+  department: string;
+  baseSalary: number;
+};

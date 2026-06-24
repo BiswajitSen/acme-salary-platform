@@ -28,3 +28,17 @@ export type AnalyticsDepartmentStatisticsResponse = {
   currency: string;
   departments: DepartmentSalaryStatistics[];
 };
+
+export const ANALYTICS_TOP_EARNERS_LIMIT = 10;
+
+export type TopEarner = {
+  employeeId: string;
+  fullName: string;
+  department: string;
+  baseSalary: number;
+};
+
+export type AnalyticsTopEarnersResponse = {
+  currency: string;
+  earners: TopEarner[];
+};

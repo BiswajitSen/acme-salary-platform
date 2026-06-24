@@ -51,3 +51,26 @@ describe("GET /api/analytics/departments", () => {
     });
   });
 });
+
+describe("GET /api/analytics/top-earners", () => {
+  const app = createApp();
+
+  it("returns the highest paid employees for the requested currency", async () => {
+    await runSeed(db);
+
+    const response = await request(app).get("/api/analytics/top-earners?currency=USD");
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({
+      currency: "USD",
+      earners: [
+        {
+          employeeId: "E001",
+          fullName: "Jane Doe",
+          department: "Engineering",
+          baseSalary: 132_000,
+        },
+      ],
+    });
+  });
+});

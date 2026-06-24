@@ -29,5 +29,14 @@ export function createAnalyticsRouter(deps: AnalyticsRouterDeps) {
     }
   });
 
+  router.get("/top-earners", async (req, res, next) => {
+    try {
+      const topEarners = await deps.analyticsService.getTopEarners(req.query);
+      res.json(topEarners);
+    } catch (error) {
+      next(error);
+    }
+  });
+
   return router;
 }

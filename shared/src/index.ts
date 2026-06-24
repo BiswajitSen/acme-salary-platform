@@ -51,9 +51,12 @@ export type {
 } from "./employee-import";
 
 export {
+  ANALYTICS_TOP_EARNERS_LIMIT,
   analyticsSummaryQuerySchema,
   type AnalyticsDepartmentStatisticsResponse,
   type AnalyticsSummaryQuery,
   type AnalyticsSummaryResponse,
+  type AnalyticsTopEarnersResponse,
   type DepartmentSalaryStatistics,
+  type TopEarner,
 } from "./analytics";

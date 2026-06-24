@@ -39,6 +39,7 @@ describe("createAnalyticsRouter", () => {
       countEmployeesWithLatestCompensationInCurrency: vi.fn(),
       sumLatestCompensationSalariesInCurrency: vi.fn(),
       findDepartmentSalaryStatisticsByCurrency: vi.fn(),
+      findTopEarnersByCurrency: vi.fn(),
     });
 
     const response = await request(createTestApp(analyticsService)).get(
@@ -70,5 +71,28 @@ describe("createAnalyticsRouter", () => {
 
     expect(response.status).toBe(200);
     expect(response.body.departments).toHaveLength(1);
+  });
+
+  it("returns top earners for a valid currency query", async () => {
+    const analyticsService = {
+      getTopEarners: vi.fn().mockResolvedValue({
+        currency: "USD",
+        earners: [
+          {
+            employeeId: "E001",
+            fullName: "Jane Doe",
+            department: "Engineering",
+            baseSalary: 132_000,
+          },
+        ],
+      }),
+    } as unknown as AnalyticsService;
+
+    const response = await request(createTestApp(analyticsService)).get(
+      "/analytics/top-earners?currency=USD",
+    );
+
+    expect(response.status).toBe(200);
+    expect(response.body.earners).toHaveLength(1);
   });
 });

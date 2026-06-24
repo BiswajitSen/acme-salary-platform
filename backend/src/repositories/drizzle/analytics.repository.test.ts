@@ -58,6 +58,48 @@ describe("DrizzleAnalyticsRepository", () => {
     ]);
   });
 
+  it("returns top earners ordered by salary descending", async () => {
+    await runSeed(db);
+
+    await expect(repository.findTopEarnersByCurrency("USD", 10)).resolves.toEqual([
+      {
+        employeeId: "E001",
+        fullName: "Jane Doe",
+        department: "Engineering",
+        baseSalary: 132_000,
+      },
+    ]);
+  });
+
+  it("breaks salary ties using employee id ascending order", async () => {
+    await runSeed(db);
+
+    await compensationRepository.insertCompensationHistoryRecord({
+      employeeId: "E003",
+      baseSalary: 132_000,
+      currency: "USD",
+      effectiveDate: "2026-01-01",
+      reason: "New Hire",
+      changedBy: "HR Admin",
+      notes: null,
+    });
+
+    await expect(repository.findTopEarnersByCurrency("USD", 10)).resolves.toEqual([
+      {
+        employeeId: "E001",
+        fullName: "Jane Doe",
+        department: "Engineering",
+        baseSalary: 132_000,
+      },
+      {
+        employeeId: "E003",
+        fullName: "Alice Chen",
+        department: "Finance",
+        baseSalary: 132_000,
+      },
+    ]);
+  });
+
   it("uses the newest effective date when determining latest compensation currency", async () => {
     await runSeed(db);
 

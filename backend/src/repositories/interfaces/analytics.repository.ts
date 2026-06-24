@@ -1,4 +1,7 @@
-import type { DepartmentSalaryStatisticsRecord } from "../../domain/analytics.types.js";
+import type {
+  DepartmentSalaryStatisticsRecord,
+  TopEarnerRecord,
+} from "../../domain/analytics.types.js";
 
 export interface IAnalyticsRepository {
   countEmployeesWithLatestCompensationInCurrency(currency: string): Promise<number>;
@@ -6,4 +9,5 @@ export interface IAnalyticsRepository {
   findDepartmentSalaryStatisticsByCurrency(
     currency: string,
   ): Promise<DepartmentSalaryStatisticsRecord[]>;
+  findTopEarnersByCurrency(currency: string, limit: number): Promise<TopEarnerRecord[]>;
 }
