@@ -1,10 +1,9 @@
+import { and, eq } from "drizzle-orm";
 import type { BetterSQLite3Database } from "drizzle-orm/better-sqlite3";
 
 import { logger } from "../config/logger.js";
 import type * as schema from "./schema.js";
-import { employees } from "./schema.js";
-
-type Database = BetterSQLite3Database<typeof schema>;
+import { compensationHistory, employees } from "./schema.js";
 
 const sampleEmployees = [
   {
@@ -30,7 +29,42 @@ const sampleEmployees = [
   },
 ] as const;
 
-export async function seedEmployees(database: Database): Promise<number> {
+const sampleCompensationHistory = [
+  {
+    employeeId: "E001",
+    baseSalary: 120_000,
+    currency: "USD",
+    effectiveDate: "2024-01-01",
+    reason: "New Hire" as const,
+    changedBy: "HR Admin",
+    notes: null,
+    createdAt: "2024-01-02T10:00:00.000Z",
+  },
+  {
+    employeeId: "E001",
+    baseSalary: 132_000,
+    currency: "USD",
+    effectiveDate: "2025-01-01",
+    reason: "Annual Increment" as const,
+    changedBy: "HR Admin",
+    notes: "Merit increase",
+    createdAt: "2025-01-02T10:00:00.000Z",
+  },
+  {
+    employeeId: "E002",
+    baseSalary: 85_000,
+    currency: "GBP",
+    effectiveDate: "2024-06-01",
+    reason: "New Hire" as const,
+    changedBy: "HR Admin",
+    notes: null,
+    createdAt: "2024-06-02T10:00:00.000Z",
+  },
+] as const;
+
+export async function seedEmployees(
+  database: BetterSQLite3Database<typeof schema>,
+): Promise<number> {
   let inserted = 0;
 
   for (const employee of sampleEmployees) {
@@ -48,14 +82,58 @@ export async function seedEmployees(database: Database): Promise<number> {
   return inserted;
 }
 
-export async function runSeed(database: Database): Promise<void> {
-  const inserted = await seedEmployees(database);
-  logger.info({ inserted, total: sampleEmployees.length }, "Employee seed complete");
+export async function seedCompensationHistory(
+  database: BetterSQLite3Database<typeof schema>,
+): Promise<number> {
+  let inserted = 0;
+
+  for (const record of sampleCompensationHistory) {
+    const existing = await database
+      .select({ id: compensationHistory.id })
+      .from(compensationHistory)
+      .where(
+        and(
+          eq(compensationHistory.employeeId, record.employeeId),
+          eq(compensationHistory.effectiveDate, record.effectiveDate),
+        ),
+      )
+      .limit(1);
+
+    if (existing.length > 0) {
+      continue;
+    }
+
+    const result = await database
+      .insert(compensationHistory)
+      .values(record)
+      .returning({ id: compensationHistory.id });
+
+    if (result.length > 0) {
+      inserted += 1;
+    }
+  }
+
+  return inserted;
+}
+
+export async function runSeed(database: BetterSQLite3Database<typeof schema>): Promise<void> {
+  const insertedEmployees = await seedEmployees(database);
+  const insertedCompensation = await seedCompensationHistory(database);
+
+  logger.info(
+    {
+      insertedEmployees,
+      totalEmployees: sampleEmployees.length,
+      insertedCompensation,
+      totalCompensation: sampleCompensationHistory.length,
+    },
+    "Employee seed complete",
+  );
 }
 
 const isDirectRun = process.argv[1]?.endsWith("seed.ts");
 
 if (isDirectRun) {
-  const { db } = await import("./index.js");
-  await runSeed(db);
+  const { db: database } = await import("./index.js");
+  await runSeed(database);
 }

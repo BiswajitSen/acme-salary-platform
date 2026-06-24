@@ -1,8 +1,9 @@
+import { and, eq } from "drizzle-orm";
 import { describe, expect, it } from "vitest";
 
 import { db } from "./index.js";
-import { employees } from "./schema.js";
-import { runSeed, seedEmployees } from "./seed.js";
+import { compensationHistory, employees } from "./schema.js";
+import { runSeed, seedCompensationHistory, seedEmployees } from "./seed.js";
 
 describe("seedEmployees", () => {
   it("does not duplicate employees on subsequent runs", async () => {
@@ -20,5 +21,20 @@ describe("seedEmployees", () => {
 
   it("runSeed completes without error", async () => {
     await expect(runSeed(db)).resolves.toBeUndefined();
+  });
+
+  it("does not duplicate compensation records on subsequent runs", async () => {
+    await seedCompensationHistory(db);
+    const countAfterFirst = (
+      await db.select({ id: compensationHistory.id }).from(compensationHistory)
+    ).length;
+
+    const secondInsertCount = await seedCompensationHistory(db);
+    const countAfterSecond = (
+      await db.select({ id: compensationHistory.id }).from(compensationHistory)
+    ).length;
+
+    expect(secondInsertCount).toBe(0);
+    expect(countAfterSecond).toBe(countAfterFirst);
   });
 });
