@@ -1,11 +1,14 @@
 export {
   COMPENSATION_REASONS,
   COMPENSATION_TIMELINE_ORDER,
+  recordCompensationChangeSchema,
   type CompensationReason,
   type CompensationTimelineEntry,
   type CurrentCompensation,
   type EmployeeCompensationHistoryResponse,
   type EmployeeProfileResponse,
+  type RecordCompensationChangeInput,
+  type RecordCompensationChangeResponse,
 } from "./compensation.js";
 
 export type HealthStatus = {

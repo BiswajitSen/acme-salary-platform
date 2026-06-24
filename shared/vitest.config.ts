@@ -8,7 +8,7 @@ export default defineConfig({
     environment: "node",
     coverage: {
       provider: "v8",
-      include: ["src/employees.ts", "src/index.ts"],
+      include: ["src/employees.ts", "src/compensation.ts", "src/index.ts"],
       thresholds: {
         lines: 100,
         functions: 100,
