@@ -21,4 +21,31 @@ describe("DrizzleCompensationRepository", () => {
 
     await expect(repository.findCompensationHistoryByEmployeeId("E003")).resolves.toEqual([]);
   });
+
+  it("inserts a new compensation history row", async () => {
+    await runSeed(db);
+
+    const insertedRecord = await repository.insertCompensationHistoryRecord({
+      employeeId: "E003",
+      baseSalary: 95_000,
+      currency: "USD",
+      effectiveDate: "2026-01-01",
+      reason: "New Hire",
+      changedBy: "HR Admin",
+      notes: "Initial offer",
+    });
+
+    expect(insertedRecord.id).toBeGreaterThan(0);
+    expect(insertedRecord.employeeId).toBe("E003");
+
+    const history = await repository.findCompensationHistoryByEmployeeId("E003");
+    expect(history).toHaveLength(1);
+    expect(history[0]?.baseSalary).toBe(95_000);
+  });
+
+  it("exposes insert only and has no update or delete methods", () => {
+    expect(repository.insertCompensationHistoryRecord).toBeDefined();
+    expect("updateCompensationHistoryRecord" in repository).toBe(false);
+    expect("deleteCompensationHistoryRecord" in repository).toBe(false);
+  });
 });
