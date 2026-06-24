@@ -36,7 +36,7 @@ export function createContainer(database: Database): Container {
     employeeRepository,
     compensationRepository,
   );
-  const aiInsightsService = new AiInsightsService();
+  const aiInsightsService = new AiInsightsService(analyticsService);
 
   return {
     employeeRepository,
