@@ -43,6 +43,43 @@ describe("DrizzleCompensationRepository", () => {
     expect(history[0]?.baseSalary).toBe(95_000);
   });
 
+  it("returns zero when no records are provided", async () => {
+    await expect(repository.insertManyCompensationHistoryRecords([])).resolves.toEqual({
+      inserted: 0,
+      total: 0,
+    });
+  });
+
+  it("inserts many compensation history rows in one transaction", async () => {
+    await runSeed(db);
+
+    const result = await repository.insertManyCompensationHistoryRecords([
+      {
+        employeeId: "E003",
+        baseSalary: 96_000,
+        currency: "USD",
+        effectiveDate: "2026-02-01",
+        reason: "New Hire",
+        changedBy: "HR Admin",
+        notes: "Bulk import",
+      },
+      {
+        employeeId: "E003",
+        baseSalary: 98_000,
+        currency: "USD",
+        effectiveDate: "2026-03-01",
+        reason: "Market Adjustment",
+        changedBy: "HR Admin",
+        notes: null,
+      },
+    ]);
+
+    expect(result).toEqual({ inserted: 2, total: 2 });
+
+    const history = await repository.findCompensationHistoryByEmployeeId("E003");
+    expect(history).toHaveLength(2);
+  });
+
   it("exposes insert only and has no update or delete methods", () => {
     expect(repository.insertCompensationHistoryRecord).toBeDefined();
     expect("updateCompensationHistoryRecord" in repository).toBe(false);
