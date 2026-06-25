@@ -7,6 +7,10 @@ vi.mock("./site-header", () => ({
   SiteHeader: () => <div data-testid="site-header" />,
 }));
 
+vi.mock("next/navigation", () => ({
+  usePathname: () => "/",
+}));
+
 describe("AppShell", () => {
   it("wraps page content with the shared display currency provider", () => {
     render(
