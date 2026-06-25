@@ -16,6 +16,7 @@ function parsed(
     months: null,
     sinceDate: null,
     limit: null,
+    medianSplitFocus: null,
     ...overrides,
   };
 }
@@ -238,8 +239,63 @@ describe("parseInsightQuery", () => {
           "how many employees are earning below and above median in Engineering in India?",
         department: "Engineering",
         country: "IN",
+        medianSplitFocus: "both",
       }),
     );
+  });
+
+  it("maps below-median-only count questions to MEDIAN_SPLIT_COUNTS", () => {
+    expect(
+      parseInsightQuery(
+        "How many employees are earning below median in Engineering in India?",
+      ),
+    ).toEqual(
+      parsed({
+        intent: "MEDIAN_SPLIT_COUNTS",
+        originalQuery: "How many employees are earning below median in Engineering in India?",
+        department: "Engineering",
+        country: "IN",
+        medianSplitFocus: "below",
+      }),
+    );
+  });
+
+  it("maps above-median-only count questions to MEDIAN_SPLIT_COUNTS", () => {
+    expect(parseInsightQuery("number of employees earning above median in HR")).toEqual(
+      parsed({
+        intent: "MEDIAN_SPLIT_COUNTS",
+        originalQuery: "number of employees earning above median in HR",
+        department: "HR",
+        medianSplitFocus: "above",
+      }),
+    );
+  });
+
+  it("parses all documented example insight queries to supported intents", () => {
+    const exampleQueries = [
+      "What is the average salary in Engineering?",
+      "What is the average salary in India?",
+      "total payroll for Engineering in India",
+      "Who are the top 5 earners in Engineering in India?",
+      "headcount in UK",
+      "List employees who got promotion in the last 3 months",
+      "new joiners in the last 6 months",
+      "employees in India who got salary hike in the last 3 months",
+      "employees who joined as engineers in the last 12 months",
+      "employees who joined as Staff Engineer in the last 6 months",
+      "Who was promoted recently in India?",
+      "promotions since 2025-06-01",
+      "Who are the least earners?",
+      "Who earn around the median in Engineering?",
+      "How many employees are earning below and above median in Engineering?",
+      "How many employees are earning below median in Engineering in India?",
+      "median salary in HR",
+    ] as const;
+
+    for (const query of exampleQueries) {
+      const parsedQuery = parseInsightQuery(query);
+      expect(parsedQuery.intent, query).not.toBe("UNKNOWN");
+    }
   });
 
   it("keeps aggregate median salary questions separate from near-median lists", () => {

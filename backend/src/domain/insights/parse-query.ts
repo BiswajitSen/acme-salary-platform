@@ -1,6 +1,7 @@
 import type { ParsedInsightQuery } from "@acme/shared";
 
 import { extractInsightBottomLimit, extractInsightTopLimit } from "./filters/ranked-limits.js";
+import { extractMedianSplitFocus } from "./filters/median-split.js";
 import { extractInsightCountry } from "./filters/country.js";
 import { extractInsightDepartment } from "./filters/department.js";
 import {
@@ -34,6 +35,7 @@ function buildUnknownInsightQuery(originalQuery: string): ParsedInsightQuery {
     months: null,
     sinceDate: null,
     limit: null,
+    medianSplitFocus: null,
   };
 }
 
@@ -74,8 +76,14 @@ export function parseInsightQuery(query: string): ParsedInsightQuery {
     joinedAsScope.jobTitle ?? extractInsightJobTitle(originalQuery, normalizedQuery);
   const timeline = resolveParsedTimelineFields(intent, normalizedQuery);
   const limit = extractRankedLimit(intent, normalizedQuery);
+  const medianSplitFocus =
+    intent === "MEDIAN_SPLIT_COUNTS" ? extractMedianSplitFocus(normalizedQuery) : null;
 
   if (intent === "UNKNOWN") {
+    return buildUnknownInsightQuery(originalQuery);
+  }
+
+  if (intent === "MEDIAN_SPLIT_COUNTS" && medianSplitFocus === null) {
     return buildUnknownInsightQuery(originalQuery);
   }
 
@@ -89,5 +97,6 @@ export function parseInsightQuery(query: string): ParsedInsightQuery {
     months: timeline.months,
     sinceDate: timeline.sinceDate,
     limit,
+    medianSplitFocus,
   };
 }
