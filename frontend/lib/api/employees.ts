@@ -1,4 +1,5 @@
 import type {
+  CreateEmployeeInput,
   EmployeeFilterOptions,
   EmployeeCompensationHistoryResponse,
   EmployeeProfileResponse,
@@ -6,9 +7,10 @@ import type {
   PaginatedEmployeesResponse,
   RecordCompensationChangeInput,
   RecordCompensationChangeResponse,
+  UpdateEmployeeInput,
 } from "@acme/shared";
 
-import { ApiRequestError, apiFetch, apiPostJson } from "./client";
+import { ApiRequestError, apiDelete, apiFetch, apiPatchJson, apiPostJson } from "./client";
 
 export type EmployeeListParams = Partial<
   Pick<
@@ -66,6 +68,23 @@ export async function recordCompensationChange(
     `/api/backend/employees/${employeeId}/compensation`,
     input,
   );
+}
+
+export async function createEmployee(
+  input: CreateEmployeeInput,
+): Promise<EmployeeProfileResponse> {
+  return apiPostJson<EmployeeProfileResponse>("/api/backend/employees", input);
+}
+
+export async function updateEmployee(
+  employeeId: string,
+  input: UpdateEmployeeInput,
+): Promise<EmployeeProfileResponse> {
+  return apiPatchJson<EmployeeProfileResponse>(`/api/backend/employees/${employeeId}`, input);
+}
+
+export async function deleteEmployee(employeeId: string): Promise<void> {
+  await apiDelete(`/api/backend/employees/${employeeId}`);
 }
 
 export { ApiRequestError };

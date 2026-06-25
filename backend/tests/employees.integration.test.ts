@@ -68,3 +68,86 @@ describe("GET /api/employees/filter-options", () => {
     });
   });
 });
+
+describe("Employee CRUD API", () => {
+  const app = createApp();
+
+  it("creates, updates, and deletes an employee without compensation history", async () => {
+    const createResponse = await request(app).post("/api/employees").send({
+      id: "E900",
+      fullName: "CRUD Target",
+      department: "Operations",
+      jobTitle: "Coordinator",
+      country: "US",
+    });
+
+    expect(createResponse.status).toBe(201);
+    expect(createResponse.body).toMatchObject({
+      id: "E900",
+      fullName: "CRUD Target",
+      currentCompensation: null,
+    });
+
+    const updateResponse = await request(app).patch("/api/employees/E900").send({
+      fullName: "CRUD Updated",
+      department: "Operations",
+      jobTitle: "Lead Coordinator",
+      country: "US",
+    });
+
+    expect(updateResponse.status).toBe(200);
+    expect(updateResponse.body.fullName).toBe("CRUD Updated");
+
+    const deleteResponse = await request(app).delete("/api/employees/E900");
+
+    expect(deleteResponse.status).toBe(204);
+
+    const profileResponse = await request(app).get("/api/employees/E900");
+
+    expect(profileResponse.status).toBe(404);
+  });
+
+  it("rejects duplicate employee creation", async () => {
+    await db.insert(employees).values({
+      id: "E901",
+      fullName: "Existing Employee",
+      department: "Finance",
+      jobTitle: "Analyst",
+      country: "SG",
+    });
+
+    const response = await request(app).post("/api/employees").send({
+      id: "E901",
+      fullName: "Duplicate",
+      department: "Finance",
+      jobTitle: "Analyst",
+      country: "SG",
+    });
+
+    expect(response.status).toBe(409);
+    expect(response.body.message).toBe("Employee E901 already exists");
+  });
+
+  it("rejects delete when compensation history exists", async () => {
+    await request(app).post("/api/employees").send({
+      id: "E902",
+      fullName: "Protected Employee",
+      department: "Finance",
+      jobTitle: "Analyst",
+      country: "US",
+    });
+
+    await request(app).post("/api/employees/E902/compensation").send({
+      baseSalary: 100_000,
+      currency: "USD",
+      effectiveDate: "2026-01-01",
+      reason: "New Hire",
+      changedBy: "HR Admin",
+    });
+
+    const response = await request(app).delete("/api/employees/E902");
+
+    expect(response.status).toBe(409);
+    expect(response.body.message).toBe("Cannot delete an employee with compensation history");
+  });
+});

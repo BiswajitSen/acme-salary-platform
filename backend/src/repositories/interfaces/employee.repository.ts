@@ -1,4 +1,4 @@
-import type { EmployeeDirectoryStats, EmployeeSummary } from "@acme/shared";
+import type { CreateEmployeeInput, EmployeeDirectoryStats, EmployeeSummary, UpdateEmployeeInput } from "@acme/shared";
 
 import type { EmployeeListFilters } from "../../domain/employee-list-filters.js";
 import type { EmployeeSpreadsheetRow, EmployeeImportResult } from "../../domain/employee-import.types.js";
@@ -28,4 +28,7 @@ export interface IEmployeeRepository {
   upsertManyEmployees(
     employees: EmployeeSpreadsheetRow[],
   ): Promise<EmployeeImportResult>;
+  insertEmployee(employee: CreateEmployeeInput): Promise<EmployeeSummary>;
+  updateEmployee(id: string, employee: UpdateEmployeeInput): Promise<EmployeeSummary>;
+  deleteEmployee(id: string): Promise<void>;
 }

@@ -1,11 +1,14 @@
 "use client";
 
+import Link from "next/link";
+
 import { Alert } from "@/components/ui/alert";
 import { PageHeader } from "@/components/ui/page-header";
 import { Pagination } from "@/components/ui/pagination";
 import { EmployeeDirectoryKpiCards } from "@/components/employee-directory/employee-directory-kpi-cards";
 import { EmployeeDirectorySearch } from "@/components/employee-directory/employee-directory-search";
 import { EmployeeDirectoryTable } from "@/components/employee-directory/employee-directory-table";
+import { Button } from "@/components/ui/button";
 import { useDisplayCurrency } from "@/lib/hooks/use-display-currency";
 import { useEmployeeDirectory } from "@/lib/hooks/use-employee-directory";
 import { useExchangeRates } from "@/lib/hooks/use-exchange-rates";
@@ -32,6 +35,11 @@ export function EmployeeDirectory() {
       <PageHeader
         title="Employee Directory"
         subtitle="Find people quickly, review compensation at a glance, and open profiles from one place."
+        actions={
+          <Link href="/employees/new">
+            <Button variant="primary">Add employee</Button>
+          </Link>
+        }
       />
 
       <EmployeeDirectoryKpiCards

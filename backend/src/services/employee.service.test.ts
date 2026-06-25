@@ -36,6 +36,9 @@ function createMockRepository(
       jobTitles: [],
     }),
     upsertManyEmployees: vi.fn(),
+    insertEmployee: vi.fn(),
+    updateEmployee: vi.fn(),
+    deleteEmployee: vi.fn(),
   };
 }
 
@@ -241,6 +244,136 @@ describe("EmployeeService.listEmployeeCompensationHistory", () => {
     const service = createService(repository);
 
     await expect(service.listEmployeeCompensationHistory("E404")).rejects.toEqual(
+      new AppError(404, "Employee E404 not found"),
+    );
+  });
+});
+
+describe("EmployeeService.createEmployee", () => {
+  it("creates a new employee and returns the profile", async () => {
+    const repository = createMockRepository();
+    vi.mocked(repository.findEmployeeById)
+      .mockResolvedValueOnce(null)
+      .mockResolvedValueOnce({
+        id: "E010",
+        fullName: "New Hire",
+        department: "Engineering",
+        jobTitle: "Engineer",
+        country: "US",
+        baseSalary: null,
+        currency: null,
+        employmentStatus: "NO_COMPENSATION",
+      });
+    const service = createService(repository);
+
+    await expect(
+      service.createEmployee({
+        id: "E010",
+        fullName: "New Hire",
+        department: "Engineering",
+        jobTitle: "Engineer",
+        country: "us",
+      }),
+    ).resolves.toMatchObject({
+      id: "E010",
+      fullName: "New Hire",
+      currentCompensation: null,
+    });
+    expect(repository.insertEmployee).toHaveBeenCalledWith({
+      id: "E010",
+      fullName: "New Hire",
+      department: "Engineering",
+      jobTitle: "Engineer",
+      country: "US",
+    });
+  });
+
+  it("rejects duplicate employee ids", async () => {
+    const repository = createMockRepository();
+    vi.mocked(repository.findEmployeeById).mockResolvedValue(sampleEmployee);
+    const service = createService(repository);
+
+    await expect(
+      service.createEmployee({
+        id: "E001",
+        fullName: "Jane Doe",
+        department: "Engineering",
+        jobTitle: "Senior Engineer",
+        country: "US",
+      }),
+    ).rejects.toEqual(new AppError(409, "Employee E001 already exists"));
+  });
+});
+
+describe("EmployeeService.updateEmployee", () => {
+  it("updates an existing employee and returns the profile", async () => {
+    const repository = createMockRepository();
+    vi.mocked(repository.findEmployeeById)
+      .mockResolvedValueOnce(sampleEmployee)
+      .mockResolvedValueOnce({
+        ...sampleEmployee,
+        fullName: "Jane Smith",
+      });
+    vi.mocked(repository.updateEmployee).mockResolvedValue({
+      ...sampleEmployee,
+      fullName: "Jane Smith",
+    });
+    const service = createService(repository);
+
+    await expect(
+      service.updateEmployee("E001", {
+        fullName: "Jane Smith",
+        department: "Engineering",
+        jobTitle: "Senior Engineer",
+        country: "US",
+      }),
+    ).resolves.toMatchObject({ fullName: "Jane Smith" });
+  });
+
+  it("throws a 404 when the employee does not exist", async () => {
+    const repository = createMockRepository();
+    vi.mocked(repository.findEmployeeById).mockResolvedValue(null);
+    const service = createService(repository);
+
+    await expect(
+      service.updateEmployee("E404", {
+        fullName: "Missing",
+        department: "Engineering",
+        jobTitle: "Engineer",
+        country: "US",
+      }),
+    ).rejects.toEqual(new AppError(404, "Employee E404 not found"));
+  });
+});
+
+describe("EmployeeService.deleteEmployee", () => {
+  it("deletes an employee without compensation history", async () => {
+    const repository = createMockRepository();
+    vi.mocked(repository.findEmployeeById).mockResolvedValue(sampleEmployee);
+    const service = createService(repository);
+
+    await expect(service.deleteEmployee("E001")).resolves.toBeUndefined();
+    expect(repository.deleteEmployee).toHaveBeenCalledWith("E001");
+  });
+
+  it("rejects delete when compensation history exists", async () => {
+    const repository = createMockRepository();
+    vi.mocked(repository.findEmployeeById).mockResolvedValue(sampleEmployee);
+    const compensation = createMockCompensationRepository(sampleHistory);
+    const service = createService(repository, compensation);
+
+    await expect(service.deleteEmployee("E001")).rejects.toEqual(
+      new AppError(409, "Cannot delete an employee with compensation history"),
+    );
+    expect(repository.deleteEmployee).not.toHaveBeenCalled();
+  });
+
+  it("throws a 404 when the employee does not exist", async () => {
+    const repository = createMockRepository();
+    vi.mocked(repository.findEmployeeById).mockResolvedValue(null);
+    const service = createService(repository);
+
+    await expect(service.deleteEmployee("E404")).rejects.toEqual(
       new AppError(404, "Employee E404 not found"),
     );
   });

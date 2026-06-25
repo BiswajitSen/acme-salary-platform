@@ -1,5 +1,7 @@
 import {
+  createEmployeeSchema,
   listEmployeesQuerySchema,
+  updateEmployeeSchema,
   type EmployeeCompensationHistoryResponse,
   type EmployeeFilterOptions,
   type EmployeeProfileResponse,
@@ -79,5 +81,52 @@ export class EmployeeService {
       employeeId,
       entries: buildCompensationTimeline(history),
     };
+  }
+
+  async createEmployee(input: unknown): Promise<EmployeeProfileResponse> {
+    const parsed = createEmployeeSchema.parse(input);
+    const existingEmployee = await this.employees.findEmployeeById(parsed.id);
+
+    if (existingEmployee) {
+      throw new AppError(409, `Employee ${parsed.id} already exists`);
+    }
+
+    await this.employees.insertEmployee(parsed);
+    return this.getEmployeeProfile(parsed.id);
+  }
+
+  async updateEmployee(
+    employeeId: string,
+    input: unknown,
+  ): Promise<EmployeeProfileResponse> {
+    const parsed = updateEmployeeSchema.parse(input);
+    const existingEmployee = await this.employees.findEmployeeById(employeeId);
+
+    if (!existingEmployee) {
+      throw new AppError(404, `Employee ${employeeId} not found`);
+    }
+
+    await this.employees.updateEmployee(employeeId, parsed);
+    return this.getEmployeeProfile(employeeId);
+  }
+
+  async deleteEmployee(employeeId: string): Promise<void> {
+    const existingEmployee = await this.employees.findEmployeeById(employeeId);
+
+    if (!existingEmployee) {
+      throw new AppError(404, `Employee ${employeeId} not found`);
+    }
+
+    const history =
+      await this.compensation.findCompensationHistoryByEmployeeId(employeeId);
+
+    if (history.length > 0) {
+      throw new AppError(
+        409,
+        "Cannot delete an employee with compensation history",
+      );
+    }
+
+    await this.employees.deleteEmployee(employeeId);
   }
 }

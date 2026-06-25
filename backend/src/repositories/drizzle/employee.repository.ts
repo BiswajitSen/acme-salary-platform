@@ -1,3 +1,4 @@
+import type { CreateEmployeeInput, UpdateEmployeeInput } from "@acme/shared";
 import { eq, inArray, sql, type SQL } from "drizzle-orm";
 import { alias } from "drizzle-orm/pg-core";
 
@@ -206,5 +207,41 @@ export class DrizzleEmployeeRepository implements IEmployeeRepository {
       updated: rows.length - inserted,
       total: rows.length,
     };
+  }
+
+  async insertEmployee(row: CreateEmployeeInput) {
+    await this.database.insert(employees).values(row);
+
+    const employee = await this.findEmployeeById(row.id);
+
+    if (!employee) {
+      throw new Error(`Failed to load inserted employee ${row.id}`);
+    }
+
+    return employee;
+  }
+
+  async updateEmployee(id: string, row: UpdateEmployeeInput) {
+    const [updatedEmployee] = await this.database
+      .update(employees)
+      .set(row)
+      .where(eq(employees.id, id))
+      .returning({
+        id: employees.id,
+        fullName: employees.fullName,
+        department: employees.department,
+        jobTitle: employees.jobTitle,
+        country: employees.country,
+      });
+
+    if (!updatedEmployee) {
+      throw new Error(`Failed to update employee ${id}`);
+    }
+
+    return toBasicEmployeeSummary(updatedEmployee);
+  }
+
+  async deleteEmployee(id: string) {
+    await this.database.delete(employees).where(eq(employees.id, id));
   }
 }

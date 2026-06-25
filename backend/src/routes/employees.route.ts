@@ -20,6 +20,15 @@ export function createEmployeesRouter(deps: EmployeeRouterDeps) {
     }
   });
 
+  router.post("/", async (req, res, next) => {
+    try {
+      const profile = await deps.employeeService.createEmployee(req.body);
+      res.status(201).json(profile);
+    } catch (error) {
+      next(error);
+    }
+  });
+
   router.post("/:id/compensation", async (req, res, next) => {
     try {
       const result = await deps.compensationService.recordCompensationChange(
@@ -38,6 +47,24 @@ export function createEmployeesRouter(deps: EmployeeRouterDeps) {
         req.params.id,
       );
       res.json(history);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  router.patch("/:id", async (req, res, next) => {
+    try {
+      const profile = await deps.employeeService.updateEmployee(req.params.id, req.body);
+      res.json(profile);
+    } catch (error) {
+      next(error);
+    }
+  });
+
+  router.delete("/:id", async (req, res, next) => {
+    try {
+      await deps.employeeService.deleteEmployee(req.params.id);
+      res.status(204).send();
     } catch (error) {
       next(error);
     }

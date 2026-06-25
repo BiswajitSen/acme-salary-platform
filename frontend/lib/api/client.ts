@@ -52,6 +52,32 @@ export async function apiPostJson<T>(url: string, body: unknown): Promise<T> {
   return parseJsonResponse<T>(response);
 }
 
+export async function apiPatchJson<T>(url: string, body: unknown): Promise<T> {
+  const response = await fetch(url, {
+    method: "PATCH",
+    headers: {
+      Accept: "application/json",
+      "Content-Type": "application/json",
+    },
+    body: JSON.stringify(body),
+  });
+
+  return parseJsonResponse<T>(response);
+}
+
+export async function apiDelete(url: string): Promise<void> {
+  const response = await fetch(url, {
+    method: "DELETE",
+    headers: {
+      Accept: "application/json",
+    },
+  });
+
+  if (!response.ok) {
+    await parseJsonResponse(response);
+  }
+}
+
 async function parseJsonResponse<T>(response: Response): Promise<T> {
   if (!response.ok) {
     let parsedBody: ApiError | undefined;

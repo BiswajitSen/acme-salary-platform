@@ -225,4 +225,85 @@ describe("createEmployeesRouter", () => {
     expect(response.status).toBe(404);
     expect(response.body.message).toBe("Employee E404 not found");
   });
+
+  it("creates an employee through the employee service", async () => {
+    const employeeService = {
+      listEmployeeFilterOptions: vi.fn(),
+      listEmployees: vi.fn(),
+      getEmployeeProfile: vi.fn(),
+      listEmployeeCompensationHistory: vi.fn(),
+      createEmployee: vi.fn().mockResolvedValue({
+        id: "E010",
+        fullName: "New Hire",
+        department: "Engineering",
+        jobTitle: "Engineer",
+        country: "US",
+        currentCompensation: null,
+      }),
+      updateEmployee: vi.fn(),
+      deleteEmployee: vi.fn(),
+    } as unknown as EmployeeService;
+
+    const response = await request(createTestApp(employeeService, compensationService))
+      .post("/employees")
+      .send({
+        id: "E010",
+        fullName: "New Hire",
+        department: "Engineering",
+        jobTitle: "Engineer",
+        country: "US",
+      });
+
+    expect(response.status).toBe(201);
+    expect(response.body.id).toBe("E010");
+  });
+
+  it("updates an employee through the employee service", async () => {
+    const employeeService = {
+      listEmployeeFilterOptions: vi.fn(),
+      listEmployees: vi.fn(),
+      getEmployeeProfile: vi.fn(),
+      listEmployeeCompensationHistory: vi.fn(),
+      createEmployee: vi.fn(),
+      updateEmployee: vi.fn().mockResolvedValue({
+        id: "E001",
+        fullName: "Jane Smith",
+        department: "Engineering",
+        jobTitle: "Senior Engineer",
+        country: "US",
+        currentCompensation: null,
+      }),
+      deleteEmployee: vi.fn(),
+    } as unknown as EmployeeService;
+
+    const response = await request(createTestApp(employeeService, compensationService))
+      .patch("/employees/E001")
+      .send({
+        fullName: "Jane Smith",
+        department: "Engineering",
+        jobTitle: "Senior Engineer",
+        country: "US",
+      });
+
+    expect(response.status).toBe(200);
+    expect(response.body.fullName).toBe("Jane Smith");
+  });
+
+  it("deletes an employee through the employee service", async () => {
+    const employeeService = {
+      listEmployeeFilterOptions: vi.fn(),
+      listEmployees: vi.fn(),
+      getEmployeeProfile: vi.fn(),
+      listEmployeeCompensationHistory: vi.fn(),
+      createEmployee: vi.fn(),
+      updateEmployee: vi.fn(),
+      deleteEmployee: vi.fn().mockResolvedValue(undefined),
+    } as unknown as EmployeeService;
+
+    const response = await request(createTestApp(employeeService, compensationService)).delete(
+      "/employees/E001",
+    );
+
+    expect(response.status).toBe(204);
+  });
 });

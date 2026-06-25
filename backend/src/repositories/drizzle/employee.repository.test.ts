@@ -258,4 +258,57 @@ describe("DrizzleEmployeeRepository", () => {
       jobTitle: "Senior Engineer",
     });
   });
+
+  it("inserts a single employee", async () => {
+    const employee = await repository.insertEmployee({
+      id: "E510",
+      fullName: "Created Employee",
+      department: "Finance",
+      jobTitle: "Analyst",
+      country: "SG",
+    });
+
+    expect(employee).toMatchObject({
+      id: "E510",
+      fullName: "Created Employee",
+      employmentStatus: "NO_COMPENSATION",
+    });
+  });
+
+  it("updates a single employee", async () => {
+    await repository.insertEmployee({
+      id: "E511",
+      fullName: "Before Update",
+      department: "Finance",
+      jobTitle: "Analyst",
+      country: "SG",
+    });
+
+    const updatedEmployee = await repository.updateEmployee("E511", {
+      fullName: "After Update",
+      department: "HR",
+      jobTitle: "Manager",
+      country: "US",
+    });
+
+    expect(updatedEmployee).toMatchObject({
+      id: "E511",
+      fullName: "After Update",
+      department: "HR",
+    });
+  });
+
+  it("deletes a single employee", async () => {
+    await repository.insertEmployee({
+      id: "E512",
+      fullName: "Delete Me",
+      department: "Finance",
+      jobTitle: "Analyst",
+      country: "SG",
+    });
+
+    await repository.deleteEmployee("E512");
+
+    expect(await repository.findEmployeeById("E512")).toBeNull();
+  });
 });

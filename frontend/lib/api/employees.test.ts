@@ -158,3 +158,89 @@ describe("recordCompensationChange", () => {
     global.fetch = originalFetch;
   });
 });
+
+describe("createEmployee", () => {
+  it("posts a new employee to the backend proxy", async () => {
+    const originalFetch = global.fetch;
+    const { createEmployee } = await import("./employees");
+
+    global.fetch = async (input, init) => {
+      expect(String(input)).toBe("/api/backend/employees");
+      expect(init?.method).toBe("POST");
+      return new Response(
+        JSON.stringify({
+          id: "E010",
+          fullName: "Jane Doe",
+          department: "Engineering",
+          jobTitle: "Engineer",
+          country: "US",
+          currentCompensation: null,
+        }),
+        { status: 201, headers: { "Content-Type": "application/json" } },
+      );
+    };
+
+    await expect(
+      createEmployee({
+        id: "E010",
+        fullName: "Jane Doe",
+        department: "Engineering",
+        jobTitle: "Engineer",
+        country: "US",
+      }),
+    ).resolves.toMatchObject({ id: "E010" });
+
+    global.fetch = originalFetch;
+  });
+});
+
+describe("updateEmployee", () => {
+  it("patches an employee by id", async () => {
+    const originalFetch = global.fetch;
+    const { updateEmployee } = await import("./employees");
+
+    global.fetch = async (input, init) => {
+      expect(String(input)).toBe("/api/backend/employees/E010");
+      expect(init?.method).toBe("PATCH");
+      return new Response(
+        JSON.stringify({
+          id: "E010",
+          fullName: "Jane Smith",
+          department: "Engineering",
+          jobTitle: "Engineer",
+          country: "US",
+          currentCompensation: null,
+        }),
+        { status: 200, headers: { "Content-Type": "application/json" } },
+      );
+    };
+
+    await expect(
+      updateEmployee("E010", {
+        fullName: "Jane Smith",
+        department: "Engineering",
+        jobTitle: "Engineer",
+        country: "US",
+      }),
+    ).resolves.toMatchObject({ fullName: "Jane Smith" });
+
+    global.fetch = originalFetch;
+  });
+});
+
+describe("deleteEmployee", () => {
+  it("deletes an employee by id", async () => {
+    const originalFetch = global.fetch;
+    const { deleteEmployee } = await import("./employees");
+
+    global.fetch = async (input, init) => {
+      expect(String(input)).toBe("/api/backend/employees/E010");
+      expect(init?.method).toBe("DELETE");
+      return new Response(null, { status: 204 });
+    };
+
+    await expect(deleteEmployee("E010")).resolves.toBeUndefined();
+
+    global.fetch = originalFetch;
+  });
+});
