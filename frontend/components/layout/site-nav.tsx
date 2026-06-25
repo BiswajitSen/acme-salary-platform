@@ -18,6 +18,11 @@ function isNavActive(href: string, pathname: string): boolean {
     return pathname === "/" || pathname.startsWith("/employees");
   }
 
+  // `/import/compensation` must not also highlight `/import`.
+  if (href === "/import") {
+    return pathname === "/import";
+  }
+
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
