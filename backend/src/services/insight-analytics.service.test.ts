@@ -18,7 +18,7 @@ describe("InsightAnalyticsService", () => {
       countEmployeesWithLatestCompensation: vi.fn().mockResolvedValue(42),
       sumLatestCompensationSalariesInDisplayCurrency: vi.fn().mockResolvedValue(5_280_000),
       findDepartmentSalaryStatisticsInDisplayCurrency: vi.fn(),
-      findTopEarnersInDisplayCurrency: vi.fn(),
+      findSalaryStatisticsInDisplayCurrency: vi.fn(),
     };
 
     const service = new InsightAnalyticsService(analyticsRepository, exchangeRates);
@@ -37,7 +37,7 @@ describe("InsightAnalyticsService", () => {
         countEmployeesWithLatestCompensation: vi.fn(),
         sumLatestCompensationSalariesInDisplayCurrency: vi.fn(),
         findDepartmentSalaryStatisticsInDisplayCurrency: vi.fn(),
-        findTopEarnersInDisplayCurrency: vi.fn(),
+        findSalaryStatisticsInDisplayCurrency: vi.fn(),
       },
       createExchangeRateProviderMock(),
     );
@@ -58,7 +58,7 @@ describe("InsightAnalyticsService", () => {
           medianSalary: 118_000,
         },
       ]),
-      findTopEarnersInDisplayCurrency: vi.fn(),
+      findSalaryStatisticsInDisplayCurrency: vi.fn(),
     };
 
     const service = new InsightAnalyticsService(analyticsRepository, exchangeRates);
@@ -83,6 +83,7 @@ describe("InsightAnalyticsService", () => {
       countEmployeesWithLatestCompensation: vi.fn(),
       sumLatestCompensationSalariesInDisplayCurrency: vi.fn(),
       findDepartmentSalaryStatisticsInDisplayCurrency: vi.fn(),
+      findSalaryStatisticsInDisplayCurrency: vi.fn(),
       findTopEarnersInDisplayCurrency: vi.fn().mockResolvedValue([
         {
           employeeId: "E001",
@@ -107,5 +108,115 @@ describe("InsightAnalyticsService", () => {
       ],
       exchangeRatesAsOf: "2026-01-01",
     });
+  });
+
+  it("passes an optional country filter to payroll and headcount queries", async () => {
+    const exchangeRates = createExchangeRateProviderMock();
+    const analyticsRepository = {
+      countEmployeesWithLatestCompensation: vi.fn().mockResolvedValue(1),
+      sumLatestCompensationSalariesInDisplayCurrency: vi.fn().mockResolvedValue(106_250),
+      findDepartmentSalaryStatisticsInDisplayCurrency: vi.fn(),
+      findSalaryStatisticsInDisplayCurrency: vi.fn(),
+    };
+
+    const service = new InsightAnalyticsService(analyticsRepository, exchangeRates);
+
+    await expect(service.getAnalyticsSummary({ currency: "USD", country: "UK" })).resolves.toEqual({
+      currency: "USD",
+      headcount: 1,
+      totalPayroll: 106_250,
+      exchangeRatesAsOf: "2026-01-01",
+    });
+    expect(analyticsRepository.countEmployeesWithLatestCompensation).toHaveBeenCalledWith(
+      "UK",
+      undefined,
+    );
+    expect(analyticsRepository.sumLatestCompensationSalariesInDisplayCurrency).toHaveBeenCalledWith(
+      "USD",
+      expect.any(Object),
+      "UK",
+      undefined,
+    );
+  });
+
+  it("passes combined department and country filters to payroll queries", async () => {
+    const exchangeRates = createExchangeRateProviderMock();
+    const analyticsRepository = {
+      countEmployeesWithLatestCompensation: vi.fn().mockResolvedValue(1),
+      sumLatestCompensationSalariesInDisplayCurrency: vi.fn().mockResolvedValue(36_000),
+      findDepartmentSalaryStatisticsInDisplayCurrency: vi.fn(),
+      findSalaryStatisticsInDisplayCurrency: vi.fn(),
+    };
+
+    const service = new InsightAnalyticsService(analyticsRepository, exchangeRates);
+
+    await expect(
+      service.getAnalyticsSummary({
+        currency: "USD",
+        country: "IN",
+        department: "Engineering",
+      }),
+    ).resolves.toEqual({
+      currency: "USD",
+      headcount: 1,
+      totalPayroll: 36_000,
+      exchangeRatesAsOf: "2026-01-01",
+    });
+    expect(analyticsRepository.countEmployeesWithLatestCompensation).toHaveBeenCalledWith(
+      "IN",
+      "Engineering",
+    );
+  });
+
+  it("returns scoped salary statistics from the read-only repository", async () => {
+    const exchangeRates = createExchangeRateProviderMock();
+    const analyticsRepository = {
+      countEmployeesWithLatestCompensation: vi.fn(),
+      sumLatestCompensationSalariesInDisplayCurrency: vi.fn(),
+      findDepartmentSalaryStatisticsInDisplayCurrency: vi.fn(),
+      findSalaryStatisticsInDisplayCurrency: vi.fn().mockResolvedValue({
+        employeeCount: 2,
+        averageSalary: 36_000,
+        medianSalary: 35_000,
+      }),
+      findTopEarnersInDisplayCurrency: vi.fn(),
+    };
+
+    const service = new InsightAnalyticsService(analyticsRepository, exchangeRates);
+
+    await expect(
+      service.getScopedSalaryStatistics({ currency: "USD", country: "IN" }),
+    ).resolves.toEqual({
+      currency: "USD",
+      employeeCount: 2,
+      averageSalary: 36_000,
+      medianSalary: 35_000,
+      exchangeRatesAsOf: "2026-01-01",
+    });
+  });
+
+  it("passes an optional country filter to the repository", async () => {
+    const exchangeRates = createExchangeRateProviderMock();
+    const analyticsRepository = {
+      countEmployeesWithLatestCompensation: vi.fn(),
+      sumLatestCompensationSalariesInDisplayCurrency: vi.fn(),
+      findDepartmentSalaryStatisticsInDisplayCurrency: vi.fn(),
+      findSalaryStatisticsInDisplayCurrency: vi.fn(),
+      findTopEarnersInDisplayCurrency: vi.fn().mockResolvedValue([]),
+    };
+
+    const service = new InsightAnalyticsService(analyticsRepository, exchangeRates);
+
+    await expect(service.getTopEarners({ currency: "USD", country: "IN" })).resolves.toEqual({
+      currency: "USD",
+      earners: [],
+      exchangeRatesAsOf: "2026-01-01",
+    });
+    expect(analyticsRepository.findTopEarnersInDisplayCurrency).toHaveBeenCalledWith(
+      "USD",
+      expect.any(Object),
+      expect.any(Number),
+      "IN",
+    );
   });
 });

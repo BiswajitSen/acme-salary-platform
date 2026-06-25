@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { convertCurrencyAmount, TEST_EXCHANGE_RATES_TO_USD } from "@acme/shared";
 
 import { db } from "../../db/index.js";
+import { employees } from "../../db/schema.js";
 import { runSeed } from "../../db/seed.js";
 import { DrizzleAnalyticsRepository } from "./analytics.repository.js";
 import { DrizzleCompensationRepository } from "./compensation.repository.js";
@@ -54,6 +55,130 @@ describe("DrizzleAnalyticsRepository", () => {
         employeeCount: 1,
         averageSalary: 106_250,
         medianSalary: 106_250,
+      },
+    ]);
+  });
+
+  it("returns average salary statistics for employees in a country", async () => {
+    await runSeed(db);
+
+    await db
+      .insert(employees)
+      .values({
+        id: "E010",
+        fullName: "Raj Patel",
+        department: "Engineering",
+        jobTitle: "Staff Engineer",
+        country: "IN",
+      })
+      .onConflictDoNothing();
+
+    await compensationRepository.insertCompensationHistoryRecord({
+      employeeId: "E010",
+      baseSalary: 3_000_000,
+      currency: "INR",
+      effectiveDate: "2025-01-01",
+      reason: "New Hire",
+      changedBy: "HR Admin",
+      notes: null,
+    });
+
+    await expect(
+      repository.findSalaryStatisticsInDisplayCurrency("USD", testRates, "IN"),
+    ).resolves.toEqual({
+      employeeCount: 1,
+      averageSalary: convertCurrencyAmount(3_000_000, "INR", "USD", testRates),
+      medianSalary: convertCurrencyAmount(3_000_000, "INR", "USD", testRates),
+    });
+  });
+
+  it("returns payroll totals filtered by department and country together", async () => {
+    await runSeed(db);
+
+    await db
+      .insert(employees)
+      .values({
+        id: "E010",
+        fullName: "Raj Patel",
+        department: "Engineering",
+        jobTitle: "Staff Engineer",
+        country: "IN",
+      })
+      .onConflictDoNothing();
+
+    await compensationRepository.insertCompensationHistoryRecord({
+      employeeId: "E010",
+      baseSalary: 3_000_000,
+      currency: "INR",
+      effectiveDate: "2025-01-01",
+      reason: "New Hire",
+      changedBy: "HR Admin",
+      notes: null,
+    });
+
+    await expect(
+      repository.sumLatestCompensationSalariesInDisplayCurrency(
+        "USD",
+        testRates,
+        "IN",
+        "Engineering",
+      ),
+    ).resolves.toBe(convertCurrencyAmount(3_000_000, "INR", "USD", testRates));
+    await expect(
+      repository.sumLatestCompensationSalariesInDisplayCurrency(
+        "USD",
+        testRates,
+        "IN",
+        "HR",
+      ),
+    ).resolves.toBe(0);
+  });
+
+  it("returns payroll totals filtered by employee country", async () => {
+    await runSeed(db);
+
+    await expect(
+      repository.sumLatestCompensationSalariesInDisplayCurrency("USD", testRates, "UK"),
+    ).resolves.toBe(106_250);
+    await expect(
+      repository.sumLatestCompensationSalariesInDisplayCurrency("USD", testRates, "US"),
+    ).resolves.toBe(132_000);
+    await expect(repository.countEmployeesWithLatestCompensation("UK")).resolves.toBe(1);
+    await expect(repository.countEmployeesWithLatestCompensation("US")).resolves.toBe(1);
+  });
+
+  it("returns top earners filtered by country when requested", async () => {
+    await runSeed(db);
+
+    await db
+      .insert(employees)
+      .values({
+        id: "E010",
+        fullName: "Raj Patel",
+        department: "Engineering",
+        jobTitle: "Staff Engineer",
+        country: "IN",
+      })
+      .onConflictDoNothing();
+
+    await compensationRepository.insertCompensationHistoryRecord({
+      employeeId: "E010",
+      baseSalary: 3_000_000,
+      currency: "INR",
+      effectiveDate: "2025-01-01",
+      reason: "New Hire",
+      changedBy: "HR Admin",
+      notes: null,
+    });
+
+    await expect(
+      repository.findTopEarnersInDisplayCurrency("USD", testRates, 10, "IN"),
+    ).resolves.toEqual([
+      {
+        employeeId: "E010",
+        fullName: "Raj Patel",
+        department: "Engineering",
+        baseSalary: convertCurrencyAmount(3_000_000, "INR", "USD", testRates),
       },
     ]);
   });
@@ -129,5 +254,39 @@ describe("DrizzleAnalyticsRepository", () => {
     await expect(
       repository.sumLatestCompensationSalariesInDisplayCurrency("USD", testRates),
     ).resolves.toBe(convertCurrencyAmount(140_000, "EUR", "USD", testRates) + 106_250);
+  });
+
+  it("returns promotion records within the requested lookback window", async () => {
+    await runSeed(db);
+
+    await compensationRepository.insertCompensationHistoryRecord({
+      employeeId: "E001",
+      baseSalary: 140_000,
+      currency: "USD",
+      effectiveDate: "2026-01-01",
+      reason: "Promotion",
+      changedBy: "HR Admin",
+      notes: null,
+    });
+    await compensationRepository.insertCompensationHistoryRecord({
+      employeeId: "E002",
+      baseSalary: 90_000,
+      currency: "GBP",
+      effectiveDate: "2024-06-15",
+      reason: "Promotion",
+      changedBy: "HR Admin",
+      notes: null,
+    });
+
+    await expect(repository.findRecentPromotions("2026-01-01", 3)).resolves.toEqual([
+      {
+        employeeId: "E001",
+        fullName: "Jane Doe",
+        department: "Engineering",
+        baseSalary: 140_000,
+        currency: "USD",
+        effectiveDate: "2026-01-01",
+      },
+    ]);
   });
 });

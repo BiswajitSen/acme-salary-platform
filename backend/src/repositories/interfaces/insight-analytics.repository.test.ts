@@ -9,6 +9,7 @@ describe("IInsightAnalyticsRepository", () => {
       sumLatestCompensationSalariesInDisplayCurrency: async () => 0,
       findDepartmentSalaryStatisticsInDisplayCurrency: async () => [],
       findTopEarnersInDisplayCurrency: async () => [],
+      findRecentPromotions: async () => [],
     } satisfies IInsightAnalyticsRepository;
 
     expect(repository).toBeDefined();
