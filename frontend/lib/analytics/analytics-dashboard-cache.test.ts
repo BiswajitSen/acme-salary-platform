@@ -1,4 +1,5 @@
 import { describe, expect, it, beforeEach } from "vitest";
+import { TEST_EXCHANGE_RATES_TO_USD } from "@acme/shared";
 
 import {
   clearAnalyticsDashboardCache,
@@ -34,7 +35,7 @@ describe("analytics-dashboard-cache", () => {
       {
         currencies: ["USD"],
         exchangeRatesAsOf: "2026-01-01",
-        ratesToUsd: { USD: 1 },
+        ratesToUsd: { ...TEST_EXCHANGE_RATES_TO_USD },
       },
       { countries: [], departments: [], jobTitles: [] },
       now,
