@@ -3,14 +3,18 @@
 import { Alert } from "@/components/ui/alert";
 import { PageHeader } from "@/components/ui/page-header";
 import { Pagination } from "@/components/ui/pagination";
-import { StatusMessage } from "@/components/ui/status-message";
-import { EmployeeDirectoryFilters } from "@/components/employee-directory/employee-directory-filters";
+import { EmployeeDirectoryKpiCards } from "@/components/employee-directory/employee-directory-kpi-cards";
+import { EmployeeDirectorySearch } from "@/components/employee-directory/employee-directory-search";
 import { EmployeeDirectoryTable } from "@/components/employee-directory/employee-directory-table";
+import { useDisplayCurrency } from "@/lib/hooks/use-display-currency";
 import { useEmployeeDirectory } from "@/lib/hooks/use-employee-directory";
+import { useExchangeRates } from "@/lib/hooks/use-exchange-rates";
 
 import styles from "./employee-directory.module.css";
 
 export function EmployeeDirectory() {
+  const { currency: displayCurrency } = useDisplayCurrency();
+  const { ratesToUsd } = useExchangeRates();
   const {
     filters,
     filterOptions,
@@ -23,33 +27,37 @@ export function EmployeeDirectory() {
     goToNextPage,
   } = useEmployeeDirectory();
 
-  const hasEmployees = directory.data.length > 0;
-  const showEmptyState = !isLoading && !hasEmployees;
-
   return (
     <section className={styles.page}>
       <PageHeader
         title="Employee Directory"
-        subtitle={`${directory.meta.total.toLocaleString()} employees in the organization`}
+        subtitle="Find people quickly, review compensation at a glance, and open profiles from one place."
       />
 
-      <EmployeeDirectoryFilters
-        filters={filters}
-        filterOptions={filterOptions}
-        onFilterChange={updateFilter}
+      <EmployeeDirectoryKpiCards
+        stats={directory.stats}
+        employmentStatuses={filters.employmentStatuses}
+        onEmploymentStatusFilterChange={(statuses) =>
+          updateFilter("employmentStatuses", statuses)
+        }
       />
 
       {errorMessage && <Alert variant="error">{errorMessage}</Alert>}
 
-      {isLoading && <StatusMessage isLoading message="Loading employees…" />}
+      <EmployeeDirectorySearch
+        value={filters.search}
+        onChange={(value) => updateFilter("search", value)}
+      />
 
-      {showEmptyState && (
-        <StatusMessage message="No employees match the current filters." />
-      )}
-
-      {!isLoading && hasEmployees && (
-        <EmployeeDirectoryTable employees={directory.data} />
-      )}
+      <EmployeeDirectoryTable
+        employees={directory.data}
+        filters={filters}
+        filterOptions={filterOptions}
+        onFilterChange={updateFilter}
+        displayCurrency={displayCurrency}
+        ratesToUsd={ratesToUsd}
+        isLoading={isLoading}
+      />
 
       <Pagination
         page={page}

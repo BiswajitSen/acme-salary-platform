@@ -1,7 +1,7 @@
 "use client";
 
 import type { EmployeeFilterOptions, PaginatedEmployeesResponse } from "@acme/shared";
-import { useEffect, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 
 import {
   listEmployeeFilterOptions,
@@ -11,7 +11,9 @@ import { useDebouncedValue } from "@/lib/hooks/use-debounced-value";
 
 import {
   emptyDirectoryFilters,
+  emptyDirectoryStats,
   SEARCH_DEBOUNCE_MS,
+  serializeFilterValues,
   type DirectoryFilters,
 } from "@/components/employee-directory/types";
 
@@ -41,6 +43,7 @@ export function useEmployeeDirectory(): EmployeeDirectoryState {
   const [directory, setDirectory] = useState<PaginatedEmployeesResponse>({
     data: [],
     meta: { page: 1, limit: 50, total: 0, totalPages: 0 },
+    stats: emptyDirectoryStats,
   });
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
   const [isLoading, setIsLoading] = useState(true);
@@ -78,9 +81,10 @@ export function useEmployeeDirectory(): EmployeeDirectoryState {
         const response = await listEmployees({
           page,
           search: debouncedSearch || undefined,
-          country: filters.country || undefined,
-          department: filters.department || undefined,
-          jobTitle: filters.jobTitle || undefined,
+          country: serializeFilterValues(filters.countries),
+          department: serializeFilterValues(filters.departments),
+          jobTitle: serializeFilterValues(filters.jobTitles),
+          employmentStatus: serializeFilterValues(filters.employmentStatuses),
         });
 
         if (isActive) {
@@ -102,19 +106,20 @@ export function useEmployeeDirectory(): EmployeeDirectoryState {
     };
   }, [
     debouncedSearch,
-    filters.country,
-    filters.department,
-    filters.jobTitle,
+    filters.countries,
+    filters.departments,
+    filters.jobTitles,
+    filters.employmentStatuses,
     page,
   ]);
 
-  function updateFilter<Key extends keyof DirectoryFilters>(
+  const updateFilter = useCallback(function updateFilter<Key extends keyof DirectoryFilters>(
     key: Key,
     value: DirectoryFilters[Key],
   ) {
     setPage(1);
     setFilters((current) => ({ ...current, [key]: value }));
-  }
+  }, []);
 
   function goToPreviousPage() {
     setPage((current) => current - 1);

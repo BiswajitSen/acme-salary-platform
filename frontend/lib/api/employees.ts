@@ -11,7 +11,10 @@ import type {
 import { ApiRequestError, apiFetch, apiPostJson } from "./client";
 
 export type EmployeeListParams = Partial<
-  Pick<ListEmployeesQuery, "page" | "limit" | "search" | "country" | "department" | "jobTitle">
+  Pick<
+    ListEmployeesQuery,
+    "page" | "limit" | "search" | "country" | "department" | "jobTitle" | "employmentStatus"
+  >
 >;
 
 function buildEmployeeListQuery(params: EmployeeListParams): string {
@@ -23,6 +26,7 @@ function buildEmployeeListQuery(params: EmployeeListParams): string {
   if (params.country) searchParams.set("country", params.country);
   if (params.department) searchParams.set("department", params.department);
   if (params.jobTitle) searchParams.set("jobTitle", params.jobTitle);
+  if (params.employmentStatus) searchParams.set("employmentStatus", params.employmentStatus);
 
   const query = searchParams.toString();
   return query ? `?${query}` : "";

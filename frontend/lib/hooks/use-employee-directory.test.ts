@@ -20,6 +20,7 @@ describe("useEmployeeDirectory", () => {
     listEmployees.mockResolvedValue({
       data: [],
       meta: { page: 1, limit: 50, total: 0, totalPages: 0 },
+      stats: { total: 0, active: 0, noCompensation: 0, departments: 0 },
     });
     listEmployeeFilterOptions.mockResolvedValue({
       countries: [],
@@ -52,7 +53,7 @@ describe("useEmployeeDirectory", () => {
 
     act(() => {
       result.current.goToNextPage();
-      result.current.updateFilter("country", "US");
+      result.current.updateFilter("countries", ["US"]);
     });
 
     await waitFor(() => {

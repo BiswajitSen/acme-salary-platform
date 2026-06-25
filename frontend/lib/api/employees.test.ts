@@ -18,6 +18,7 @@ describe("listEmployees", () => {
         JSON.stringify({
           data: [],
           meta: { page: 2, limit: 25, total: 0, totalPages: 0 },
+          stats: { total: 0, active: 0, noCompensation: 0, departments: 0 },
         }),
         { status: 200, headers: { "Content-Type": "application/json" } },
       );
@@ -42,6 +43,7 @@ describe("listEmployees", () => {
         JSON.stringify({
           data: [],
           meta: { page: 1, limit: 50, total: 0, totalPages: 0 },
+          stats: { total: 0, active: 0, noCompensation: 0, departments: 0 },
         }),
         { status: 200, headers: { "Content-Type": "application/json" } },
       );
