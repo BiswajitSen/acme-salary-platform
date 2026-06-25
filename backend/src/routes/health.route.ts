@@ -4,6 +4,10 @@ import { getHealthStatus } from "../services/health.service.js";
 
 export const healthRouter = Router();
 
+healthRouter.get("/live", (_req, res) => {
+  res.json({ status: "ok" });
+});
+
 healthRouter.get("/", async (_req, res, next) => {
   try {
     const health = await getHealthStatus();

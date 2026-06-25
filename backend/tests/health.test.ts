@@ -17,6 +17,15 @@ describe("GET /api/health", () => {
   });
 });
 
+describe("GET /api/health/live", () => {
+  it("returns ok without querying the database", async () => {
+    const response = await request(app).get("/api/health/live");
+
+    expect(response.status).toBe(200);
+    expect(response.body).toEqual({ status: "ok" });
+  });
+});
+
 describe("GET /unknown", () => {
   it("returns 404 for unknown routes", async () => {
     const response = await request(app).get("/api/unknown");

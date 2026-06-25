@@ -17,7 +17,7 @@ services:
     region: oregon
     buildCommand: ./scripts/render-build-backend.sh
     startCommand: ./scripts/render-start-backend.sh
-    healthCheckPath: /api/health
+    healthCheckPath: /api/health/live
     envVars:
       - key: NODE_ENV
         value: production
