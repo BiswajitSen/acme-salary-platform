@@ -37,17 +37,17 @@ function RankedEarnersCard({
 }: RankedEarnersCardProps) {
   return (
     <Card title={title}>
-      <p className={styles.meta}>{meta}</p>
+      <p className={styles.listHeader}>{meta}</p>
       {earners.length === 0 ? (
-        <p className={styles.meta}>{emptyMessage}</p>
+        <p className={styles.empty}>{emptyMessage}</p>
       ) : (
         <ol className={styles.list}>
           {earners.map((earner, index) => (
             <li key={earner.employeeId} className={styles.item}>
               <span className={styles.rank}>{index + 1}</span>
-              <div>
+              <div className={styles.details}>
                 <p className={styles.name}>{earner.fullName}</p>
-                <p className={styles.meta}>
+                <p className={styles.itemMeta}>
                   {earner.employeeId} · {earner.department}
                 </p>
               </div>
@@ -70,7 +70,7 @@ export function InsightExecutionResult({ result }: InsightExecutionResultProps) 
           <p className={styles.metric}>
             {formatSalary(result.averageSalary, result.currency)}
           </p>
-          <p className={styles.meta}>
+          <p className={styles.scopeMeta}>
             {formatInsightSalaryScopeMeta({ ...result, employeeCount: result.employeeCount })}
           </p>
         </Card>
@@ -81,7 +81,7 @@ export function InsightExecutionResult({ result }: InsightExecutionResultProps) 
           <p className={styles.metric}>
             {formatSalary(result.medianSalary, result.currency)}
           </p>
-          <p className={styles.meta}>
+          <p className={styles.scopeMeta}>
             {formatInsightSalaryScopeMeta({ ...result, employeeCount: result.employeeCount })}
           </p>
         </Card>
@@ -90,7 +90,7 @@ export function InsightExecutionResult({ result }: InsightExecutionResultProps) 
       return (
         <Card title="Headcount">
           <p className={styles.metric}>{result.headcount.toLocaleString()}</p>
-          <p className={styles.meta}>{formatInsightHeadcountScopeMeta(result)}</p>
+          <p className={styles.scopeMeta}>{formatInsightHeadcountScopeMeta(result)}</p>
         </Card>
       );
     case "TOTAL_PAYROLL":
@@ -99,7 +99,7 @@ export function InsightExecutionResult({ result }: InsightExecutionResultProps) 
           <p className={styles.metric}>
             {formatSalary(result.totalPayroll, result.currency)}
           </p>
-          <p className={styles.meta}>{formatInsightPayrollScopeMeta(result)}</p>
+          <p className={styles.scopeMeta}>{formatInsightPayrollScopeMeta(result)}</p>
         </Card>
       );
     case "TOP_EARNERS":

@@ -29,18 +29,21 @@ export function InsightTimelineResultCard({
 }: InsightTimelineResultCardProps) {
   return (
     <Card title={title}>
-      <p className={styles.meta}>
+      <p className={styles.listHeader}>
         {formatInsightTimelineScopeMeta({ months, sinceDate, country, department, jobTitle })}
       </p>
       {events.length === 0 ? (
-        <p className={styles.meta}>{emptyMessage}</p>
+        <p className={styles.empty}>{emptyMessage}</p>
       ) : (
         <ol className={styles.list}>
           {events.map((event) => (
-            <li key={`${event.employeeId}-${event.effectiveDate}-${event.reason}`} className={styles.item}>
-              <div>
+            <li
+              key={`${event.employeeId}-${event.effectiveDate}-${event.reason}`}
+              className={`${styles.item} ${styles.timelineItem}`}
+            >
+              <div className={styles.details}>
                 <p className={styles.name}>{event.fullName}</p>
-                <p className={styles.meta}>
+                <p className={styles.itemMeta}>
                   {event.employeeId} · {event.department} · {event.reason} · effective{" "}
                   {event.effectiveDate}
                 </p>

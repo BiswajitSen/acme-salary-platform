@@ -94,10 +94,10 @@ export function InsightQueryPanel() {
       )}
 
       {!isSubmitting && response?.result && (
-        <>
+        <div className={styles.results}>
           <p className={styles.fxNote}>FX rates as of {response.exchangeRatesAsOf}</p>
           <InsightExecutionResult result={response.result} />
-        </>
+        </div>
       )}
     </section>
   );

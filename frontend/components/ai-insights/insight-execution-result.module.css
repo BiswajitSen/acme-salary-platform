@@ -1,43 +1,78 @@
 .metric {
-  font-size: 2rem;
-  font-weight: 700;
   margin: 0;
+  font-size: 1.75rem;
+  font-weight: 650;
+  line-height: 1.2;
+  letter-spacing: -0.02em;
 }
 
-.meta {
-  color: var(--muted-foreground);
+.scopeMeta {
   margin: 0.5rem 0 0;
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+  line-height: 1.45;
+}
+
+.listHeader {
+  margin: 0 0 0.75rem;
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+  line-height: 1.45;
+}
+
+.empty {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.875rem;
 }
 
 .list {
-  list-style: none;
   margin: 0;
   padding: 0;
+  list-style: none;
 }
 
 .item {
-  align-items: center;
   display: grid;
-  gap: 0.75rem;
-  grid-template-columns: auto 1fr auto;
+  grid-template-columns: 2rem 1fr auto;
+  gap: 0.75rem 1rem;
+  align-items: center;
   padding: 0.75rem 0;
+  border-bottom: 1px solid var(--border);
 }
 
-.item + .item {
-  border-top: 1px solid var(--border);
+.item:last-child {
+  border-bottom: none;
+}
+
+.timelineItem {
+  grid-template-columns: 1fr auto;
 }
 
 .rank {
-  color: var(--muted-foreground);
+  color: var(--text-muted);
+  font-size: 0.875rem;
   font-weight: 600;
-  width: 1.5rem;
+  text-align: center;
+}
+
+.details {
+  min-width: 0;
 }
 
 .name {
-  font-weight: 600;
   margin: 0;
+  font-weight: 600;
+}
+
+.itemMeta {
+  margin: 0.15rem 0 0;
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+  line-height: 1.4;
 }
 
 .salary {
-  font-weight: 600;
+  font-weight: 650;
+  white-space: nowrap;
 }

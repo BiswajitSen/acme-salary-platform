@@ -13,6 +13,18 @@ function formatIntentLabel(intent: ParsedInsightQuery["intent"]): string {
   return intent.replaceAll("_", " ");
 }
 
+function formatFieldValue(value: string | number | null): string {
+  if (value === null) {
+    return "—";
+  }
+
+  return String(value);
+}
+
+function valueClassName(value: string | number | null): string {
+  return value === null ? styles.valueEmpty : styles.valueSet;
+}
+
 export function ParsedInsightSummary({
   parsedQuery,
   executionCurrency = null,
@@ -21,42 +33,50 @@ export function ParsedInsightSummary({
 
   return (
     <Card title="Detected intent">
+      <div className={styles.header}>
+        <span className={styles.intentBadge}>{formatIntentLabel(parsedQuery.intent)}</span>
+        <p className={styles.queryPreview}>{parsedQuery.originalQuery}</p>
+      </div>
       <dl className={styles.grid}>
         <div>
-          <dt>Intent</dt>
-          <dd>{formatIntentLabel(parsedQuery.intent)}</dd>
-        </div>
-        <div>
           <dt>Department</dt>
-          <dd>{parsedQuery.department ?? "—"}</dd>
+          <dd className={valueClassName(parsedQuery.department)}>
+            {formatFieldValue(parsedQuery.department)}
+          </dd>
         </div>
         <div>
           <dt>Country</dt>
-          <dd>{parsedQuery.country ?? "—"}</dd>
+          <dd className={valueClassName(parsedQuery.country)}>
+            {formatFieldValue(parsedQuery.country)}
+          </dd>
         </div>
         <div>
           <dt>Job title</dt>
-          <dd>{parsedQuery.jobTitle ?? "—"}</dd>
+          <dd className={valueClassName(parsedQuery.jobTitle)}>
+            {formatFieldValue(parsedQuery.jobTitle)}
+          </dd>
         </div>
         <div>
           <dt>Months</dt>
-          <dd>{parsedQuery.months ?? "—"}</dd>
+          <dd className={valueClassName(parsedQuery.months)}>
+            {formatFieldValue(parsedQuery.months)}
+          </dd>
         </div>
         <div>
           <dt>Since date</dt>
-          <dd>{parsedQuery.sinceDate ?? "—"}</dd>
+          <dd className={valueClassName(parsedQuery.sinceDate)}>
+            {formatFieldValue(parsedQuery.sinceDate)}
+          </dd>
         </div>
         <div>
           <dt>Limit</dt>
-          <dd>{parsedQuery.limit ?? "—"}</dd>
+          <dd className={valueClassName(parsedQuery.limit)}>
+            {formatFieldValue(parsedQuery.limit)}
+          </dd>
         </div>
         <div>
           <dt>Display currency</dt>
-          <dd>{resolvedCurrency}</dd>
-        </div>
-        <div>
-          <dt>Original query</dt>
-          <dd>{parsedQuery.originalQuery}</dd>
+          <dd className={styles.valueSet}>{resolvedCurrency}</dd>
         </div>
       </dl>
     </Card>

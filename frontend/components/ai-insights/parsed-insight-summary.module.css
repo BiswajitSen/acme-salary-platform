@@ -1,7 +1,35 @@
+.header {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: 0.75rem;
+  margin-bottom: 1rem;
+}
+
+.intentBadge {
+  display: inline-flex;
+  align-items: center;
+  padding: 0.3rem 0.65rem;
+  border-radius: 999px;
+  background: var(--primary-soft);
+  color: var(--primary);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+}
+
+.queryPreview {
+  margin: 0;
+  color: var(--text-muted);
+  font-size: 0.875rem;
+  line-height: 1.45;
+}
+
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(12rem, 1fr));
-  gap: 1rem 1.5rem;
+  grid-template-columns: repeat(auto-fit, minmax(9rem, 1fr));
+  gap: 0.875rem 1.25rem;
   margin: 0;
 }
 
@@ -9,18 +37,34 @@
   display: flex;
   flex-direction: column;
   gap: 0.25rem;
+  padding: 0.65rem 0.75rem;
+  border-radius: var(--radius-sm);
+  background: var(--surface-muted);
 }
 
 .grid dt {
   margin: 0;
   color: var(--text-subtle);
-  font-size: 0.75rem;
+  font-size: 0.6875rem;
   font-weight: 600;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
 }
 
 .grid dd {
   margin: 0;
   font-size: 0.9375rem;
+  font-weight: 500;
+}
+
+.grid dd.valueSet {
+  color: var(--foreground);
+}
+
+.grid dd.valueEmpty {
+  color: var(--text-subtle);
+}
+
+.grid .spanFull {
+  grid-column: 1 / -1;
 }
