@@ -61,7 +61,7 @@ export class DrizzleAnalyticsRepository implements IAnalyticsRepository {
       WHERE currency = ${currency}
     `);
 
-    return result.rows[0].headcount;
+    return result.rows[0]!.headcount;
   }
 
   async sumLatestCompensationSalariesInCurrency(currency: string): Promise<number> {
@@ -71,7 +71,7 @@ export class DrizzleAnalyticsRepository implements IAnalyticsRepository {
       WHERE currency = ${currency}
     `);
 
-    return result.rows[0].total_payroll;
+    return result.rows[0]!.total_payroll;
   }
 
   async findDepartmentSalaryStatisticsByCurrency(
