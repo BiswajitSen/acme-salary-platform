@@ -1,25 +1,39 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
-import { AnalyticsDepartmentTable } from "./analytics-department-table";
+import { AnalyticsDepartmentPayrollSection } from "./analytics-department-payroll-section";
 import { AnalyticsKpiCards } from "./analytics-kpi-cards";
 import { AnalyticsTopEarnersList } from "./analytics-top-earners-list";
 
 describe("AnalyticsKpiCards", () => {
-  it("renders headcount and total payroll metrics", () => {
+  it("renders six executive KPI metrics", () => {
     render(
-      <AnalyticsKpiCards currency="USD" headcount={42} totalPayroll={5_000_000} />,
+      <AnalyticsKpiCards
+        currency="USD"
+        kpis={{
+          headcount: 42,
+          totalPayroll: 5_000_000,
+          averageSalary: 119_000,
+          medianSalary: 115_000,
+          highestPaidDepartment: { name: "Engineering", averageSalary: 140_000 },
+          highestPaidLocation: { name: "Singapore", averageSalary: 160_000 },
+        }}
+      />,
     );
 
     expect(screen.getByText("42")).toBeTruthy();
     expect(screen.getByText("$5,000,000")).toBeTruthy();
+    expect(screen.getByText("Total Employees")).toBeTruthy();
+    expect(screen.getByText("Median Salary")).toBeTruthy();
+    expect(screen.getByText("Engineering")).toBeTruthy();
+    expect(screen.getByText("Singapore")).toBeTruthy();
   });
 });
 
-describe("AnalyticsDepartmentTable", () => {
+describe("AnalyticsDepartmentPayrollSection", () => {
   it("renders department salary statistics", () => {
     render(
-      <AnalyticsDepartmentTable
+      <AnalyticsDepartmentPayrollSection
         currency="USD"
         departments={[
           {
@@ -27,6 +41,7 @@ describe("AnalyticsDepartmentTable", () => {
             employeeCount: 2,
             averageSalary: 120_000,
             medianSalary: 115_000,
+            payrollPercent: 60,
           },
         ]}
       />,
@@ -35,12 +50,7 @@ describe("AnalyticsDepartmentTable", () => {
     expect(screen.getByText("Engineering")).toBeTruthy();
     expect(screen.getByText("$120,000")).toBeTruthy();
     expect(screen.getByText("$115,000")).toBeTruthy();
-  });
-
-  it("shows an empty state when no departments are available", () => {
-    render(<AnalyticsDepartmentTable currency="USD" departments={[]} />);
-
-    expect(screen.getByText(/No department statistics available for USD/)).toBeTruthy();
+    expect(screen.getByText("60%")).toBeTruthy();
   });
 });
 
@@ -54,6 +64,7 @@ describe("AnalyticsTopEarnersList", () => {
             employeeId: "E001",
             fullName: "Jane Doe",
             department: "Engineering",
+            country: "US",
             baseSalary: 132_000,
           },
         ]}

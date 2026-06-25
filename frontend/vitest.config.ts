@@ -46,7 +46,7 @@ export default defineConfig({
         "components/compensation-import/compensation-import-preview.tsx",
         "components/analytics/analytics-dashboard.tsx",
         "components/analytics/analytics-kpi-cards.tsx",
-        "components/analytics/analytics-department-table.tsx",
+        "components/analytics/analytics-department-payroll-section.tsx",
         "components/analytics/analytics-top-earners-list.tsx",
         "components/ai-insights/insight-query-panel.tsx",
         "components/ai-insights/parsed-insight-summary.tsx",

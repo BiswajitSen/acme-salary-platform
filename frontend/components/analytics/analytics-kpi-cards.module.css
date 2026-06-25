@@ -1,35 +1,129 @@
 .grid {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(14rem, 1fr));
-  gap: 1rem;
+  grid-template-columns: repeat(6, minmax(0, 1fr));
+  gap: 0.85rem;
+  margin-bottom: 1.25rem;
 }
 
 .card {
-  padding: 1.25rem;
-  border: 1px solid var(--border);
-  border-radius: var(--radius-md);
+  display: flex;
+  gap: 0.85rem;
+  align-items: flex-start;
+  padding: 1rem;
   background: var(--surface);
+  border: 1px solid var(--border);
+  border-radius: var(--radius-lg);
   box-shadow: var(--shadow-sm);
+  transition:
+    transform var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+.card:hover {
+  transform: translateY(-1px);
+  box-shadow: var(--shadow-md);
+}
+
+.iconWrap {
+  display: grid;
+  place-items: center;
+  width: 2.4rem;
+  height: 2.4rem;
+  border-radius: 0.75rem;
+  font-size: 1.1rem;
+}
+
+.blue {
+  background: #eff6ff;
+}
+
+.green {
+  background: #f0fdf4;
+}
+
+.violet {
+  background: #f5f3ff;
+}
+
+.cyan {
+  background: #ecfeff;
+}
+
+.amber {
+  background: #fffbeb;
+}
+
+.rose {
+  background: #fff1f2;
+}
+
+.content {
+  min-width: 0;
 }
 
 .label {
-  margin: 0;
-  color: var(--text-subtle);
   font-size: 0.75rem;
   font-weight: 600;
-  letter-spacing: 0.04em;
-  text-transform: uppercase;
+  color: var(--text-muted);
 }
 
 .value {
-  margin: 0.35rem 0 0;
-  font-size: 1.75rem;
-  font-weight: 650;
+  margin-top: 0.15rem;
+  font-size: 1.15rem;
+  font-weight: 700;
   line-height: 1.2;
+  color: var(--foreground);
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .hint {
-  margin: 0.5rem 0 0;
-  color: var(--text-muted);
-  font-size: 0.8125rem;
+  margin-top: 0.2rem;
+  font-size: 0.72rem;
+  color: var(--text-subtle);
+}
+
+@media (max-width: 1280px) {
+  .grid {
+    grid-template-columns: repeat(3, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 720px) {
+  .grid {
+    grid-template-columns: repeat(2, minmax(0, 1fr));
+  }
+}
+
+@media (max-width: 480px) {
+  .grid {
+    grid-template-columns: 1fr;
+  }
+}
+
+@media (prefers-color-scheme: dark) {
+  .blue {
+    background: #172554;
+  }
+
+  .green {
+    background: #052e16;
+  }
+
+  .violet {
+    background: #2e1065;
+  }
+
+  .cyan {
+    background: #083344;
+  }
+
+  .amber {
+    background: #451a03;
+  }
+
+  .rose {
+    background: #4c0519;
+  }
 }
