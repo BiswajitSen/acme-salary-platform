@@ -56,14 +56,18 @@ describe("insight-query-spec", () => {
       "TOTAL_PAYROLL",
       "TOP_EARNERS",
       "RECENT_PROMOTIONS",
+      "RECENT_NEW_HIRES",
+      "RECENT_SALARY_INCREASES",
     ] as const) {
       expect(metricSupportsFilter(metric, "country")).toBe(true);
       expect(metricSupportsFilter(metric, "department")).toBe(true);
     }
   });
 
-  it("only applies month filters to promotion queries", () => {
+  it("only applies month filters to timeline queries", () => {
     expect(metricSupportsFilter("RECENT_PROMOTIONS", "months")).toBe(true);
+    expect(metricSupportsFilter("RECENT_NEW_HIRES", "months")).toBe(true);
+    expect(metricSupportsFilter("RECENT_SALARY_INCREASES", "months")).toBe(true);
     expect(metricSupportsFilter("TOP_EARNERS", "months")).toBe(false);
   });
 

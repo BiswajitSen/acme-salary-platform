@@ -3,12 +3,16 @@ import {
   type AnalyticsDepartmentStatisticsResponse,
   type AnalyticsSummaryResponse,
   type AnalyticsTopEarnersResponse,
-  type PromotedEmployee,
+  type InsightTimelineEvent,
 } from "@acme/shared";
 
 import type { ScopedSalaryStatisticsRecord } from "../domain/analytics.types.js";
 import { parseAnalyticsCurrencyQuery } from "../domain/analytics-query.js";
 import { parseInsightAnalyticsQuery } from "../domain/insight-top-earners-query.js";
+import {
+  INSIGHT_TIMELINE_INTENT_REASONS,
+  type InsightTimelineIntent,
+} from "../domain/insight-query-timeline.js";
 import type { IInsightAnalyticsRepository } from "../repositories/interfaces/insight-analytics.repository.js";
 import type { IExchangeRateProvider } from "./exchange-rate.provider.js";
 
@@ -102,22 +106,39 @@ export class InsightAnalyticsService {
     return asOf;
   }
 
-  async getRecentPromotions(query: {
-    months: number;
-    country?: string;
-    department?: string;
-  }): Promise<{ asOfDate: string; promotions: PromotedEmployee[] }> {
+  async getRecentTimelineEvents(
+    intent: InsightTimelineIntent,
+    query: {
+      months: number;
+      country?: string;
+      department?: string;
+    },
+  ): Promise<{ asOfDate: string; events: InsightTimelineEvent[] }> {
     const { asOf } = await this.exchangeRates.fetchSnapshot();
-    const promotions = await this.analytics.findRecentPromotions(
+    const events = await this.analytics.findRecentCompensationEvents(
       asOf,
       query.months,
+      INSIGHT_TIMELINE_INTENT_REASONS[intent],
       query.country,
       query.department,
     );
 
     return {
       asOfDate: asOf,
-      promotions,
+      events,
+    };
+  }
+
+  async getRecentPromotions(query: {
+    months: number;
+    country?: string;
+    department?: string;
+  }): Promise<{ asOfDate: string; promotions: InsightTimelineEvent[] }> {
+    const response = await this.getRecentTimelineEvents("RECENT_PROMOTIONS", query);
+
+    return {
+      asOfDate: response.asOfDate,
+      promotions: response.events,
     };
   }
 }

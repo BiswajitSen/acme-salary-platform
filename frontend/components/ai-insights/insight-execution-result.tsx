@@ -1,3 +1,5 @@
+"use client";
+
 import type { InsightExecutionResult } from "@acme/shared";
 
 import { Card } from "@/components/ui/card";
@@ -9,6 +11,7 @@ import {
 } from "@/lib/format-insight-scope-meta";
 import { formatSalary } from "@/lib/format-salary";
 
+import { InsightTimelineResultCard } from "./insight-timeline-result-card";
 import styles from "./insight-execution-result.module.css";
 
 type InsightExecutionResultProps = {
@@ -85,36 +88,36 @@ export function InsightExecutionResult({ result }: InsightExecutionResultProps) 
       );
     case "RECENT_PROMOTIONS":
       return (
-        <Card title="Recent promotions">
-          <p className={styles.meta}>
-            Promotion records in the last {result.months} months
-            {result.country ? ` · ${result.country}` : ""}
-            {result.department ? ` · ${result.department}` : ""}
-          </p>
-          {result.promotions.length === 0 ? (
-            <p className={styles.meta}>No promotions found in this period.</p>
-          ) : (
-            <ol className={styles.list}>
-              {result.promotions.map((promotion) => (
-                <li
-                  key={`${promotion.employeeId}-${promotion.effectiveDate}`}
-                  className={styles.item}
-                >
-                  <div>
-                    <p className={styles.name}>{promotion.fullName}</p>
-                    <p className={styles.meta}>
-                      {promotion.employeeId} · {promotion.department} · effective{" "}
-                      {promotion.effectiveDate}
-                    </p>
-                  </div>
-                  <span className={styles.salary}>
-                    {formatSalary(promotion.baseSalary, promotion.currency)}
-                  </span>
-                </li>
-              ))}
-            </ol>
-          )}
-        </Card>
+        <InsightTimelineResultCard
+          title="Recent promotions"
+          emptyMessage="No promotions found in this period."
+          months={result.months}
+          country={result.country}
+          department={result.department}
+          events={result.promotions}
+        />
+      );
+    case "RECENT_NEW_HIRES":
+      return (
+        <InsightTimelineResultCard
+          title="Recent new hires"
+          emptyMessage="No new hires found in this period."
+          months={result.months}
+          country={result.country}
+          department={result.department}
+          events={result.hires}
+        />
+      );
+    case "RECENT_SALARY_INCREASES":
+      return (
+        <InsightTimelineResultCard
+          title="Recent salary increases"
+          emptyMessage="No salary increases found in this period."
+          months={result.months}
+          country={result.country}
+          department={result.department}
+          events={result.increases}
+        />
       );
   }
 }

@@ -297,6 +297,35 @@ describe("DrizzleAnalyticsRepository", () => {
         baseSalary: 140_000,
         currency: "USD",
         effectiveDate: "2026-01-01",
+        reason: "Promotion",
+      },
+    ]);
+  });
+
+  it("returns new hire records within the requested lookback window", async () => {
+    await runSeed(db);
+
+    await compensationRepository.insertCompensationHistoryRecord({
+      employeeId: "E003",
+      baseSalary: 95_000,
+      currency: "USD",
+      effectiveDate: "2026-01-01",
+      reason: "New Hire",
+      changedBy: "HR Admin",
+      notes: null,
+    });
+
+    await expect(
+      repository.findRecentCompensationEvents("2026-01-01", 3, ["New Hire"]),
+    ).resolves.toEqual([
+      {
+        employeeId: "E003",
+        fullName: "Alice Chen",
+        department: "Finance",
+        baseSalary: 95_000,
+        currency: "USD",
+        effectiveDate: "2026-01-01",
+        reason: "New Hire",
       },
     ]);
   });

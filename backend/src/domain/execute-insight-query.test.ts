@@ -31,9 +31,9 @@ function createContext(
         },
       ],
     }),
-    getRecentPromotions: vi.fn().mockResolvedValue({
+    getRecentTimelineEvents: vi.fn().mockResolvedValue({
       asOfDate: "2026-01-01",
-      promotions: [],
+      events: [],
     }),
     ...overrides,
   };
@@ -364,9 +364,9 @@ describe("executeParsedInsightQuery", () => {
 
   it("executes RECENT_PROMOTIONS using promotion history", async () => {
     const context = createContext({
-      getRecentPromotions: vi.fn().mockResolvedValue({
+      getRecentTimelineEvents: vi.fn().mockResolvedValue({
         asOfDate: "2026-01-01",
-        promotions: [
+        events: [
           {
             employeeId: "E001",
             fullName: "Jane Doe",
@@ -374,6 +374,7 @@ describe("executeParsedInsightQuery", () => {
             baseSalary: 140_000,
             currency: "USD",
             effectiveDate: "2026-01-01",
+            reason: "Promotion",
           },
         ],
       }),
@@ -404,9 +405,103 @@ describe("executeParsedInsightQuery", () => {
           baseSalary: 140_000,
           currency: "USD",
           effectiveDate: "2026-01-01",
+          reason: "Promotion",
         },
       ],
     });
-    expect(context.getRecentPromotions).toHaveBeenCalledWith(3, null, null);
+    expect(context.getRecentTimelineEvents).toHaveBeenCalledWith(
+      "RECENT_PROMOTIONS",
+      3,
+      null,
+      null,
+    );
+  });
+
+  it("executes RECENT_NEW_HIRES for joiner timeline questions", async () => {
+    const context = createContext({
+      getRecentTimelineEvents: vi.fn().mockResolvedValue({
+        asOfDate: "2026-01-01",
+        events: [
+          {
+            employeeId: "E003",
+            fullName: "Alice Chen",
+            department: "Engineering",
+            baseSalary: 95_000,
+            currency: "USD",
+            effectiveDate: "2026-01-01",
+            reason: "New Hire",
+          },
+        ],
+      }),
+    });
+
+    const response = await executeParsedInsightQuery(
+      {
+        intent: "RECENT_NEW_HIRES",
+        originalQuery: "employees who joined as engineers in the last 12 months",
+        department: "Engineering",
+        country: null,
+        currency: null,
+        months: 12,
+      },
+      context,
+    );
+
+    expect(response.result).toEqual({
+      intent: "RECENT_NEW_HIRES",
+      months: 12,
+      country: null,
+      department: "Engineering",
+      hires: [
+        {
+          employeeId: "E003",
+          fullName: "Alice Chen",
+          department: "Engineering",
+          baseSalary: 95_000,
+          currency: "USD",
+          effectiveDate: "2026-01-01",
+          reason: "New Hire",
+        },
+      ],
+    });
+  });
+
+  it("executes RECENT_SALARY_INCREASES for country-scoped hike questions", async () => {
+    const context = createContext({
+      getRecentTimelineEvents: vi.fn().mockResolvedValue({
+        asOfDate: "2026-01-01",
+        events: [
+          {
+            employeeId: "E010",
+            fullName: "Raj Patel",
+            department: "Engineering",
+            baseSalary: 3_200_000,
+            currency: "INR",
+            effectiveDate: "2026-01-01",
+            reason: "Annual Increment",
+          },
+        ],
+      }),
+    });
+
+    const response = await executeParsedInsightQuery(
+      {
+        intent: "RECENT_SALARY_INCREASES",
+        originalQuery: "employees in India who got salary hike in the last 3 months",
+        department: null,
+        country: "IN",
+        currency: null,
+        months: 3,
+      },
+      context,
+    );
+
+    expect(response.result?.intent).toBe("RECENT_SALARY_INCREASES");
+    expect(context.getRecentTimelineEvents).toHaveBeenCalledWith(
+      "RECENT_SALARY_INCREASES",
+      3,
+      "IN",
+      null,
+    );
   });
 });

@@ -1,6 +1,6 @@
 import type {
+  CompensationTimelineRecord,
   DepartmentSalaryStatisticsRecord,
-  RecentPromotionRecord,
   ScopedSalaryStatisticsRecord,
   TopEarnerRecord,
 } from "../../domain/analytics.types.js";
@@ -31,12 +31,19 @@ export interface IInsightAnalyticsRepository {
     country?: string,
     department?: string,
   ): Promise<TopEarnerRecord[]>;
+  findRecentCompensationEvents(
+    asOfDate: string,
+    withinMonths: number,
+    reasons: readonly string[],
+    country?: string,
+    department?: string,
+  ): Promise<CompensationTimelineRecord[]>;
   findRecentPromotions(
     asOfDate: string,
     withinMonths: number,
     country?: string,
     department?: string,
-  ): Promise<RecentPromotionRecord[]>;
+  ): Promise<CompensationTimelineRecord[]>;
 }
 
 export type InsightAnalyticsWriteOperation =

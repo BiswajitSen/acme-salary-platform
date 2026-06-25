@@ -32,9 +32,9 @@ function createInsightAnalyticsServiceMock(): InsightAnalyticsService {
       exchangeRatesAsOf: "2026-01-01",
     }),
     getExchangeRatesAsOf: vi.fn().mockResolvedValue("2026-01-01"),
-    getRecentPromotions: vi.fn().mockResolvedValue({
+    getRecentTimelineEvents: vi.fn().mockResolvedValue({
       asOfDate: "2026-01-01",
-      promotions: [],
+      events: [],
     }),
   } as unknown as InsightAnalyticsService;
 }

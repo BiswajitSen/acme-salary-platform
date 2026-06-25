@@ -1,8 +1,8 @@
 import type { ExchangeRatesToUsd } from "@acme/shared";
 
 import type {
+  CompensationTimelineRecord,
   DepartmentSalaryStatisticsRecord,
-  RecentPromotionRecord,
   ScopedSalaryStatisticsRecord,
   TopEarnerRecord,
 } from "../../domain/analytics.types.js";
@@ -32,10 +32,17 @@ export interface IAnalyticsRepository {
     country?: string,
     department?: string,
   ): Promise<TopEarnerRecord[]>;
+  findRecentCompensationEvents(
+    asOfDate: string,
+    withinMonths: number,
+    reasons: readonly string[],
+    country?: string,
+    department?: string,
+  ): Promise<CompensationTimelineRecord[]>;
   findRecentPromotions(
     asOfDate: string,
     withinMonths: number,
     country?: string,
     department?: string,
-  ): Promise<RecentPromotionRecord[]>;
+  ): Promise<CompensationTimelineRecord[]>;
 }

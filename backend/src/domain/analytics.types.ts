@@ -11,14 +11,18 @@ export type DepartmentSalaryStatisticsRecord = {
   medianSalary: number;
 };
 
-export type RecentPromotionRecord = {
+export type CompensationTimelineRecord = {
   employeeId: string;
   fullName: string;
   department: string;
   baseSalary: number;
   currency: string;
   effectiveDate: string;
+  reason: string;
 };
+
+/** @deprecated Use CompensationTimelineRecord */
+export type RecentPromotionRecord = CompensationTimelineRecord;
 
 export type TopEarnerRecord = {
   employeeId: string;

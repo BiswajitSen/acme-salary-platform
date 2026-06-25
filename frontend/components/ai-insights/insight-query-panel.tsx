@@ -9,14 +9,9 @@ import { PageHeader } from "@/components/ui/page-header";
 import { StatusMessage } from "@/components/ui/status-message";
 import { useDisplayCurrency } from "@/lib/hooks/use-display-currency";
 import { useInsightQueryParser } from "@/lib/hooks/use-insight-query-parser";
+import { INSIGHT_EXAMPLE_QUERIES } from "@/lib/insight-example-queries";
 
 import styles from "./insight-query-panel.module.css";
-
-const EXAMPLE_QUERIES = [
-  "What is the average salary in Engineering?",
-  "total payroll",
-  "Who are the top earners?",
-] as const;
 
 export function InsightQueryPanel() {
   const { currency } = useDisplayCurrency();
@@ -34,7 +29,7 @@ export function InsightQueryPanel() {
     <section className={styles.page}>
       <PageHeader
         title="AI Insights"
-        subtitle="Ask salary analytics questions in plain English. Country names such as India filter by employee country; amounts use the display currency selector."
+        subtitle="Ask salary analytics questions in plain English. Combine metrics with country, department, and timeline filters such as last 3 months."
       />
 
       <Card title="Ask a question">
@@ -59,7 +54,7 @@ export function InsightQueryPanel() {
 
           <div className={styles.examples}>
             <span>Try:</span>
-            {EXAMPLE_QUERIES.map((example) => (
+            {INSIGHT_EXAMPLE_QUERIES.map((example) => (
               <button
                 key={example}
                 type="button"
