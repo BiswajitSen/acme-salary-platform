@@ -30,12 +30,12 @@ export function AnalyticsDashboard() {
     <section className={styles.page}>
       <PageHeader
         title="Analytics Dashboard"
-        subtitle="Leadership metrics grouped by currency"
+        subtitle="Leadership metrics converted to a display currency for org-wide comparison"
         actions={
           hasCurrencies ? (
             <Select
               id="analytics-currency"
-              label="Currency"
+              label="Display currency"
               value={currency}
               onChange={(event) => selectCurrency(event.target.value)}
             >

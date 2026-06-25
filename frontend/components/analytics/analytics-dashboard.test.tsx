@@ -129,7 +129,7 @@ describe("AnalyticsDashboard", () => {
 
     render(<AnalyticsDashboard />);
 
-    await userEvent.selectOptions(screen.getByLabelText("Currency"), "GBP");
+    await userEvent.selectOptions(screen.getByLabelText("Display currency"), "GBP");
 
     await waitFor(() => {
       expect(selectCurrency).toHaveBeenCalledWith("GBP");
