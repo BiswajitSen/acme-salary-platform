@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 
 import type { ParsedCompensationSpreadsheetRow } from "./compensation-import.types.js";
 import {
+  collectSalaryIncreaseReasonErrorsFromHistory,
   collectDuplicateNewHireInSpreadsheetErrors,
   collectNewHireWithExistingHistoryErrors,
   collectUnknownEmployeeIdErrors,
@@ -154,4 +155,53 @@ describe("collectNewHireWithExistingHistoryErrors", () => {
       },
     ]);
   });
+});
+
+describe("collectSalaryIncreaseReasonErrorsFromHistory", () => {
+  it.each(["Annual Increment", "Promotion"] as const)(
+    "flags %s rows below the previous salary",
+    (reason) => {
+    const existingHistoryByEmployee = new Map([
+      [
+        "E001",
+        [
+          {
+            id: 1,
+            employeeId: "E001",
+            baseSalary: 120_000,
+            currency: "USD",
+            effectiveDate: "2024-01-01",
+            reason: "New Hire",
+            changedBy: "HR Admin",
+            notes: null,
+            createdAt: "2024-01-02T10:00:00.000Z",
+          },
+        ],
+      ],
+    ]);
+
+    const records: ParsedCompensationSpreadsheetRow[] = [
+      {
+        rowNumber: 2,
+        employeeId: "E001",
+        baseSalary: 110_000,
+        currency: "USD",
+        effectiveDate: "2025-01-01",
+        reason,
+        changedBy: "HR Admin",
+        notes: null,
+      },
+    ];
+
+    expect(
+      collectSalaryIncreaseReasonErrorsFromHistory(existingHistoryByEmployee, records),
+    ).toEqual([
+      {
+        rowNumber: 2,
+        field: "baseSalary",
+        message: `${reason} salary cannot be less than the previous salary of 120000 USD`,
+      },
+    ]);
+    },
+  );
 });

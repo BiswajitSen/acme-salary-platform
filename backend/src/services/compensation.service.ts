@@ -4,6 +4,7 @@ import {
 } from "@acme/shared";
 
 import { buildCompensationTimeline } from "../domain/compensation-timeline.js";
+import { validateSalaryIncreaseReason } from "../domain/validate-compensation-change.js";
 import { AppError } from "../lib/errors.js";
 import type { ICompensationRepository } from "../repositories/interfaces/compensation.repository.js";
 import type { IEmployeeRepository } from "../repositories/interfaces/employee.repository.js";
@@ -33,6 +34,12 @@ export class CompensationService {
         400,
         "New Hire can only be used for an employee's first compensation record",
       );
+    }
+
+    const salaryIncreaseError = validateSalaryIncreaseReason(existingHistory, parsedChange);
+
+    if (salaryIncreaseError) {
+      throw new AppError(400, salaryIncreaseError);
     }
 
     await this.compensation.insertCompensationHistoryRecord({

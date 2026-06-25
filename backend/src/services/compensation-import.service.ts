@@ -3,6 +3,7 @@ import type { CompensationImportPreviewResponse } from "@acme/shared";
 import type { CompensationImportPreview } from "../domain/compensation-import.types.js";
 import { parseCompensationSpreadsheet } from "../domain/parse-compensation-spreadsheet.js";
 import {
+  collectSalaryIncreaseReasonErrors,
   collectDuplicateNewHireInSpreadsheetErrors,
   collectNewHireWithExistingHistoryErrors,
   collectUnknownEmployeeIdErrors,
@@ -72,11 +73,16 @@ export class CompensationImportService {
       this.compensation,
       parsedPreview.records,
     );
+    const salaryIncreaseErrors = await collectSalaryIncreaseReasonErrors(
+      this.compensation,
+      parsedPreview.records,
+    );
     const errors = [
       ...parsedPreview.errors,
       ...employeeErrors,
       ...duplicateNewHireErrors,
       ...existingHistoryErrors,
+      ...salaryIncreaseErrors,
     ];
 
     return {

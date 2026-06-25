@@ -155,6 +155,43 @@ describe("CompensationService.recordCompensationChange", () => {
     );
   });
 
+  it("rejects salary increase reasons below the previous salary", async () => {
+    const service = new CompensationService(
+      createMockEmployeeRepository(),
+      createMockCompensationRepository(),
+    );
+
+    await expect(
+      service.recordCompensationChange("E001", {
+        baseSalary: 100_000,
+        currency: "USD",
+        effectiveDate: "2026-01-01",
+        reason: "Annual Increment",
+        changedBy: "HR Admin",
+      }),
+    ).rejects.toEqual(
+      new AppError(
+        400,
+        "Annual Increment salary cannot be less than the previous salary of 120000 USD",
+      ),
+    );
+
+    await expect(
+      service.recordCompensationChange("E001", {
+        baseSalary: 100_000,
+        currency: "USD",
+        effectiveDate: "2026-01-01",
+        reason: "Promotion",
+        changedBy: "HR Admin",
+      }),
+    ).rejects.toEqual(
+      new AppError(
+        400,
+        "Promotion salary cannot be less than the previous salary of 120000 USD",
+      ),
+    );
+  });
+
   it("returns 404 when the employee does not exist", async () => {
     const service = new CompensationService(
       createMockEmployeeRepository(null),
@@ -181,7 +218,7 @@ describe("CompensationService.recordCompensationChange", () => {
         baseSalary: 132_000,
         currency: "USD",
         effectiveDate: "2026-01-01",
-        reason: "Annual Increment",
+        reason: "Correction",
         changedBy: "HR Admin",
         notes: null,
         createdAt: "2026-01-02T10:00:00.000Z",
@@ -197,7 +234,7 @@ describe("CompensationService.recordCompensationChange", () => {
         baseSalary: 132_000,
         currency: "USD",
         effectiveDate: "2026-01-01",
-        reason: "Annual Increment",
+        reason: "Correction",
         changedBy: "HR Admin",
       }),
     ).rejects.toEqual(new AppError(500, "Failed to load recorded compensation change"));

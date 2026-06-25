@@ -24,6 +24,7 @@ describe("CompensationImportService", () => {
       },
       {
         findEmployeeIdsWithCompensationHistory: vi.fn().mockResolvedValue(new Set()),
+        findCompensationHistoryByEmployeeId: vi.fn().mockResolvedValue([]),
       },
     );
 
@@ -53,6 +54,7 @@ describe("CompensationImportService", () => {
       },
       {
         findEmployeeIdsWithCompensationHistory: vi.fn().mockResolvedValue(new Set()),
+        findCompensationHistoryByEmployeeId: vi.fn().mockResolvedValue([]),
       },
     );
 
@@ -89,7 +91,7 @@ describe("CompensationImportService", () => {
       {
         findExistingEmployeeIds: vi.fn().mockResolvedValue(new Set(["E001"])),
       },
-      { insertManyCompensationHistoryRecords, findEmployeeIdsWithCompensationHistory: vi.fn().mockResolvedValue(new Set()) },
+      { insertManyCompensationHistoryRecords, findEmployeeIdsWithCompensationHistory: vi.fn().mockResolvedValue(new Set()), findCompensationHistoryByEmployeeId: vi.fn().mockResolvedValue([]) },
     );
 
     const buffer = buildCompensationSpreadsheetBuffer([
@@ -117,6 +119,7 @@ describe("CompensationImportService", () => {
       },
       {
         findEmployeeIdsWithCompensationHistory: vi.fn().mockResolvedValue(new Set()),
+        findCompensationHistoryByEmployeeId: vi.fn().mockResolvedValue([]),
       },
     );
 
@@ -144,6 +147,7 @@ describe("CompensationImportService", () => {
       },
       {
         findEmployeeIdsWithCompensationHistory: vi.fn().mockResolvedValue(new Set()),
+        findCompensationHistoryByEmployeeId: vi.fn().mockResolvedValue([]),
       },
     );
 
@@ -187,6 +191,7 @@ describe("CompensationImportService", () => {
       },
       {
         findEmployeeIdsWithCompensationHistory: vi.fn().mockResolvedValue(new Set(["E001"])),
+        findCompensationHistoryByEmployeeId: vi.fn().mockResolvedValue([]),
       },
     );
 
@@ -209,6 +214,52 @@ describe("CompensationImportService", () => {
       rowNumber: 2,
       field: "reason",
       message: 'Employee "E001" already has compensation history; use a different reason',
+    });
+  });
+
+  it("rejects salary increase reason rows below the previous salary in preview", async () => {
+    const service = createService(
+      {
+        findExistingEmployeeIds: vi.fn().mockResolvedValue(new Set(["E001"])),
+      },
+      {
+        findEmployeeIdsWithCompensationHistory: vi.fn().mockResolvedValue(new Set()),
+        findCompensationHistoryByEmployeeId: vi.fn().mockResolvedValue([
+          {
+            id: 1,
+            employeeId: "E001",
+            baseSalary: 120_000,
+            currency: "USD",
+            effectiveDate: "2024-01-01",
+            reason: "New Hire",
+            changedBy: "HR Admin",
+            notes: null,
+            createdAt: "2024-01-02T10:00:00.000Z",
+          },
+        ]),
+      },
+    );
+
+    const buffer = buildCompensationSpreadsheetBuffer([
+      {
+        employee_id: "E001",
+        base_salary: 110000,
+        currency: "USD",
+        effective_date: "2025-01-01",
+        reason: "Annual Increment",
+        changed_by: "HR Admin",
+        notes: "",
+      },
+    ]);
+
+    const preview = await service.previewCompensationSpreadsheet(buffer);
+
+    expect(preview.isValid).toBe(false);
+    expect(preview.errors[0]).toEqual({
+      rowNumber: 2,
+      field: "baseSalary",
+      message:
+        "Annual Increment salary cannot be less than the previous salary of 120000 USD",
     });
   });
 });

@@ -79,4 +79,30 @@ describe("Record compensation change API", () => {
     expect(afterHistory.body.entries).toHaveLength(originalEntryCount + 1);
     expect(afterHistory.body.entries[0]?.baseSalary).toBe(140_000);
   });
+
+  it("rejects salary increase reasons below the previous salary", async () => {
+    await runSeed(db);
+
+    const annualIncrementResponse = await request(app).post("/api/employees/E001/compensation").send({
+      baseSalary: 100_000,
+      currency: "USD",
+      effectiveDate: "2026-01-01",
+      reason: "Annual Increment",
+      changedBy: "HR Admin",
+    });
+
+    expect(annualIncrementResponse.status).toBe(400);
+    expect(annualIncrementResponse.body.message).toMatch(/cannot be less than the previous salary/);
+
+    const promotionResponse = await request(app).post("/api/employees/E001/compensation").send({
+      baseSalary: 100_000,
+      currency: "USD",
+      effectiveDate: "2026-06-01",
+      reason: "Promotion",
+      changedBy: "HR Admin",
+    });
+
+    expect(promotionResponse.status).toBe(400);
+    expect(promotionResponse.body.message).toMatch(/cannot be less than the previous salary/);
+  });
 });
