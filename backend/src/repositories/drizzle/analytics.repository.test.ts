@@ -1,11 +1,13 @@
 import { describe, expect, it } from "vitest";
 
-import { convertCurrencyAmount } from "@acme/shared";
+import { convertCurrencyAmount, TEST_EXCHANGE_RATES_TO_USD } from "@acme/shared";
 
 import { db } from "../../db/index.js";
 import { runSeed } from "../../db/seed.js";
 import { DrizzleAnalyticsRepository } from "./analytics.repository.js";
 import { DrizzleCompensationRepository } from "./compensation.repository.js";
+
+const testRates = TEST_EXCHANGE_RATES_TO_USD;
 
 describe("DrizzleAnalyticsRepository", () => {
   const repository = new DrizzleAnalyticsRepository(db);
@@ -14,7 +16,7 @@ describe("DrizzleAnalyticsRepository", () => {
   it("returns zero when compensation history is empty", async () => {
     await expect(repository.countEmployeesWithLatestCompensation()).resolves.toBe(0);
     await expect(
-      repository.sumLatestCompensationSalariesInDisplayCurrency("USD"),
+      repository.sumLatestCompensationSalariesInDisplayCurrency("USD", testRates),
     ).resolves.toBe(0);
   });
 
@@ -28,18 +30,18 @@ describe("DrizzleAnalyticsRepository", () => {
     await runSeed(db);
 
     await expect(
-      repository.sumLatestCompensationSalariesInDisplayCurrency("USD"),
+      repository.sumLatestCompensationSalariesInDisplayCurrency("USD", testRates),
     ).resolves.toBe(238_250);
     await expect(
-      repository.sumLatestCompensationSalariesInDisplayCurrency("GBP"),
-    ).resolves.toBe(convertCurrencyAmount(132_000, "USD", "GBP") + 85_000);
+      repository.sumLatestCompensationSalariesInDisplayCurrency("GBP", testRates),
+    ).resolves.toBe(convertCurrencyAmount(132_000, "USD", "GBP", testRates) + 85_000);
   });
 
   it("returns average and median salaries grouped by department in display currency", async () => {
     await runSeed(db);
 
     await expect(
-      repository.findDepartmentSalaryStatisticsInDisplayCurrency("USD"),
+      repository.findDepartmentSalaryStatisticsInDisplayCurrency("USD", testRates),
     ).resolves.toEqual([
       {
         department: "Engineering",
@@ -59,7 +61,7 @@ describe("DrizzleAnalyticsRepository", () => {
   it("returns top earners ordered by converted salary descending", async () => {
     await runSeed(db);
 
-    await expect(repository.findTopEarnersInDisplayCurrency("USD", 10)).resolves.toEqual([
+    await expect(repository.findTopEarnersInDisplayCurrency("USD", testRates, 10)).resolves.toEqual([
       {
         employeeId: "E001",
         fullName: "Jane Doe",
@@ -88,7 +90,7 @@ describe("DrizzleAnalyticsRepository", () => {
       notes: null,
     });
 
-    await expect(repository.findTopEarnersInDisplayCurrency("USD", 10)).resolves.toEqual([
+    await expect(repository.findTopEarnersInDisplayCurrency("USD", testRates, 10)).resolves.toEqual([
       {
         employeeId: "E001",
         fullName: "Jane Doe",
@@ -125,7 +127,7 @@ describe("DrizzleAnalyticsRepository", () => {
 
     await expect(repository.countEmployeesWithLatestCompensation()).resolves.toBe(2);
     await expect(
-      repository.sumLatestCompensationSalariesInDisplayCurrency("USD"),
-    ).resolves.toBe(convertCurrencyAmount(140_000, "EUR", "USD") + 106_250);
+      repository.sumLatestCompensationSalariesInDisplayCurrency("USD", testRates),
+    ).resolves.toBe(convertCurrencyAmount(140_000, "EUR", "USD", testRates) + 106_250);
   });
 });

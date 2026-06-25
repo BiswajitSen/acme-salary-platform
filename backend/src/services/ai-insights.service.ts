@@ -17,15 +17,25 @@ export class AiInsightsService {
   }
 
   async executeQuery(body: unknown): Promise<ExecuteInsightQueryResponse> {
-    const parsedQuery = this.parseQuery(body);
-
-    return executeParsedInsightQuery(parsedQuery, {
+    const { query, displayCurrency } = insightQueryRequestSchema.parse(body);
+    const parsedQuery = parseInsightQuery(query);
+    const executionQuery =
+      displayCurrency === undefined
+        ? parsedQuery
+        : { ...parsedQuery, currency: displayCurrency };
+    const exchangeRatesAsOf = await this.insightAnalyticsService.getExchangeRatesAsOf();
+    const execution = await executeParsedInsightQuery(executionQuery, {
       getAnalyticsSummary: (currency) =>
         this.insightAnalyticsService.getAnalyticsSummary({ currency }),
       getDepartmentSalaryStatistics: (currency) =>
         this.insightAnalyticsService.getDepartmentSalaryStatistics({ currency }),
-      getTopEarners: (currency) =>
-        this.insightAnalyticsService.getTopEarners({ currency }),
+      getTopEarners: (currency) => this.insightAnalyticsService.getTopEarners({ currency }),
     });
+
+    return {
+      ...execution,
+      parsedQuery,
+      exchangeRatesAsOf,
+    };
   }
 }

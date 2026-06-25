@@ -1,5 +1,7 @@
 import { sql } from "drizzle-orm";
 
+import type { ExchangeRatesToUsd } from "@acme/shared";
+
 import type {
   DepartmentSalaryStatisticsRecord,
   TopEarnerRecord,
@@ -53,8 +55,9 @@ export class DrizzleAnalyticsRepository implements IAnalyticsRepository {
 
   async sumLatestCompensationSalariesInDisplayCurrency(
     displayCurrency: string,
+    ratesToUsd: ExchangeRatesToUsd,
   ): Promise<number> {
-    const convertedSalary = buildConvertedSalarySql(displayCurrency);
+    const convertedSalary = buildConvertedSalarySql(displayCurrency, ratesToUsd);
 
     const result = await this.database.execute<{ total_payroll: number }>(sql`
       WITH latest_compensation AS (${latestCompensationRows})
@@ -67,8 +70,9 @@ export class DrizzleAnalyticsRepository implements IAnalyticsRepository {
 
   async findDepartmentSalaryStatisticsInDisplayCurrency(
     displayCurrency: string,
+    ratesToUsd: ExchangeRatesToUsd,
   ): Promise<DepartmentSalaryStatisticsRecord[]> {
-    const convertedSalary = buildConvertedSalarySql(displayCurrency);
+    const convertedSalary = buildConvertedSalarySql(displayCurrency, ratesToUsd);
 
     const result = await this.database.execute<{
       department: string;
@@ -93,9 +97,10 @@ export class DrizzleAnalyticsRepository implements IAnalyticsRepository {
 
   async findTopEarnersInDisplayCurrency(
     displayCurrency: string,
+    ratesToUsd: ExchangeRatesToUsd,
     limit: number,
   ): Promise<TopEarnerRecord[]> {
-    const convertedSalary = buildConvertedSalarySql(displayCurrency);
+    const convertedSalary = buildConvertedSalarySql(displayCurrency, ratesToUsd);
 
     const result = await this.database.execute<{
       employee_id: string;

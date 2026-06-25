@@ -1,7 +1,7 @@
 import request from "supertest";
 import { describe, expect, it } from "vitest";
 
-import { ANALYTICS_DISPLAY_CURRENCIES } from "@acme/shared";
+import { ANALYTICS_DISPLAY_CURRENCIES, createTestExchangeRateSnapshot } from "@acme/shared";
 
 import { createApp } from "../src/app.js";
 import { db } from "../src/db/index.js";
@@ -14,7 +14,9 @@ describe("GET /api/analytics/summary", () => {
     const response = await request(app).get("/api/analytics/currencies");
 
     expect(response.status).toBe(200);
-    expect(response.body).toEqual({ currencies: [...ANALYTICS_DISPLAY_CURRENCIES] });
+    expect(response.body.currencies).toEqual([...ANALYTICS_DISPLAY_CURRENCIES]);
+    expect(response.body.exchangeRatesAsOf).toBe("2026-01-01");
+    expect(response.body.ratesToUsd).toEqual(createTestExchangeRateSnapshot().ratesToUsd);
   });
 
   it("returns org-wide headcount with payroll converted to the display currency", async () => {
@@ -27,6 +29,7 @@ describe("GET /api/analytics/summary", () => {
       currency: "USD",
       headcount: 2,
       totalPayroll: 238_250,
+      exchangeRatesAsOf: "2026-01-01",
     });
   });
 
@@ -63,6 +66,7 @@ describe("GET /api/analytics/departments", () => {
           medianSalary: 106_250,
         },
       ],
+      exchangeRatesAsOf: "2026-01-01",
     });
   });
 });
@@ -92,6 +96,7 @@ describe("GET /api/analytics/top-earners", () => {
           baseSalary: 106_250,
         },
       ],
+      exchangeRatesAsOf: "2026-01-01",
     });
   });
 });

@@ -9,6 +9,7 @@ function createInsightAnalyticsServiceMock(): InsightAnalyticsService {
       currency: "USD",
       headcount: 42,
       totalPayroll: 5_280_000,
+      exchangeRatesAsOf: "2026-01-01",
     }),
     getDepartmentSalaryStatistics: vi.fn().mockResolvedValue({
       currency: "USD",
@@ -20,6 +21,7 @@ function createInsightAnalyticsServiceMock(): InsightAnalyticsService {
           medianSalary: 118_000,
         },
       ],
+      exchangeRatesAsOf: "2026-01-01",
     }),
     getTopEarners: vi.fn().mockResolvedValue({
       currency: "USD",
@@ -31,7 +33,9 @@ function createInsightAnalyticsServiceMock(): InsightAnalyticsService {
           baseSalary: 132_000,
         },
       ],
+      exchangeRatesAsOf: "2026-01-01",
     }),
+    getExchangeRatesAsOf: vi.fn().mockResolvedValue("2026-01-01"),
   } as unknown as InsightAnalyticsService;
 }
 
@@ -74,6 +78,7 @@ describe("AiInsightsService", () => {
         employeeCount: 10,
       },
       error: null,
+      exchangeRatesAsOf: "2026-01-01",
     });
     expect(analyticsService.getDepartmentSalaryStatistics).toHaveBeenCalledWith({
       currency: "USD",
@@ -95,6 +100,7 @@ describe("AiInsightsService", () => {
         kind: "UNSUPPORTED_INTENT",
         message: "This question is not supported yet.",
       },
+      exchangeRatesAsOf: "2026-01-01",
     });
   });
 
@@ -130,6 +136,30 @@ describe("AiInsightsService", () => {
       error: null,
     });
     expect(analyticsService.getAnalyticsSummary).toHaveBeenCalledWith({ currency: "USD" });
+  });
+
+  it("uses the display currency selector instead of the parsed query currency", async () => {
+    const analyticsService = createInsightAnalyticsServiceMock();
+    const service = new AiInsightsService(analyticsService);
+
+    await expect(
+      service.executeQuery({
+        query: "headcount in USD",
+        displayCurrency: "GBP",
+      }),
+    ).resolves.toMatchObject({
+      parsedQuery: {
+        intent: "HEADCOUNT",
+        currency: "USD",
+      },
+      result: {
+        intent: "HEADCOUNT",
+        currency: "GBP",
+        headcount: 42,
+      },
+      error: null,
+    });
+    expect(analyticsService.getAnalyticsSummary).toHaveBeenCalledWith({ currency: "GBP" });
   });
 
   it("rejects injection-style queries before calling analytics", async () => {

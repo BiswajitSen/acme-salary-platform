@@ -1,26 +1,32 @@
 import { describe, expect, it } from "vitest";
 
-import { convertCurrencyAmount } from "@acme/shared";
+import {
+  convertCurrencyAmount,
+  createTestExchangeRateSnapshot,
+  TEST_EXCHANGE_RATES_TO_USD,
+} from "@acme/shared";
 
 import {
   buildConvertedSalarySql,
   getCurrencyConversionMultiplier,
 } from "./analytics-currency-conversion.js";
 
+const testRates = TEST_EXCHANGE_RATES_TO_USD;
+
 describe("getCurrencyConversionMultiplier", () => {
   it("returns one when source and display currencies match", () => {
-    expect(getCurrencyConversionMultiplier("USD", "USD")).toBe(1);
+    expect(getCurrencyConversionMultiplier("USD", "USD", testRates)).toBe(1);
   });
 
   it("matches the shared currency conversion helper", () => {
-    expect(getCurrencyConversionMultiplier("GBP", "USD")).toBe(1.25);
-    expect(convertCurrencyAmount(85_000, "GBP", "USD")).toBe(
-      Math.round(85_000 * getCurrencyConversionMultiplier("GBP", "USD")),
+    expect(getCurrencyConversionMultiplier("GBP", "USD", testRates)).toBe(1.25);
+    expect(convertCurrencyAmount(85_000, "GBP", "USD", testRates)).toBe(
+      Math.round(85_000 * getCurrencyConversionMultiplier("GBP", "USD", testRates)),
     );
   });
 
   it("rejects unsupported display currencies", () => {
-    expect(() => getCurrencyConversionMultiplier("USD", "AUD")).toThrow(
+    expect(() => getCurrencyConversionMultiplier("USD", "AUD", testRates)).toThrow(
       "Unsupported analytics display currency",
     );
   });
@@ -28,12 +34,12 @@ describe("getCurrencyConversionMultiplier", () => {
 
 describe("buildConvertedSalarySql", () => {
   it("builds a SQL fragment for each supported display currency", () => {
-    expect(buildConvertedSalarySql("USD")).toBeTruthy();
-    expect(buildConvertedSalarySql("GBP")).toBeTruthy();
+    expect(buildConvertedSalarySql("USD", testRates)).toBeTruthy();
+    expect(buildConvertedSalarySql("GBP", testRates)).toBeTruthy();
   });
 
   it("rejects unsupported display currencies", () => {
-    expect(() => buildConvertedSalarySql("AUD")).toThrow(
+    expect(() => buildConvertedSalarySql("AUD", testRates)).toThrow(
       "Unsupported analytics display currency",
     );
   });
