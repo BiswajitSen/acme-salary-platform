@@ -13,10 +13,9 @@ export class InsightAnalyticsService {
 
   async getAnalyticsSummary(query: unknown): Promise<AnalyticsSummaryResponse> {
     const currency = parseAnalyticsCurrencyQuery(query);
-    const headcount =
-      await this.analytics.countEmployeesWithLatestCompensationInCurrency(currency);
+    const headcount = await this.analytics.countEmployeesWithLatestCompensation();
     const totalPayroll =
-      await this.analytics.sumLatestCompensationSalariesInCurrency(currency);
+      await this.analytics.sumLatestCompensationSalariesInDisplayCurrency(currency);
 
     return {
       currency,
@@ -30,7 +29,7 @@ export class InsightAnalyticsService {
   ): Promise<AnalyticsDepartmentStatisticsResponse> {
     const currency = parseAnalyticsCurrencyQuery(query);
     const departments =
-      await this.analytics.findDepartmentSalaryStatisticsByCurrency(currency);
+      await this.analytics.findDepartmentSalaryStatisticsInDisplayCurrency(currency);
 
     return {
       currency,
@@ -40,7 +39,7 @@ export class InsightAnalyticsService {
 
   async getTopEarners(query: unknown): Promise<AnalyticsTopEarnersResponse> {
     const currency = parseAnalyticsCurrencyQuery(query);
-    const earners = await this.analytics.findTopEarnersByCurrency(
+    const earners = await this.analytics.findTopEarnersInDisplayCurrency(
       currency,
       ANALYTICS_TOP_EARNERS_LIMIT,
     );

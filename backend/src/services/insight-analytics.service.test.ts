@@ -5,10 +5,10 @@ import { InsightAnalyticsService } from "./insight-analytics.service.js";
 describe("InsightAnalyticsService", () => {
   it("returns headcount from the read-only analytics repository", async () => {
     const analyticsRepository = {
-      countEmployeesWithLatestCompensationInCurrency: vi.fn().mockResolvedValue(42),
-      sumLatestCompensationSalariesInCurrency: vi.fn().mockResolvedValue(5_280_000),
-      findDepartmentSalaryStatisticsByCurrency: vi.fn(),
-      findTopEarnersByCurrency: vi.fn(),
+      countEmployeesWithLatestCompensation: vi.fn().mockResolvedValue(42),
+      sumLatestCompensationSalariesInDisplayCurrency: vi.fn().mockResolvedValue(5_280_000),
+      findDepartmentSalaryStatisticsInDisplayCurrency: vi.fn(),
+      findTopEarnersInDisplayCurrency: vi.fn(),
     };
 
     const service = new InsightAnalyticsService(analyticsRepository);
@@ -22,10 +22,10 @@ describe("InsightAnalyticsService", () => {
 
   it("rejects invalid currency query params before hitting the repository", async () => {
     const service = new InsightAnalyticsService({
-      countEmployeesWithLatestCompensationInCurrency: vi.fn(),
-      sumLatestCompensationSalariesInCurrency: vi.fn(),
-      findDepartmentSalaryStatisticsByCurrency: vi.fn(),
-      findTopEarnersByCurrency: vi.fn(),
+      countEmployeesWithLatestCompensation: vi.fn(),
+      sumLatestCompensationSalariesInDisplayCurrency: vi.fn(),
+      findDepartmentSalaryStatisticsInDisplayCurrency: vi.fn(),
+      findTopEarnersInDisplayCurrency: vi.fn(),
     });
 
     await expect(service.getAnalyticsSummary({ currency: "US" })).rejects.toThrow();
@@ -33,9 +33,9 @@ describe("InsightAnalyticsService", () => {
 
   it("returns department salary statistics from the read-only repository", async () => {
     const analyticsRepository = {
-      countEmployeesWithLatestCompensationInCurrency: vi.fn(),
-      sumLatestCompensationSalariesInCurrency: vi.fn(),
-      findDepartmentSalaryStatisticsByCurrency: vi.fn().mockResolvedValue([
+      countEmployeesWithLatestCompensation: vi.fn(),
+      sumLatestCompensationSalariesInDisplayCurrency: vi.fn(),
+      findDepartmentSalaryStatisticsInDisplayCurrency: vi.fn().mockResolvedValue([
         {
           department: "Engineering",
           employeeCount: 2,
@@ -43,7 +43,7 @@ describe("InsightAnalyticsService", () => {
           medianSalary: 118_000,
         },
       ]),
-      findTopEarnersByCurrency: vi.fn(),
+      findTopEarnersInDisplayCurrency: vi.fn(),
     };
 
     const service = new InsightAnalyticsService(analyticsRepository);
@@ -63,10 +63,10 @@ describe("InsightAnalyticsService", () => {
 
   it("returns top earners from the read-only repository", async () => {
     const analyticsRepository = {
-      countEmployeesWithLatestCompensationInCurrency: vi.fn(),
-      sumLatestCompensationSalariesInCurrency: vi.fn(),
-      findDepartmentSalaryStatisticsByCurrency: vi.fn(),
-      findTopEarnersByCurrency: vi.fn().mockResolvedValue([
+      countEmployeesWithLatestCompensation: vi.fn(),
+      sumLatestCompensationSalariesInDisplayCurrency: vi.fn(),
+      findDepartmentSalaryStatisticsInDisplayCurrency: vi.fn(),
+      findTopEarnersInDisplayCurrency: vi.fn().mockResolvedValue([
         {
           employeeId: "E001",
           fullName: "Jane Doe",

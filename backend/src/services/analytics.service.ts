@@ -1,4 +1,5 @@
 import {
+  ANALYTICS_DISPLAY_CURRENCIES,
   ANALYTICS_TOP_EARNERS_LIMIT,
   type AnalyticsCurrenciesResponse,
   type AnalyticsDepartmentStatisticsResponse,
@@ -13,17 +14,14 @@ export class AnalyticsService {
   constructor(private readonly analytics: IAnalyticsRepository) {}
 
   async getAvailableCurrencies(): Promise<AnalyticsCurrenciesResponse> {
-    const currencies = await this.analytics.findAvailableCurrencies();
-
-    return { currencies };
+    return { currencies: [...ANALYTICS_DISPLAY_CURRENCIES] };
   }
 
   async getAnalyticsSummary(query: unknown): Promise<AnalyticsSummaryResponse> {
     const currency = parseAnalyticsCurrencyQuery(query);
-    const headcount =
-      await this.analytics.countEmployeesWithLatestCompensationInCurrency(currency);
+    const headcount = await this.analytics.countEmployeesWithLatestCompensation();
     const totalPayroll =
-      await this.analytics.sumLatestCompensationSalariesInCurrency(currency);
+      await this.analytics.sumLatestCompensationSalariesInDisplayCurrency(currency);
 
     return {
       currency,
@@ -37,7 +35,7 @@ export class AnalyticsService {
   ): Promise<AnalyticsDepartmentStatisticsResponse> {
     const currency = parseAnalyticsCurrencyQuery(query);
     const departments =
-      await this.analytics.findDepartmentSalaryStatisticsByCurrency(currency);
+      await this.analytics.findDepartmentSalaryStatisticsInDisplayCurrency(currency);
 
     return {
       currency,
@@ -47,7 +45,7 @@ export class AnalyticsService {
 
   async getTopEarners(query: unknown): Promise<AnalyticsTopEarnersResponse> {
     const currency = parseAnalyticsCurrencyQuery(query);
-    const earners = await this.analytics.findTopEarnersByCurrency(
+    const earners = await this.analytics.findTopEarnersInDisplayCurrency(
       currency,
       ANALYTICS_TOP_EARNERS_LIMIT,
     );

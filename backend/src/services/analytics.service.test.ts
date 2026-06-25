@@ -1,31 +1,31 @@
 import { describe, expect, it, vi } from "vitest";
 
+import { ANALYTICS_DISPLAY_CURRENCIES } from "@acme/shared";
+
 import { AnalyticsService } from "./analytics.service.js";
 
 describe("AnalyticsService", () => {
-  it("returns available currencies from latest compensation records", async () => {
+  it("returns supported display currencies for HR to switch between", async () => {
     const analyticsRepository = {
-      findAvailableCurrencies: vi.fn().mockResolvedValue(["GBP", "INR", "USD"]),
-      countEmployeesWithLatestCompensationInCurrency: vi.fn(),
-      sumLatestCompensationSalariesInCurrency: vi.fn(),
-      findDepartmentSalaryStatisticsByCurrency: vi.fn(),
-      findTopEarnersByCurrency: vi.fn(),
+      countEmployeesWithLatestCompensation: vi.fn(),
+      sumLatestCompensationSalariesInDisplayCurrency: vi.fn(),
+      findDepartmentSalaryStatisticsInDisplayCurrency: vi.fn(),
+      findTopEarnersInDisplayCurrency: vi.fn(),
     };
 
     const service = new AnalyticsService(analyticsRepository);
 
     await expect(service.getAvailableCurrencies()).resolves.toEqual({
-      currencies: ["GBP", "INR", "USD"],
+      currencies: [...ANALYTICS_DISPLAY_CURRENCIES],
     });
   });
 
-  it("returns headcount for the requested currency", async () => {
+  it("returns org-wide headcount with payroll converted to the display currency", async () => {
     const analyticsRepository = {
-      findAvailableCurrencies: vi.fn(),
-      countEmployeesWithLatestCompensationInCurrency: vi.fn().mockResolvedValue(42),
-      sumLatestCompensationSalariesInCurrency: vi.fn().mockResolvedValue(5_280_000),
-      findDepartmentSalaryStatisticsByCurrency: vi.fn(),
-      findTopEarnersByCurrency: vi.fn(),
+      countEmployeesWithLatestCompensation: vi.fn().mockResolvedValue(42),
+      sumLatestCompensationSalariesInDisplayCurrency: vi.fn().mockResolvedValue(5_280_000),
+      findDepartmentSalaryStatisticsInDisplayCurrency: vi.fn(),
+      findTopEarnersInDisplayCurrency: vi.fn(),
     };
 
     const service = new AnalyticsService(analyticsRepository);
@@ -35,32 +35,29 @@ describe("AnalyticsService", () => {
       headcount: 42,
       totalPayroll: 5_280_000,
     });
-    expect(
-      analyticsRepository.countEmployeesWithLatestCompensationInCurrency,
-    ).toHaveBeenCalledWith("USD");
-    expect(
-      analyticsRepository.sumLatestCompensationSalariesInCurrency,
-    ).toHaveBeenCalledWith("USD");
+    expect(analyticsRepository.countEmployeesWithLatestCompensation).toHaveBeenCalled();
+    expect(analyticsRepository.sumLatestCompensationSalariesInDisplayCurrency).toHaveBeenCalledWith(
+      "USD",
+    );
   });
 
-  it("rejects invalid currency query params", async () => {
+  it("rejects unsupported display currency codes", async () => {
     const service = new AnalyticsService({
-      findAvailableCurrencies: vi.fn(),
-      countEmployeesWithLatestCompensationInCurrency: vi.fn(),
-      sumLatestCompensationSalariesInCurrency: vi.fn(),
-      findDepartmentSalaryStatisticsByCurrency: vi.fn(),
-      findTopEarnersByCurrency: vi.fn(),
+      countEmployeesWithLatestCompensation: vi.fn(),
+      sumLatestCompensationSalariesInDisplayCurrency: vi.fn(),
+      findDepartmentSalaryStatisticsInDisplayCurrency: vi.fn(),
+      findTopEarnersInDisplayCurrency: vi.fn(),
     });
 
     await expect(service.getAnalyticsSummary({ currency: "US" })).rejects.toThrow();
+    await expect(service.getAnalyticsSummary({ currency: "AUD" })).rejects.toThrow();
   });
 
-  it("returns department salary statistics for the requested currency", async () => {
+  it("returns department salary statistics converted to the display currency", async () => {
     const analyticsRepository = {
-      findAvailableCurrencies: vi.fn(),
-      countEmployeesWithLatestCompensationInCurrency: vi.fn(),
-      sumLatestCompensationSalariesInCurrency: vi.fn(),
-      findDepartmentSalaryStatisticsByCurrency: vi.fn().mockResolvedValue([
+      countEmployeesWithLatestCompensation: vi.fn(),
+      sumLatestCompensationSalariesInDisplayCurrency: vi.fn(),
+      findDepartmentSalaryStatisticsInDisplayCurrency: vi.fn().mockResolvedValue([
         {
           department: "Engineering",
           employeeCount: 2,
@@ -68,6 +65,7 @@ describe("AnalyticsService", () => {
           medianSalary: 120_000,
         },
       ]),
+      findTopEarnersInDisplayCurrency: vi.fn(),
     };
 
     const service = new AnalyticsService(analyticsRepository);
@@ -85,13 +83,12 @@ describe("AnalyticsService", () => {
     });
   });
 
-  it("returns top earners for the requested currency", async () => {
+  it("returns top earners converted to the display currency", async () => {
     const analyticsRepository = {
-      findAvailableCurrencies: vi.fn(),
-      countEmployeesWithLatestCompensationInCurrency: vi.fn(),
-      sumLatestCompensationSalariesInCurrency: vi.fn(),
-      findDepartmentSalaryStatisticsByCurrency: vi.fn(),
-      findTopEarnersByCurrency: vi.fn().mockResolvedValue([
+      countEmployeesWithLatestCompensation: vi.fn(),
+      sumLatestCompensationSalariesInDisplayCurrency: vi.fn(),
+      findDepartmentSalaryStatisticsInDisplayCurrency: vi.fn(),
+      findTopEarnersInDisplayCurrency: vi.fn().mockResolvedValue([
         {
           employeeId: "E001",
           fullName: "Jane Doe",
@@ -114,6 +111,6 @@ describe("AnalyticsService", () => {
         },
       ],
     });
-    expect(analyticsRepository.findTopEarnersByCurrency).toHaveBeenCalledWith("USD", 10);
+    expect(analyticsRepository.findTopEarnersInDisplayCurrency).toHaveBeenCalledWith("USD", 10);
   });
 });

@@ -51,11 +51,10 @@ describe("createAnalyticsRouter", () => {
 
   it("returns 400 when currency query validation fails", async () => {
     const analyticsService = new AnalyticsService({
-      findAvailableCurrencies: vi.fn(),
-      countEmployeesWithLatestCompensationInCurrency: vi.fn(),
-      sumLatestCompensationSalariesInCurrency: vi.fn(),
-      findDepartmentSalaryStatisticsByCurrency: vi.fn(),
-      findTopEarnersByCurrency: vi.fn(),
+      countEmployeesWithLatestCompensation: vi.fn(),
+      sumLatestCompensationSalariesInDisplayCurrency: vi.fn(),
+      findDepartmentSalaryStatisticsInDisplayCurrency: vi.fn(),
+      findTopEarnersInDisplayCurrency: vi.fn(),
     });
 
     const response = await request(createTestApp(analyticsService)).get(
