@@ -7,6 +7,7 @@ import {
   listEmployeeFilterOptions,
   listEmployees,
 } from "@/lib/api/employees";
+import { getApiLoadErrorMessage } from "@/lib/errors";
 import { useDebouncedValue } from "@/lib/hooks/use-debounced-value";
 
 import {
@@ -90,9 +91,9 @@ export function useEmployeeDirectory(): EmployeeDirectoryState {
         if (isActive) {
           setDirectory(response);
         }
-      } catch {
+      } catch (error) {
         if (isActive) {
-          setErrorMessage("Unable to load employees. Is the backend running?");
+          setErrorMessage(getApiLoadErrorMessage(error, "employee data"));
         }
       } finally {
         if (isActive) {

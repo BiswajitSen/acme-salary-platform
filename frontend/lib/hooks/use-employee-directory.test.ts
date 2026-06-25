@@ -1,6 +1,8 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { ApiRequestError } from "@/lib/api/client";
+
 const { listEmployees, listEmployeeFilterOptions } = vi.hoisted(() => ({
   listEmployees: vi.fn(),
   listEmployeeFilterOptions: vi.fn(),
@@ -64,13 +66,15 @@ describe("useEmployeeDirectory", () => {
   });
 
   it("stores an error when employee loading fails", async () => {
-    listEmployees.mockRejectedValue(new Error("Network error"));
+    listEmployees.mockRejectedValue(
+      new ApiRequestError("An unexpected error occurred", 500),
+    );
 
     const { result } = renderHook(() => useEmployeeDirectory());
 
     await waitFor(() => {
       expect(result.current.errorMessage).toBe(
-        "Unable to load employees. Is the backend running?",
+        "500 Internal Server Error — Failed to load employee data.",
       );
     });
   });

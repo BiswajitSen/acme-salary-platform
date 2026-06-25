@@ -4,7 +4,7 @@ import { useVirtualizer } from "@tanstack/react-virtual";
 import { useRef } from "react";
 
 import { EmployeeDirectoryTableHeader } from "@/components/employee-directory/employee-directory-table-header";
-import { EMPLOYEE_ROW_HEIGHT_PX } from "@/components/employee-directory/types";
+import { EMPLOYEE_ROW_HEIGHT_PX, getEmptyDirectoryMessage } from "@/components/employee-directory/types";
 import { EmployeeRow } from "@/components/employee-directory/employee-row";
 import type { DirectoryFilters } from "@/components/employee-directory/types";
 
@@ -58,7 +58,7 @@ export function EmployeeDirectoryTable({
         {isLoading && employees.length === 0 ? (
           <p className={styles.bodyMessage}>Loading employees…</p>
         ) : employees.length === 0 ? (
-          <p className={styles.bodyMessage}>No employees match the current filters.</p>
+          <p className={styles.bodyMessage}>{getEmptyDirectoryMessage(filters)}</p>
         ) : (
           <div
             className={styles.virtualRows}

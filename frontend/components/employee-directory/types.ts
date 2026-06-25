@@ -41,6 +41,24 @@ export const emptyDirectoryStats = {
   departments: 0,
 };
 
+export function hasActiveDirectoryFilters(filters: DirectoryFilters): boolean {
+  return (
+    filters.search.trim().length > 0 ||
+    filters.countries.length > 0 ||
+    filters.departments.length > 0 ||
+    filters.jobTitles.length > 0 ||
+    filters.employmentStatuses.length > 0
+  );
+}
+
+export function getEmptyDirectoryMessage(filters: DirectoryFilters): string {
+  if (hasActiveDirectoryFilters(filters)) {
+    return "No employees match the current filters.";
+  }
+
+  return "No employee record found.";
+}
+
 /** Empty array means no column filter is applied (show all). */
 export function isColumnFilterActive(
   selected: string[],

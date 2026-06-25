@@ -2,6 +2,7 @@ import { cleanup, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
 import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
+import { ApiRequestError } from "@/lib/api/client";
 import { EmployeeDirectory } from "./employee-directory";
 
 vi.mock("@tanstack/react-virtual", () => ({
@@ -116,18 +117,35 @@ describe("EmployeeDirectory", () => {
 
     renderEmployeeDirectory();
 
-    expect(
-      await screen.findByText("No employees match the current filters."),
-    ).toBeInTheDocument();
+    expect(await screen.findByText("No employee record found.")).toBeInTheDocument();
+  });
+
+  it("shows a filter-specific empty state when filters are active", async () => {
+    listEmployees.mockResolvedValue({
+      data: [],
+      meta: { page: 1, limit: 50, total: 0, totalPages: 0 },
+      stats: { total: 0, active: 0, noCompensation: 0, departments: 0 },
+    });
+
+    renderEmployeeDirectory();
+    await screen.findByText("No employee record found.");
+
+    await userEvent.type(screen.getByLabelText("Search employees"), "Nobody");
+
+    await waitFor(() => {
+      expect(screen.getByText("No employees match the current filters.")).toBeInTheDocument();
+    });
   });
 
   it("shows an error when employee loading fails", async () => {
-    listEmployees.mockRejectedValue(new Error("Network error"));
+    listEmployees.mockRejectedValue(
+      new ApiRequestError("An unexpected error occurred", 500),
+    );
 
     renderEmployeeDirectory();
 
     expect(
-      await screen.findByText("Unable to load employees. Is the backend running?"),
+      await screen.findByText("500 Internal Server Error — Failed to load employee data."),
     ).toBeInTheDocument();
   });
 
