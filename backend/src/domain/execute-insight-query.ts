@@ -1,14 +1,14 @@
 import {
   DEFAULT_INSIGHT_CURRENCY,
-  DEFAULT_RECENT_PROMOTIONS_MONTHS,
+  DEFAULT_INSIGHT_TIMELINE_MONTHS,
   type AiInsightIntent,
   type AnalyticsSummaryResponse,
   type AnalyticsTopEarnersResponse,
   type ExecuteInsightQueryResponse,
   type InsightExecutionError,
   type InsightExecutionResult,
+  type InsightTimelineEvent,
   type ParsedInsightQuery,
-  type PromotedEmployee,
 } from "@acme/shared";
 
 import {
@@ -16,6 +16,9 @@ import {
   shouldReportScopedEmptyResult,
   type InsightQueryFilters,
 } from "./insight-query-spec.js";
+import {
+  type InsightTimelineIntent,
+} from "./insight-query-timeline.js";
 import { parseSafeInsightCurrency } from "./insight-query-safety.js";
 import { formatInsightScopeLabel } from "./insight-query-scope.js";
 import { validateInsightExecutionSafety } from "./validate-insight-execution.js";
@@ -41,11 +44,12 @@ export type InsightExecutorContext = {
     country: string | null,
     department: string | null,
   ): Promise<AnalyticsTopEarnersResponse>;
-  getRecentPromotions(
+  getRecentTimelineEvents(
+    intent: InsightTimelineIntent,
     months: number,
     country: string | null,
     department: string | null,
-  ): Promise<{ asOfDate: string; promotions: PromotedEmployee[] }>;
+  ): Promise<{ asOfDate: string; events: InsightTimelineEvent[] }>;
 };
 
 function resolveInsightCurrency(currency: string | null): string {
@@ -263,32 +267,63 @@ async function executeTopEarnersIntent(
   };
 }
 
-async function executeRecentPromotionsIntent(
+function buildTimelineResult(
+  intent: InsightTimelineIntent,
+  parsedQuery: ParsedInsightQuery,
+  months: number,
+  filters: InsightQueryFilters,
+  events: InsightTimelineEvent[],
+): InsightExecutionResult {
+  switch (intent) {
+    case "RECENT_PROMOTIONS":
+      return {
+        intent,
+        months,
+        country: filters.country,
+        department: filters.department,
+        promotions: events,
+      };
+    case "RECENT_NEW_HIRES":
+      return {
+        intent,
+        months,
+        country: filters.country,
+        department: filters.department,
+        hires: events,
+      };
+    case "RECENT_SALARY_INCREASES":
+      return {
+        intent,
+        months,
+        country: filters.country,
+        department: filters.department,
+        increases: events,
+      };
+  }
+}
+
+async function executeTimelineIntent(
   parsedQuery: ParsedInsightQuery,
   context: InsightExecutorContext,
+  intent: InsightTimelineIntent,
 ): Promise<ExecuteInsightQueryResponse> {
   const filters = resolveFilters(parsedQuery);
-  const months = filters.months ?? DEFAULT_RECENT_PROMOTIONS_MONTHS;
-  const response = await context.getRecentPromotions(
+  const months = filters.months ?? DEFAULT_INSIGHT_TIMELINE_MONTHS;
+  const response = await context.getRecentTimelineEvents(
+    intent,
     months,
     filters.country,
     filters.department,
   );
 
-  if (shouldReportScopedEmptyResult(filters, response.promotions.length > 0)) {
+  if (shouldReportScopedEmptyResult(filters, response.events.length > 0)) {
     const currency = resolveInsightCurrency(parsedQuery.currency);
     return buildScopeNotFoundResponse(parsedQuery, currency);
   }
 
   return {
     parsedQuery,
-    result: {
-      intent: "RECENT_PROMOTIONS",
-      months,
-      country: filters.country,
-      department: filters.department,
-      promotions: response.promotions,
-    },
+    result: buildTimelineResult(intent, parsedQuery, months, filters, response.events),
     error: null,
   };
 }
@@ -305,7 +340,12 @@ const INSIGHT_EXECUTORS: Record<
   HEADCOUNT: executeHeadcountIntent,
   TOTAL_PAYROLL: executeTotalPayrollIntent,
   TOP_EARNERS: executeTopEarnersIntent,
-  RECENT_PROMOTIONS: executeRecentPromotionsIntent,
+  RECENT_PROMOTIONS: (parsedQuery, context) =>
+    executeTimelineIntent(parsedQuery, context, "RECENT_PROMOTIONS"),
+  RECENT_NEW_HIRES: (parsedQuery, context) =>
+    executeTimelineIntent(parsedQuery, context, "RECENT_NEW_HIRES"),
+  RECENT_SALARY_INCREASES: (parsedQuery, context) =>
+    executeTimelineIntent(parsedQuery, context, "RECENT_SALARY_INCREASES"),
 };
 
 export async function executeParsedInsightQuery(

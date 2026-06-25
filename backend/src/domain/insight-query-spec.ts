@@ -1,8 +1,10 @@
 import {
-  DEFAULT_RECENT_PROMOTIONS_MONTHS,
+  DEFAULT_INSIGHT_TIMELINE_MONTHS,
   type AiInsightIntent,
   type ParsedInsightQuery,
 } from "@acme/shared";
+
+import { isInsightTimelineIntent } from "./insight-query-timeline.js";
 
 export type InsightQueryFilterDimension = "country" | "department" | "months";
 
@@ -31,6 +33,8 @@ const METRIC_FILTER_SUPPORT: Record<
   TOTAL_PAYROLL: { country: true, department: true, months: false },
   TOP_EARNERS: { country: true, department: true, months: false },
   RECENT_PROMOTIONS: { country: true, department: true, months: true },
+  RECENT_NEW_HIRES: { country: true, department: true, months: true },
+  RECENT_SALARY_INCREASES: { country: true, department: true, months: true },
 };
 
 export function metricSupportsFilter(
@@ -47,8 +51,8 @@ export function extractInsightQueryFilters(
     country: parsedQuery.country ?? null,
     department: parsedQuery.department ?? null,
     months:
-      parsedQuery.intent === "RECENT_PROMOTIONS"
-        ? (parsedQuery.months ?? DEFAULT_RECENT_PROMOTIONS_MONTHS)
+      isInsightTimelineIntent(parsedQuery.intent)
+        ? (parsedQuery.months ?? DEFAULT_INSIGHT_TIMELINE_MONTHS)
         : null,
   };
 }

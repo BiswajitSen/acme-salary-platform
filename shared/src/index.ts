@@ -74,6 +74,7 @@ export {
 export {
   AI_INSIGHT_INTENTS,
   DEFAULT_INSIGHT_CURRENCY,
+  DEFAULT_INSIGHT_TIMELINE_MONTHS,
   DEFAULT_RECENT_PROMOTIONS_MONTHS,
   INSIGHT_EXECUTION_ERROR_KINDS,
   INSIGHT_QUERY_COUNTRIES,
@@ -93,6 +94,9 @@ export {
   type InsightQueryDepartment,
   type InsightQueryRequest,
   type InsightRecentPromotionsResult,
+  type InsightRecentNewHiresResult,
+  type InsightRecentSalaryIncreasesResult,
+  type InsightTimelineEvent,
   type InsightTopEarnersResult,
   type InsightTotalPayrollResult,
   type ParseInsightQueryResponse,

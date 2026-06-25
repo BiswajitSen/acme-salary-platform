@@ -1,5 +1,6 @@
 import { z } from "zod";
 
+import type { CompensationReason } from "./compensation";
 import type { TopEarner } from "./analytics";
 
 import {
@@ -14,10 +15,15 @@ export const AI_INSIGHT_INTENTS = [
   "TOTAL_PAYROLL",
   "TOP_EARNERS",
   "RECENT_PROMOTIONS",
+  "RECENT_NEW_HIRES",
+  "RECENT_SALARY_INCREASES",
   "UNKNOWN",
 ] as const;
 
-export const DEFAULT_RECENT_PROMOTIONS_MONTHS = 3;
+export const DEFAULT_INSIGHT_TIMELINE_MONTHS = 3;
+
+/** @deprecated Use DEFAULT_INSIGHT_TIMELINE_MONTHS */
+export const DEFAULT_RECENT_PROMOTIONS_MONTHS = DEFAULT_INSIGHT_TIMELINE_MONTHS;
 
 export type AiInsightIntent = (typeof AI_INSIGHT_INTENTS)[number];
 
@@ -68,13 +74,24 @@ export type ParsedInsightQuery = {
   months: number | null;
 };
 
-export type PromotedEmployee = {
+export type InsightTimelineEvent = {
   employeeId: string;
   fullName: string;
   department: string;
   baseSalary: number;
   currency: string;
   effectiveDate: string;
+  reason: CompensationReason;
+};
+
+/** @deprecated Use InsightTimelineEvent */
+export type PromotedEmployee = InsightTimelineEvent;
+
+export type InsightTimelineResultBase = {
+  months: number;
+  country: string | null;
+  department: string | null;
+  events: InsightTimelineEvent[];
 };
 
 export type ParseInsightQueryResponse = ParsedInsightQuery;
@@ -142,7 +159,23 @@ export type InsightRecentPromotionsResult = {
   months: number;
   country: string | null;
   department: string | null;
-  promotions: PromotedEmployee[];
+  promotions: InsightTimelineEvent[];
+};
+
+export type InsightRecentNewHiresResult = {
+  intent: "RECENT_NEW_HIRES";
+  months: number;
+  country: string | null;
+  department: string | null;
+  hires: InsightTimelineEvent[];
+};
+
+export type InsightRecentSalaryIncreasesResult = {
+  intent: "RECENT_SALARY_INCREASES";
+  months: number;
+  country: string | null;
+  department: string | null;
+  increases: InsightTimelineEvent[];
 };
 
 export type InsightExecutionResult =
@@ -151,7 +184,9 @@ export type InsightExecutionResult =
   | InsightHeadcountResult
   | InsightTotalPayrollResult
   | InsightTopEarnersResult
-  | InsightRecentPromotionsResult;
+  | InsightRecentPromotionsResult
+  | InsightRecentNewHiresResult
+  | InsightRecentSalaryIncreasesResult;
 
 export type ExecuteInsightQueryResponse = {
   parsedQuery: ParsedInsightQuery;

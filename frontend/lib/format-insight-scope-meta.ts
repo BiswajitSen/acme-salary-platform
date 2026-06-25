@@ -61,3 +61,18 @@ export function formatInsightTopEarnersScopeMeta(scope: InsightScopeParts): stri
 
   return `${parts.join(" · ")} · amounts in ${scope.currency}`;
 }
+
+export function formatInsightTimelineScopeMeta(scope: {
+  months: number;
+  country?: string | null;
+  department?: string | null;
+}): string {
+  const parts = buildScopeParts(scope);
+  const timeline = `Last ${scope.months} months`;
+
+  if (parts.length === 0) {
+    return timeline;
+  }
+
+  return `${timeline} · ${parts.join(" · ")}`;
+}

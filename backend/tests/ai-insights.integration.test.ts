@@ -337,10 +337,73 @@ describe("POST /api/insights/execute", () => {
           baseSalary: 140_000,
           currency: "USD",
           effectiveDate: "2026-01-01",
+          reason: "Promotion",
         },
       ],
     });
     expect(response.body.error).toBeNull();
+  });
+
+  it("returns new hires within the requested lookback window", async () => {
+    await runSeed(db);
+
+    const compensationRepository = new DrizzleCompensationRepository(db);
+    await compensationRepository.insertCompensationHistoryRecord({
+      employeeId: "E003",
+      baseSalary: 95_000,
+      currency: "USD",
+      effectiveDate: "2026-01-01",
+      reason: "New Hire",
+      changedBy: "HR Admin",
+      notes: null,
+    });
+
+    const response = await request(app)
+      .post("/api/insights/execute")
+      .send({ query: "new joiners in the last 3 months" });
+
+    expect(response.status).toBe(200);
+    expect(response.body.parsedQuery.intent).toBe("RECENT_NEW_HIRES");
+    expect(response.body.result.hires).toEqual([
+      {
+        employeeId: "E003",
+        fullName: "Alice Chen",
+        department: "Finance",
+        baseSalary: 95_000,
+        currency: "USD",
+        effectiveDate: "2026-01-01",
+        reason: "New Hire",
+      },
+    ]);
+  });
+
+  it("returns salary hikes for employees in a country", async () => {
+    await runSeed(db);
+    await seedIndianEmployee();
+
+    const compensationRepository = new DrizzleCompensationRepository(db);
+    await compensationRepository.insertCompensationHistoryRecord({
+      employeeId: "E010",
+      baseSalary: 3_200_000,
+      currency: "INR",
+      effectiveDate: "2026-01-01",
+      reason: "Annual Increment",
+      changedBy: "HR Admin",
+      notes: null,
+    });
+
+    const response = await request(app)
+      .post("/api/insights/execute")
+      .send({ query: "employees in India who got salary hike in the last 3 months" });
+
+    expect(response.status).toBe(200);
+    expect(response.body.parsedQuery).toMatchObject({
+      intent: "RECENT_SALARY_INCREASES",
+      country: "IN",
+      months: 3,
+    });
+    expect(response.body.result.increases).toHaveLength(1);
+    expect(response.body.result.increases[0].reason).toBe("Annual Increment");
   });
 
   it("returns organization-wide average salary without a scope filter", async () => {

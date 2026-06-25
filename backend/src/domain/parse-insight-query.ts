@@ -1,5 +1,5 @@
 import {
-  DEFAULT_RECENT_PROMOTIONS_MONTHS,
+  DEFAULT_INSIGHT_TIMELINE_MONTHS,
   INSIGHT_QUERY_DEPARTMENTS,
   type AiInsightIntent,
   type ParsedInsightQuery,
@@ -7,6 +7,7 @@ import {
 
 import { looksLikeSqlInjection } from "./insight-query-safety.js";
 import { extractInsightCountry } from "./insight-query-country-aliases.js";
+import { resolveInsightTimelineMonths } from "./insight-query-timeline.js";
 
 const ISO_CURRENCY_PATTERN = /\b(USD|GBP|EUR|INR|SGD)\b/i;
 
@@ -14,6 +15,16 @@ const INTENT_PATTERNS: ReadonlyArray<{
   intent: Exclude<AiInsightIntent, "UNKNOWN">;
   pattern: RegExp;
 }> = [
+  {
+    intent: "RECENT_SALARY_INCREASES",
+    pattern:
+      /\b(?:salary\s+(?:hike|hikes|increase|increases|raise|raises)|(?:got|received)\s+(?:a\s+)?(?:salary\s+)?(?:hike|raise|increment|increments?)|annual\s+increments?)\b/,
+  },
+  {
+    intent: "RECENT_NEW_HIRES",
+    pattern:
+      /\b(?:new\s+(?:joiners?|hires?)|(?:employees?\s+)?who\s+joined|employees?\s+who\s+joined|joined\s+as)\b/,
+  },
   {
     intent: "RECENT_PROMOTIONS",
     pattern: /\b(?:promotion|promoted|promotions)\b/,
@@ -46,9 +57,21 @@ function extractInsightCurrency(normalizedQuery: string): string | null {
   return isoMatch ? isoMatch[1]!.toUpperCase() : null;
 }
 
+const DEPARTMENT_ALIASES: Record<string, (typeof INSIGHT_QUERY_DEPARTMENTS)[number]> = {
+  engineers: "Engineering",
+  engineer: "Engineering",
+};
+
 function extractInsightDepartment(normalizedQuery: string): string | null {
   for (const department of INSIGHT_QUERY_DEPARTMENTS) {
     const pattern = new RegExp(`\\b${department}\\b`, "i");
+    if (pattern.test(normalizedQuery)) {
+      return department;
+    }
+  }
+
+  for (const [alias, department] of Object.entries(DEPARTMENT_ALIASES)) {
+    const pattern = new RegExp(`\\b${alias}\\b`, "i");
     if (pattern.test(normalizedQuery)) {
       return department;
     }
@@ -65,26 +88,6 @@ function detectInsightIntent(normalizedQuery: string): AiInsightIntent {
   }
 
   return "UNKNOWN";
-}
-
-function extractInsightMonths(normalizedQuery: string): number | null {
-  const explicitMatch = normalizedQuery.match(
-    /\b(?:last|past|in the last|within the last)\s+(\d+)\s*months?\b/,
-  );
-
-  if (explicitMatch) {
-    return Number.parseInt(explicitMatch[1]!, 10);
-  }
-
-  return null;
-}
-
-function resolveInsightMonths(intent: AiInsightIntent, normalizedQuery: string): number | null {
-  if (intent !== "RECENT_PROMOTIONS") {
-    return null;
-  }
-
-  return extractInsightMonths(normalizedQuery) ?? DEFAULT_RECENT_PROMOTIONS_MONTHS;
 }
 
 function buildUnknownInsightQuery(originalQuery: string): ParsedInsightQuery {
@@ -110,7 +113,7 @@ export function parseInsightQuery(query: string): ParsedInsightQuery {
   const currency = extractInsightCurrency(normalizedQuery);
   const country = extractInsightCountry(normalizedQuery);
   const department = extractInsightDepartment(normalizedQuery);
-  const months = resolveInsightMonths(intent, normalizedQuery);
+  const months = resolveInsightTimelineMonths(intent, normalizedQuery);
 
   if (intent === "UNKNOWN") {
     return buildUnknownInsightQuery(originalQuery);

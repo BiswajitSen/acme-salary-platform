@@ -42,8 +42,8 @@ export class AiInsightsService {
           ...(country === null ? {} : { country }),
           ...(department === null ? {} : { department }),
         }),
-      getRecentPromotions: (months, country, department) =>
-        this.insightAnalyticsService.getRecentPromotions({
+      getRecentTimelineEvents: (intent, months, country, department) =>
+        this.insightAnalyticsService.getRecentTimelineEvents(intent, {
           months,
           ...(country === null ? {} : { country }),
           ...(department === null ? {} : { department }),

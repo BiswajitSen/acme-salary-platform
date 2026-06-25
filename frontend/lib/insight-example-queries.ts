@@ -1,0 +1,14 @@
+export const INSIGHT_EXAMPLE_QUERIES = [
+  "What is the average salary in Engineering?",
+  "What is the average salary in India?",
+  "total payroll for Engineering in India",
+  "Who are the top earners in Engineering in India?",
+  "headcount in UK",
+  "List employees who got promotion in the last 3 months",
+  "new joiners in the last 6 months",
+  "employees in India who got salary hike in the last 3 months",
+  "employees who joined as engineers in the last 12 months",
+  "employees who joined after 6 months",
+  "Who was promoted recently in India?",
+  "median salary in HR",
+] as const;

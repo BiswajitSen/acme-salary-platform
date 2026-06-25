@@ -69,6 +69,41 @@ describe("parseInsightQuery", () => {
     });
   });
 
+  it("maps new joiner questions to RECENT_NEW_HIRES", () => {
+    expect(parseInsightQuery("new joiners in the last 6 months")).toEqual({
+      intent: "RECENT_NEW_HIRES",
+      originalQuery: "new joiners in the last 6 months",
+      department: null,
+      country: null,
+      currency: null,
+      months: 6,
+    });
+  });
+
+  it("maps joined-as-department questions to RECENT_NEW_HIRES", () => {
+    expect(parseInsightQuery("employees who joined as engineers in the last 12 months")).toEqual({
+      intent: "RECENT_NEW_HIRES",
+      originalQuery: "employees who joined as engineers in the last 12 months",
+      department: "Engineering",
+      country: null,
+      currency: null,
+      months: 12,
+    });
+  });
+
+  it("maps salary hike questions to RECENT_SALARY_INCREASES", () => {
+    expect(parseInsightQuery("employees in India who got salary hike in the last 3 months")).toEqual(
+      {
+        intent: "RECENT_SALARY_INCREASES",
+        originalQuery: "employees in India who got salary hike in the last 3 months",
+        department: null,
+        country: "IN",
+        currency: null,
+        months: 3,
+      },
+    );
+  });
+
   it("maps median department salary questions to MEDIAN_DEPT_SALARY", () => {
     expect(parseInsightQuery("median salary in HR")).toEqual({
       intent: "MEDIAN_DEPT_SALARY",

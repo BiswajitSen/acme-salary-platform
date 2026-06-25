@@ -183,6 +183,7 @@ describe("InsightExecutionResult", () => {
               baseSalary: 140_000,
               currency: "USD",
               effectiveDate: "2026-01-01",
+              reason: "Promotion",
             },
           ],
         }}
