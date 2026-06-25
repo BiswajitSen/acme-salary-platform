@@ -1,6 +1,8 @@
 import { act, renderHook, waitFor } from "@testing-library/react";
 import { beforeEach, describe, expect, it, vi } from "vitest";
 
+import { getInsightResultCurrency } from "@/lib/insight-result-currency";
+
 import { useInsightQueryParser } from "./use-insight-query-parser";
 
 const { executeInsightQueryMock } = vi.hoisted(() => ({
@@ -164,13 +166,13 @@ describe("useInsightQueryParser", () => {
     });
 
     await waitFor(() => {
-      expect(result.current.response?.result?.currency).toBe("USD");
+      expect(getInsightResultCurrency(result.current.response?.result)).toBe("USD");
     });
 
     rerender({ displayCurrency: "GBP" });
 
     await waitFor(() => {
-      expect(result.current.response?.result?.currency).toBe("GBP");
+      expect(getInsightResultCurrency(result.current.response?.result)).toBe("GBP");
     });
     expect(executeInsightQueryMock).toHaveBeenCalledTimes(2);
     expect(executeInsightQueryMock).toHaveBeenLastCalledWith("headcount", "GBP");

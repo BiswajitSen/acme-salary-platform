@@ -50,7 +50,11 @@ describe("ParsedInsightSummary", () => {
           originalQuery: "headcount",
           department: null,
           country: null,
+          jobTitle: null,
           currency: null,
+          months: null,
+          sinceDate: null,
+          limit: null,
         }}
       />,
     );
@@ -108,7 +112,9 @@ describe("InsightExecutionResult", () => {
         result={{
           intent: "MEDIAN_DEPT_SALARY",
           currency: "USD",
+          country: null,
           department: "Engineering",
+          jobTitle: null,
           medianSalary: 118_000,
           employeeCount: 10,
         }}
@@ -127,6 +133,7 @@ describe("InsightExecutionResult", () => {
           currency: "USD",
           country: null,
           department: null,
+          jobTitle: null,
           headcount: 42,
         }}
       />,
@@ -143,6 +150,7 @@ describe("InsightExecutionResult", () => {
           currency: "USD",
           country: null,
           department: null,
+          jobTitle: null,
           totalPayroll: 5_280_000,
         }}
       />,

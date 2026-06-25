@@ -1,11 +1,14 @@
-type InsightScopeParts = {
+type InsightFilterScopeParts = {
   department?: string | null;
   country?: string | null;
   jobTitle?: string | null;
+};
+
+type InsightScopeParts = InsightFilterScopeParts & {
   currency: string;
 };
 
-function buildScopeParts({ department, country, jobTitle }: InsightScopeParts): string[] {
+function buildScopeParts({ department, country, jobTitle }: InsightFilterScopeParts): string[] {
   const parts: string[] = [];
 
   if (department) {
@@ -94,12 +97,9 @@ export function formatInsightNearMedianScopeMeta(
   return `${band} · ${parts.join(" · ")} · amounts in ${scope.currency}`;
 }
 
-export function formatInsightTimelineScopeMeta(scope: {
+export function formatInsightTimelineScopeMeta(scope: InsightFilterScopeParts & {
   months: number | null;
   sinceDate?: string | null;
-  country?: string | null;
-  department?: string | null;
-  jobTitle?: string | null;
 }): string {
   const parts = buildScopeParts(scope);
   const timeline =
