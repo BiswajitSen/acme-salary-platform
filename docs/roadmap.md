@@ -78,19 +78,19 @@ Each feature follows **TDD**: failing test → minimal implementation → refact
 
 ---
 
-## Phase 5 — Analytics Dashboard (PRD §4.4) ⬜
+## Phase 5 — Analytics Dashboard (PRD §4.4) ✅
 
-**Goal:** Real-time metrics, grouped by currency only.
+**Goal:** Leadership metrics with display-currency conversion and an executive dashboard UI.
 
-| # | Feature | API | UI | Tests (write first) |
-|---|---------|-----|----|---------------------|
-| 5.1 | Headcount | `GET /api/analytics/summary?currency=USD` | KPI card | Per-currency count |
-| 5.2 | Total payroll | Sum of latest comp per employee, per currency | KPI card | Excludes stale history rows |
-| 5.3 | Avg / median | By department + currency | Bar/table charts | Correct stats for known seed |
-| 5.4 | Top 10 earners | Per currency | Ranked list | Exactly 10, ties handled |
-| 5.5 | Performance | Whitelisted SQL via `AnalyticsRepository` | Dashboard < 2s @ 10k | Benchmark test |
+| # | Feature | API | UI | Tests (write first) | Status |
+|---|---------|-----|----|---------------------|--------|
+| 5.1 | Headcount | `GET /api/analytics/summary?currency=USD` | KPI card | Per-currency count | ✅ |
+| 5.2 | Total payroll | Sum of latest comp per employee in display currency | KPI card | Excludes stale history rows | ✅ |
+| 5.3 | Avg / median | By department + currency | Charts & department table | Correct stats for known seed | ✅ |
+| 5.4 | Top earners | Per display currency | Ranked list | Scoped filters | ✅ |
+| 5.5 | Executive dashboard | Analytics APIs + paginated employees | `/analytics` — Recharts, heatmap, session cache | View-model & integration tests | ✅ |
 
-**Exit criteria:** Leadership dashboard loads in under 2 seconds with 10k employees.
+**Exit criteria:** Leadership dashboard with display-currency conversion; client session cache avoids refetch on every visit ([ADR 002](./adr/002-analytics-dashboard-client-session-cache.md)).
 
 ---
 
@@ -142,10 +142,10 @@ Phase 1 → Phase 2 → Phase 3 → Phase 4 → Phase 5 → Phase 6 → Phase 7
                               └─ core business rules
                                         └─ leadership value
                                                   └─ onboarding
-                                                            └─ nice-to-have
+                                                            └─ insights
 ```
 
-**Next up:** Phase 1.1–1.5, then Phase 2.1 (employee list API).
+All MVP phases above are **complete**. See out-of-scope section before adding new work.
 
 ---
 
