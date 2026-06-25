@@ -124,6 +124,21 @@ Each feature follows **TDD**: failing test → minimal implementation → refact
 
 ---
 
+## Phase 8 — Employee management (CRUD) ✅
+
+**Goal:** HR can add, edit, and remove employees from the UI without a spreadsheet import.
+
+| # | Feature | API | UI | Tests (write first) | Status |
+|---|---------|-----|----|---------------------|--------|
+| 8.1 | Create employee | `POST /api/employees` | `/employees/new` form + directory **Add employee** | Duplicate ID → 409; Zod validation | ✅ |
+| 8.2 | Update employee | `PATCH /api/employees/:id` | **Edit employee** on profile | 404 unknown ID; ID not in body | ✅ |
+| 8.3 | Delete employee | `DELETE /api/employees/:id` | **Delete employee** with confirm | 409 when compensation history exists | ✅ |
+| 8.4 | Shared schemas | `createEmployeeSchema`, `updateEmployeeSchema` in `@acme/shared` | Client-side validation on forms | Import reuses create schema | ✅ |
+
+**Exit criteria:** HR can onboard a single employee, correct master data, and remove employees with no compensation history. Compensation history remains append-only.
+
+---
+
 ## Out of scope (PRD §5)
 
 Do **not** build in MVP:
@@ -137,15 +152,16 @@ Do **not** build in MVP:
 ## Suggested build order
 
 ```
-Phase 1 → Phase 2 → Phase 3 → Phase 4 → Phase 5 → Phase 6 → Phase 7
+Phase 1 → Phase 2 → Phase 3 → Phase 8 → Phase 4 → Phase 5 → Phase 6 → Phase 7
           └─ first user-visible value
+                    └─ profiles + employee CRUD
                               └─ core business rules
                                         └─ leadership value
                                                   └─ onboarding
                                                             └─ insights
 ```
 
-All MVP phases above are **complete**. See out-of-scope section before adding new work.
+All MVP phases above are **complete**, including **Phase 8** (employee CRUD). See out-of-scope section before adding new work.
 
 ---
 

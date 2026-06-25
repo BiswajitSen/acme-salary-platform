@@ -1,6 +1,6 @@
 # ACME Salary Platform
 
-HR compensation management MVP: employee directory, compensation profiles, executive analytics, natural-language insights, and spreadsheet import. Built as a TypeScript monorepo with TDD and layered backend architecture.
+HR compensation management MVP: employee directory, employee CRUD, compensation profiles, executive analytics, natural-language insights, and spreadsheet import. Built as a TypeScript monorepo with TDD and layered backend architecture.
 
 ## Stack
 
@@ -37,7 +37,8 @@ Architecture diagrams (Mermaid): [docs/architecture.md](./docs/architecture.md)
 | Route | Feature |
 |-------|---------|
 | `/` | Employee directory — search, column filters, KPIs, avatars, display-currency salaries |
-| `/employees/:id` | Compensation profile — current salary, timeline, record change form |
+| `/employees/new` | Add employee — form with validation (ID, name, department, job title, country) |
+| `/employees/:id` | Compensation profile — summary, edit/delete employee, timeline, record change form |
 | `/analytics` | Executive dashboard — KPIs, charts, heatmap, filters, session-cached data |
 | `/insights` | AI Insights — plain-English compensation questions (rule-based parser, no raw SQL) |
 | `/import` | Employee `.xlsx` import with dry-run preview |
@@ -107,7 +108,10 @@ npm run dev:backend
 |----------|---------|
 | `GET /api/health` | Health check |
 | `GET /api/employees` | Paginated directory (search & filters) |
+| `POST /api/employees` | Create employee (409 if ID exists) |
 | `GET /api/employees/:id` | Employee profile |
+| `PATCH /api/employees/:id` | Update employee fields (ID immutable) |
+| `DELETE /api/employees/:id` | Delete employee (409 if compensation history exists) |
 | `GET/POST /api/employees/:id/compensation` | Timeline / record change |
 | `POST /api/import/preview`, `/confirm` | Employee import |
 | `POST /api/import/compensation/preview`, `/confirm` | Compensation import |
@@ -139,6 +143,26 @@ npm run db:import -w backend -- fixtures/employees-10000.xlsx
 Import employees first, then upload `fixtures/compensation-10000.xlsx` from **Import Compensation** in the header.
 
 Expected employee columns (header aliases supported): `employee_id`, `full_name`, `department`, `job_title`, `country`. Import validates all rows before writing; duplicate employee IDs are rejected. Re-importing the same file upserts by employee ID.
+
+### Employee management
+
+**Add:** use **Add employee** on the directory or open `/employees/new`. Employee ID is set at creation and cannot be changed later.
+
+**Edit:** on `/employees/:id`, click **Edit employee** to update name, department, job title, or country.
+
+**Delete:** click **Delete employee** on the profile. Deletion is blocked when the employee has compensation history (append-only audit trail must be preserved).
+
+```bash
+curl -X POST http://localhost:8000/api/employees \
+  -H "Content-Type: application/json" \
+  -d '{"id":"E010","fullName":"Jane Doe","department":"Engineering","jobTitle":"Engineer","country":"US"}'
+
+curl -X PATCH http://localhost:8000/api/employees/E010 \
+  -H "Content-Type: application/json" \
+  -d '{"fullName":"Jane Smith","department":"Engineering","jobTitle":"Senior Engineer","country":"US"}'
+
+curl -X DELETE http://localhost:8000/api/employees/E010
+```
 
 ### Employee compensation profile
 

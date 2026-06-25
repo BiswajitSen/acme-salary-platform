@@ -16,6 +16,7 @@ Instructions for AI coding agents working on **ACME Salary Platform**.
 - **DI:** Constructor injection; wire dependencies only in `backend/src/container/`.
 - **Layers:** routes → services → repositories → db. No business logic in routes or React components.
 - **Append-only compensation:** Never UPDATE/DELETE `compensation_history`. Repository exposes `insert` only.
+- **Employee delete guard:** Never DELETE an employee who has compensation history rows.
 - **Currency rule:** Never aggregate across currencies in one metric.
 - **Shared types:** Put enums and API contracts in `@acme/shared`.
 - **Validate:** Zod for all API input/output.
@@ -37,7 +38,7 @@ npm run dev:frontend  # :3000
 
 ## Current status
 
-Phases **0–7** of the MVP roadmap are implemented (directory, profiles, compensation management, analytics dashboard, spreadsheet import, AI insights). See [docs/roadmap.md](./docs/roadmap.md).
+Phases **0–8** of the MVP roadmap are implemented (directory, profiles, employee CRUD, compensation management, analytics dashboard, spreadsheet import, AI insights). See [docs/roadmap.md](./docs/roadmap.md).
 
 ## When implementing a feature
 

@@ -187,7 +187,10 @@ describe("CompensationService.recordChange", () => {
 export interface IEmployeeRepository {
   findPaginated(query: ListEmployeesQuery): Promise<Paginated<Employee>>;
   findById(id: string): Promise<Employee | null>;
-  upsert(employee: NewEmployee): Promise<Employee>;
+  insertEmployee(employee: CreateEmployeeInput): Promise<Employee>;
+  updateEmployee(id: string, employee: UpdateEmployeeInput): Promise<Employee>;
+  deleteEmployee(id: string): Promise<void>;
+  upsertManyEmployees(employees: EmployeeSpreadsheetRow[]): Promise<EmployeeImportResult>;
 }
 
 // repositories/drizzle/employee.repository.ts
@@ -208,7 +211,10 @@ From the PRD — enforce in **domain/** or **services/**, always covered by test
 | Rule | Enforcement |
 |------|-------------|
 | Append-only history | `ICompensationRepository` has no update/delete |
+| Employee delete guard | `EmployeeService.deleteEmployee` rejects when history exists |
 | Reason enum | Zod + shared `COMPENSATION_REASONS` |
+| Salary increase reasons | Annual Increment & Promotion cannot reduce salary vs predecessor |
+| Effective date required | `recordCompensationChangeSchema` rejects empty dates |
 | Salary > 0 | Domain validator |
 | ISO 4217 currency | Domain validator (3-letter) |
 | Currency isolation | Analytics never sums across currencies |

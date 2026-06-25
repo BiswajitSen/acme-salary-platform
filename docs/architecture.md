@@ -79,8 +79,8 @@ flowchart TB
   end
 
   subgraph Frontend["frontend/ (Next.js)"]
-    AppRoutes["app/ — /, /employees, /analytics, /insights, /import"]
-    Components["components/ — directory, profile, analytics, insights"]
+    AppRoutes["app/ — /, /employees, /employees/new, /analytics, /insights, /import"]
+    Components["components/ — directory, employee-form, profile, analytics, insights"]
     Hooks["lib/hooks — data fetching, display currency"]
     AnalyticsCache["lib/analytics — view builder + session cache"]
     ApiClient["lib/api — typed HTTP client"]
@@ -173,7 +173,7 @@ API prefix: `/api/*`
 | Area | Endpoints |
 |------|-----------|
 | Health | `GET /api/health` |
-| Employees | `GET /api/employees`, `GET /api/employees/:id`, compensation timeline & `POST` history |
+| Employees | `GET /api/employees`, `POST /api/employees`, `GET /api/employees/:id`, `PATCH /api/employees/:id`, `DELETE /api/employees/:id`, compensation timeline & `POST` history |
 | Import | `POST /api/import/preview`, `confirm`; `POST /api/import/compensation/*` |
 | Analytics | `GET /api/analytics/currencies`, `summary`, `departments`, `top-earners` |
 | AI Insights | `POST /api/insights/parse`, `POST /api/insights/execute` |
@@ -184,7 +184,7 @@ API prefix: `/api/*`
 
 ```
 app/                   routes (App Router)
-components/            feature UI (directory, profile, analytics, insights, import)
+components/            feature UI (directory, employee-form, profile, analytics, insights, import)
 lib/api/               typed HTTP client
 lib/hooks/             client state (display currency, dashboards, insights)
 lib/analytics/         dashboard view model, charts, session cache
@@ -196,7 +196,8 @@ lib/env.ts             validated config
 | Path | Purpose |
 |------|---------|
 | `/` | Employee directory (search, filters, KPIs) |
-| `/employees/:id` | Compensation profile + record change |
+| `/employees/new` | Add employee form |
+| `/employees/:id` | Compensation profile — edit/delete employee, record change |
 | `/analytics` | Executive analytics dashboard |
 | `/insights` | Natural-language compensation queries |
 | `/import` | Employee spreadsheet import |
@@ -214,6 +215,7 @@ How major HR capabilities map across UI routes, API routers, and services.
 flowchart LR
   subgraph UI["Frontend routes"]
     R1["/ — Directory"]
+    R1a["/employees/new — Add employee"]
     R2["/employees/:id — Profile"]
     R3["/analytics"]
     R4["/insights"]
@@ -237,6 +239,7 @@ flowchart LR
   end
 
   R1 --> A1 --> S1
+  R1a --> A1 --> S1
   R2 --> A1 --> S1
   R3 --> A2 --> S2
   R4 --> A3 --> S3
@@ -305,6 +308,7 @@ flowchart LR
 
 ## Key business rules
 
+- **Employee master data:** create (`POST`), update (`PATCH`), and delete (`DELETE`) via `EmployeeService`. Employee ID is immutable after creation. Delete is rejected when compensation history exists (FK + service guard).
 - **Append-only:** compensation history is insert-only
 - **Display currency:** analytics convert all employees to a selected ISO currency using daily FX rates (see [ADR 001](./adr/001-daily-frankfurter-exchange-rates-and-display-currency.md)); native currencies are never blended without conversion
 - **Analytics dashboard cache:** the frontend keeps a session-scoped in-memory cache of dashboard data to avoid refetching on every navigation (see [ADR 002](./adr/002-analytics-dashboard-client-session-cache.md))
