@@ -1,8 +1,5 @@
 import type {
   AnalyticsCurrenciesResponse,
-  AnalyticsDepartmentStatisticsResponse,
-  AnalyticsSummaryResponse,
-  AnalyticsTopEarnersResponse,
   EmployeeFilterOptions,
   EmployeeSummary,
 } from "@acme/shared";

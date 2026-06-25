@@ -127,6 +127,25 @@ export function useAnalyticsDashboard(): AnalyticsDashboardState {
   );
   const [isRefreshing, setIsRefreshing] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const [metricsCurrency, setMetricsCurrency] = useState(currency);
+
+  if (isCurrencyReady && ratesToUsd !== null && currency !== metricsCurrency) {
+    const cachedEmployees = readAnalyticsEmployeesCache();
+    const cachedMetrics = readAnalyticsMetricsCache(currency);
+
+    setMetricsCurrency(currency);
+
+    if (cachedEmployees !== null && cachedMetrics !== null) {
+      setMetricsState({
+        summary: cachedMetrics.summary,
+        departmentStatistics: cachedMetrics.departmentStatistics,
+        topEarners: cachedMetrics.topEarners,
+        rawEmployees: cachedEmployees,
+      });
+      setIsLoading(false);
+      setErrorMessage(null);
+    }
+  }
 
   useEffect(() => {
     let isCancelled = false;
@@ -182,17 +201,8 @@ export function useAnalyticsDashboard(): AnalyticsDashboardState {
     let isCancelled = false;
     const cachedEmployees = readAnalyticsEmployeesCache();
     const cachedMetrics = readAnalyticsMetricsCache(currency);
-    const hasCachedBundle = cachedEmployees !== null && cachedMetrics !== null;
 
-    if (hasCachedBundle) {
-      setMetricsState({
-        summary: cachedMetrics.summary,
-        departmentStatistics: cachedMetrics.departmentStatistics,
-        topEarners: cachedMetrics.topEarners,
-        rawEmployees: cachedEmployees,
-      });
-      setIsLoading(false);
-      setErrorMessage(null);
+    if (cachedEmployees !== null && cachedMetrics !== null) {
       return;
     }
 
