@@ -42,6 +42,7 @@ export const ALL_INSIGHT_QUERY_METRICS = [
   "TOP_EARNERS",
   "BOTTOM_EARNERS",
   "NEAR_MEDIAN_EARNERS",
+  "MEDIAN_SPLIT_COUNTS",
   "RECENT_PROMOTIONS",
   "RECENT_NEW_HIRES",
   "RECENT_SALARY_INCREASES",
@@ -109,6 +110,14 @@ const METRIC_FILTER_SUPPORT: Record<
     limit: true,
   },
   NEAR_MEDIAN_EARNERS: {
+    country: true,
+    department: true,
+    jobTitle: true,
+    months: false,
+    sinceDate: false,
+    limit: false,
+  },
+  MEDIAN_SPLIT_COUNTS: {
     country: true,
     department: true,
     jobTitle: true,

@@ -270,6 +270,32 @@ export async function executeNearMedianEarnersIntent(
   };
 }
 
+export async function executeMedianSplitCountsIntent(
+  parsedQuery: ParsedInsightQuery,
+  context: InsightExecutorContext,
+): Promise<InsightQueryExecution> {
+  const execution = buildExecutionContext(parsedQuery);
+  const response = await context.getMedianSplitCounts(execution.currency, execution.scope);
+
+  if (shouldReportScopedEmptyResult(execution.filters, response.employeeCount > 0)) {
+    return buildScopeNotFoundResponse(parsedQuery, execution.currency);
+  }
+
+  return {
+    parsedQuery,
+    result: {
+      intent: "MEDIAN_SPLIT_COUNTS",
+      currency: execution.currency,
+      ...scopedResultFields(execution.filters),
+      medianSalary: response.medianSalary,
+      belowMedianCount: response.belowMedianCount,
+      aboveMedianCount: response.aboveMedianCount,
+      employeeCount: response.employeeCount,
+    },
+    error: null,
+  };
+}
+
 function buildTimelineResult(
   intent: InsightTimelineIntent,
   filters: InsightQueryFilters,

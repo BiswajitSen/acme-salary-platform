@@ -77,6 +77,13 @@ function createContext(
         },
       ],
     }),
+    getMedianSplitCounts: vi.fn().mockResolvedValue({
+      currency: "USD",
+      medianSalary: 118_000,
+      belowMedianCount: 4,
+      aboveMedianCount: 5,
+      employeeCount: 9,
+    }),
     ...overrides,
   };
 }
@@ -601,5 +608,32 @@ describe("executeParsedInsightQuery", () => {
       { department: "Engineering" },
       10,
     );
+  });
+
+  it("executes MEDIAN_SPLIT_COUNTS using scoped median split analytics", async () => {
+    const context = createContext();
+
+    const response = await executeParsedInsightQuery(
+      parsed({
+        intent: "MEDIAN_SPLIT_COUNTS",
+        originalQuery:
+          "how many employees are earning below and above median in Engineering?",
+        department: "Engineering",
+      }),
+      context,
+    );
+
+    expect(response.result).toMatchObject({
+      intent: "MEDIAN_SPLIT_COUNTS",
+      currency: "USD",
+      department: "Engineering",
+      medianSalary: 118_000,
+      belowMedianCount: 4,
+      aboveMedianCount: 5,
+      employeeCount: 9,
+    });
+    expect(context.getMedianSplitCounts).toHaveBeenCalledWith("USD", {
+      department: "Engineering",
+    });
   });
 });

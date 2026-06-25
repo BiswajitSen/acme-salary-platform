@@ -507,4 +507,32 @@ describe("POST /api/insights/execute", () => {
     expect(response.body.result.earners.length).toBeGreaterThanOrEqual(0);
     expect(response.body.error).toBeNull();
   });
+
+  it("returns below and above median employee counts for scoped split questions", async () => {
+    await runSeed(db);
+
+    const response = await request(app)
+      .post("/api/insights/execute")
+      .send({
+        query: "how many employees are earning below and above median in Engineering?",
+        displayCurrency: "USD",
+      });
+
+    expect(response.status).toBe(200);
+    expect(response.body.parsedQuery.intent).toBe("MEDIAN_SPLIT_COUNTS");
+    expect(response.body.parsedQuery.department).toBe("Engineering");
+    expect(response.body.parsedQuery.country).toBeNull();
+    expect(response.body.result).toMatchObject({
+      intent: "MEDIAN_SPLIT_COUNTS",
+      currency: "USD",
+      department: "Engineering",
+      country: null,
+    });
+    expect(response.body.result.belowMedianCount).toBeGreaterThanOrEqual(0);
+    expect(response.body.result.aboveMedianCount).toBeGreaterThanOrEqual(0);
+    expect(
+      response.body.result.belowMedianCount + response.body.result.aboveMedianCount,
+    ).toBeLessThanOrEqual(response.body.result.employeeCount);
+    expect(response.body.error).toBeNull();
+  });
 });

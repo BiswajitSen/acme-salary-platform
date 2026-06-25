@@ -6,6 +6,7 @@ import {
   executeBottomEarnersIntent,
   executeHeadcountIntent,
   executeMedianDeptSalaryIntent,
+  executeMedianSplitCountsIntent,
   executeNearMedianEarnersIntent,
   executeTimelineIntent,
   executeTopEarnersIntent,
@@ -32,6 +33,7 @@ const INSIGHT_EXECUTORS: Record<
   TOP_EARNERS: executeTopEarnersIntent,
   BOTTOM_EARNERS: executeBottomEarnersIntent,
   NEAR_MEDIAN_EARNERS: executeNearMedianEarnersIntent,
+  MEDIAN_SPLIT_COUNTS: executeMedianSplitCountsIntent,
   RECENT_PROMOTIONS: (parsedQuery, context) =>
     executeTimelineIntent(parsedQuery, context, "RECENT_PROMOTIONS"),
   RECENT_NEW_HIRES: (parsedQuery, context) =>

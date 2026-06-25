@@ -9,6 +9,7 @@ import {
 import type {
   CompensationTimelineRecord,
   DepartmentSalaryStatisticsRecord,
+  MedianSplitCountsRecord,
   ScopedSalaryStatisticsRecord,
   TopEarnerRecord,
 } from "../../domain/analytics.types.js";
@@ -290,6 +291,53 @@ export class DrizzleAnalyticsRepository implements IAnalyticsRepository {
     return {
       medianSalary,
       earners: result.rows.map(mapTopEarnerRow),
+    };
+  }
+
+  async findMedianSplitCountsInDisplayCurrency(
+    displayCurrency: string,
+    ratesToUsd: ExchangeRatesToUsd,
+    scopeParams: EmployeeScopeParams = {},
+  ): Promise<MedianSplitCountsRecord> {
+    const convertedSalary = buildConvertedSalarySql(displayCurrency, ratesToUsd);
+
+    const result = await this.database.execute<{
+      median_salary: number;
+      below_median_count: number;
+      above_median_count: number;
+      employee_count: number;
+    }>(sql`
+      WITH latest_compensation AS (${latestCompensationRows}),
+      scoped AS (
+        SELECT ${convertedSalary} AS salary
+        FROM latest_compensation lc
+        INNER JOIN employees e ON e.id = lc.employee_id
+        WHERE ${scope(scopeParams)}
+      ),
+      median_val AS (
+        SELECT COALESCE(
+          PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY salary),
+          0
+        )::float8 AS median_salary
+        FROM scoped
+      )
+      SELECT
+        m.median_salary,
+        COUNT(*) FILTER (WHERE s.salary < m.median_salary)::int AS below_median_count,
+        COUNT(*) FILTER (WHERE s.salary > m.median_salary)::int AS above_median_count,
+        COUNT(*)::int AS employee_count
+      FROM scoped s
+      CROSS JOIN median_val m
+      GROUP BY m.median_salary
+    `);
+
+    const row = result.rows[0];
+
+    return {
+      medianSalary: row?.median_salary ?? 0,
+      belowMedianCount: row?.below_median_count ?? 0,
+      aboveMedianCount: row?.above_median_count ?? 0,
+      employeeCount: row?.employee_count ?? 0,
     };
   }
 

@@ -26,6 +26,13 @@ export type CompensationTimelineRecord = {
 /** @deprecated Use CompensationTimelineRecord */
 export type RecentPromotionRecord = CompensationTimelineRecord;
 
+export type MedianSplitCountsRecord = {
+  medianSalary: number;
+  belowMedianCount: number;
+  aboveMedianCount: number;
+  employeeCount: number;
+};
+
 export type TopEarnerRecord = {
   employeeId: string;
   fullName: string;

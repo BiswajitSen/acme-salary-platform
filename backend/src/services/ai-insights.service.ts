@@ -68,6 +68,11 @@ export class AiInsightsService {
           ...buildScopeQuery(scope),
           tolerancePercent,
         }),
+      getMedianSplitCounts: (currency, scope) =>
+        this.insightAnalyticsService.getMedianSplitCounts({
+          currency,
+          ...buildScopeQuery(scope),
+        }),
       getRecentTimelineEvents: (intent, query) =>
         this.insightAnalyticsService.getRecentTimelineEvents(intent, {
           ...(query.months === null ? {} : { months: query.months }),

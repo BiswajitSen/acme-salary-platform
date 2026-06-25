@@ -4,6 +4,7 @@ import type { EmployeeScopeParams } from "../../domain/insights/employee-scope.j
 import type {
   CompensationTimelineRecord,
   DepartmentSalaryStatisticsRecord,
+  MedianSplitCountsRecord,
   ScopedSalaryStatisticsRecord,
   TopEarnerRecord,
 } from "../../domain/analytics.types.js";
@@ -43,6 +44,11 @@ export interface IAnalyticsRepository {
     tolerancePercent: number,
     scope?: EmployeeScopeParams,
   ): Promise<{ medianSalary: number; earners: TopEarnerRecord[] }>;
+  findMedianSplitCountsInDisplayCurrency(
+    displayCurrency: string,
+    ratesToUsd: ExchangeRatesToUsd,
+    scope?: EmployeeScopeParams,
+  ): Promise<MedianSplitCountsRecord>;
   findRecentCompensationEvents(
     asOfDate: string,
     window: InsightTimelineWindow,

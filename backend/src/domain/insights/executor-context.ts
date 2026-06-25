@@ -5,6 +5,7 @@ import type {
   InsightTimelineEvent,
 } from "@acme/shared";
 
+import type { MedianSplitCountsRecord } from "../analytics.types.js";
 import type { EmployeeScopeParams } from "./employee-scope.js";
 import type { InsightTimelineIntent } from "./timeline/timeline.js";
 
@@ -37,6 +38,10 @@ export type InsightExecutorContext = {
     scope: EmployeeScopeParams,
     tolerancePercent: number,
   ): Promise<AnalyticsTopEarnersResponse & { medianSalary: number; tolerancePercent: number }>;
+  getMedianSplitCounts(
+    currency: string,
+    scope: EmployeeScopeParams,
+  ): Promise<MedianSplitCountsRecord & { currency: string }>;
   getRecentTimelineEvents(
     intent: InsightTimelineIntent,
     query: {

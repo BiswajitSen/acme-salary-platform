@@ -309,6 +309,22 @@ describe("DrizzleAnalyticsRepository", () => {
     });
   });
 
+  it("returns below and above median employee counts for a scoped cohort", async () => {
+    await runSeed(db);
+
+    const result = await repository.findMedianSplitCountsInDisplayCurrency(
+      "USD",
+      testRates,
+      { department: "Engineering" },
+    );
+
+    expect(result.employeeCount).toBeGreaterThan(0);
+    expect(result.belowMedianCount + result.aboveMedianCount).toBeLessThanOrEqual(
+      result.employeeCount,
+    );
+    expect(result.medianSalary).toBeGreaterThan(0);
+  });
+
   it("returns promotion records within the requested lookback window", async () => {
     await runSeed(db);
 

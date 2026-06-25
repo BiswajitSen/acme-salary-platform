@@ -19,6 +19,11 @@ export const INSIGHT_INTENT_PATTERNS: ReadonlyArray<{
     pattern: /\b(?:promotion|promoted|promotions)\b/,
   },
   {
+    intent: "MEDIAN_SPLIT_COUNTS",
+    pattern:
+      /\b(?:(?:how many|number of|count of)\s+employees?(?:\s+\w+){0,6}\s+(?:earn(?:ing)?|paid)\s+)?(?:below\s+and\s+above|above\s+and\s+below)\s+(?:the\s+)?median(?:\s+(?:salary|pay|compensation))?\b/,
+  },
+  {
     intent: "NEAR_MEDIAN_EARNERS",
     pattern:
       /\b(?:(?:who\s+)?(?:earn|earning|earns|paid)\s+(?:around|near|close to)|(?:around|near|close to))\s+(?:the\s+)?median(?:\s+(?:salary|pay|compensation))?\b/,

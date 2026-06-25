@@ -226,6 +226,22 @@ describe("parseInsightQuery", () => {
     );
   });
 
+  it("maps below-and-above median count questions to MEDIAN_SPLIT_COUNTS", () => {
+    expect(
+      parseInsightQuery(
+        "how many employees are earning below and above median in Engineering in India?",
+      ),
+    ).toEqual(
+      parsed({
+        intent: "MEDIAN_SPLIT_COUNTS",
+        originalQuery:
+          "how many employees are earning below and above median in Engineering in India?",
+        department: "Engineering",
+        country: "IN",
+      }),
+    );
+  });
+
   it("keeps aggregate median salary questions separate from near-median lists", () => {
     expect(parseInsightQuery("median salary in HR")).toEqual(
       parsed({

@@ -79,6 +79,7 @@ describe("query-spec", () => {
       "TOP_EARNERS",
       "BOTTOM_EARNERS",
       "NEAR_MEDIAN_EARNERS",
+      "MEDIAN_SPLIT_COUNTS",
       "RECENT_PROMOTIONS",
       "RECENT_NEW_HIRES",
       "RECENT_SALARY_INCREASES",

@@ -7,7 +7,10 @@ import {
   type InsightTimelineEvent,
 } from "@acme/shared";
 
-import type { ScopedSalaryStatisticsRecord } from "../domain/analytics.types.js";
+import type {
+  ScopedSalaryStatisticsRecord,
+  MedianSplitCountsRecord,
+} from "../domain/analytics.types.js";
 import { parseAnalyticsCurrencyQuery } from "../domain/analytics-query.js";
 import {
   parseInsightAnalyticsQuery,
@@ -133,6 +136,29 @@ export class InsightAnalyticsService {
       currency,
       earners,
       exchangeRatesAsOf: asOf,
+    };
+  }
+
+  async getMedianSplitCounts(query: unknown): Promise<
+    MedianSplitCountsRecord & {
+      currency: string;
+      exchangeRatesAsOf: string;
+    }
+  > {
+    const parsed = parseInsightAnalyticsQuery(query);
+    const { currency, ...scopeQuery } = parsed;
+    const scope = toEmployeeScopeFromQuery(scopeQuery);
+    const { asOf, ratesToUsd } = await this.exchangeRates.fetchSnapshot();
+    const counts = await this.analytics.findMedianSplitCountsInDisplayCurrency(
+      currency,
+      ratesToUsd,
+      scope,
+    );
+
+    return {
+      currency,
+      exchangeRatesAsOf: asOf,
+      ...counts,
     };
   }
 
