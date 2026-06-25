@@ -32,7 +32,7 @@ export function InsightQueryPanel() {
     <section className={styles.page}>
       <PageHeader
         title="AI Insights"
-        subtitle="Ask salary analytics questions in plain English. Each query runs through a safe, whitelisted executor."
+        subtitle="Ask salary analytics questions in plain English. Amounts are converted to a display currency for comparison."
       />
 
       <Card title="Ask a question">
