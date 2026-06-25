@@ -1,6 +1,10 @@
 "use client";
 
-import { DEFAULT_ANALYTICS_DISPLAY_CURRENCY } from "@acme/shared";
+import {
+  ANALYTICS_DISPLAY_CURRENCIES,
+  DEFAULT_ANALYTICS_DISPLAY_CURRENCY,
+  type AnalyticsDisplayCurrency,
+} from "@acme/shared";
 import {
   createContext,
   useCallback,
@@ -13,8 +17,15 @@ import {
 
 const DISPLAY_CURRENCY_STORAGE_KEY = "acme.displayCurrency";
 
+function parseDisplayCurrency(value: string): AnalyticsDisplayCurrency | null {
+  const normalized = value.trim().toUpperCase();
+  return ANALYTICS_DISPLAY_CURRENCIES.includes(normalized as AnalyticsDisplayCurrency)
+    ? (normalized as AnalyticsDisplayCurrency)
+    : null;
+}
+
 type DisplayCurrencyContextValue = {
-  currency: string;
+  currency: AnalyticsDisplayCurrency;
   selectCurrency: (currency: string) => void;
   isReady: boolean;
 };
@@ -26,23 +37,32 @@ type DisplayCurrencyProviderProps = {
 };
 
 export function DisplayCurrencyProvider({ children }: DisplayCurrencyProviderProps) {
-  const [currency, setCurrency] = useState(DEFAULT_ANALYTICS_DISPLAY_CURRENCY);
+  const [currency, setCurrency] = useState<AnalyticsDisplayCurrency>(
+    DEFAULT_ANALYTICS_DISPLAY_CURRENCY,
+  );
   const [isReady, setIsReady] = useState(false);
 
   useEffect(() => {
     const storedCurrency = window.localStorage.getItem(DISPLAY_CURRENCY_STORAGE_KEY);
 
     if (storedCurrency) {
-      setCurrency(storedCurrency.toUpperCase());
+      const parsedCurrency = parseDisplayCurrency(storedCurrency);
+      if (parsedCurrency !== null) {
+        setCurrency(parsedCurrency);
+      }
     }
 
     setIsReady(true);
   }, []);
 
   const selectCurrency = useCallback((nextCurrency: string) => {
-    const normalizedCurrency = nextCurrency.toUpperCase();
-    setCurrency(normalizedCurrency);
-    window.localStorage.setItem(DISPLAY_CURRENCY_STORAGE_KEY, normalizedCurrency);
+    const parsedCurrency = parseDisplayCurrency(nextCurrency);
+    if (parsedCurrency === null) {
+      return;
+    }
+
+    setCurrency(parsedCurrency);
+    window.localStorage.setItem(DISPLAY_CURRENCY_STORAGE_KEY, parsedCurrency);
   }, []);
 
   const value = useMemo(

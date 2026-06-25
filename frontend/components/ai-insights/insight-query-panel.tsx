@@ -9,6 +9,7 @@ import { PageHeader } from "@/components/ui/page-header";
 import { StatusMessage } from "@/components/ui/status-message";
 import { useDisplayCurrency } from "@/lib/hooks/use-display-currency";
 import { useInsightQueryParser } from "@/lib/hooks/use-insight-query-parser";
+import { getInsightResultCurrency } from "@/lib/insight-result-currency";
 import { INSIGHT_EXAMPLE_QUERIES } from "@/lib/insight-example-queries";
 
 import styles from "./insight-query-panel.module.css";
@@ -84,7 +85,7 @@ export function InsightQueryPanel() {
       {!isSubmitting && response?.parsedQuery && (
         <ParsedInsightSummary
           parsedQuery={response.parsedQuery}
-          executionCurrency={response.result?.currency}
+          executionCurrency={getInsightResultCurrency(response.result) ?? currency}
         />
       )}
 
