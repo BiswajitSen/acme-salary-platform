@@ -53,17 +53,17 @@ export function EmployeeRow({
   const hasSalary = employee.baseSalary !== null;
 
   return (
-    <article
+    <Link
+      href={`/employees/${employee.id}`}
       className={styles.row}
       style={{ transform: `translateY(${offsetY}px)` }}
       data-testid={`employee-row-${employee.id}`}
+      aria-label={`View ${employee.fullName} profile`}
     >
       <div className={styles.employeeCell}>
         <EmployeeAvatar fullName={employee.fullName} />
         <div className={styles.identity}>
-          <Link href={`/employees/${employee.id}`} className={styles.nameLink}>
-            {employee.fullName}
-          </Link>
+          <span className={styles.employeeName}>{employee.fullName}</span>
           <p className={styles.id}>{employee.id}</p>
         </div>
       </div>
@@ -90,10 +90,8 @@ export function EmployeeRow({
       </div>
 
       <div className={styles.actions}>
-        <Link href={`/employees/${employee.id}`} className={styles.viewLink}>
-          View
-        </Link>
+        <span className={styles.viewLink}>View</span>
       </div>
-    </article>
+    </Link>
   );
 }
