@@ -231,6 +231,7 @@ describe("executeParsedInsightQuery", () => {
         department: null,
         country: null,
         currency: "USD",
+        months: null,
       },
       context,
     );
@@ -239,6 +240,7 @@ describe("executeParsedInsightQuery", () => {
       intent: "TOP_EARNERS",
       currency: "USD",
       country: null,
+      department: null,
       earners: [
         {
           employeeId: "E001",
@@ -248,7 +250,40 @@ describe("executeParsedInsightQuery", () => {
         },
       ],
     });
-    expect(context.getTopEarners).toHaveBeenCalledWith("USD", null);
+    expect(context.getTopEarners).toHaveBeenCalledWith("USD", null, null);
+  });
+
+  it("executes organization-wide average salary without requiring a scope filter", async () => {
+    const context = createContext({
+      getScopedSalaryStatistics: vi.fn().mockResolvedValue({
+        currency: "USD",
+        employeeCount: 2,
+        averageSalary: 119_125,
+        medianSalary: 119_125,
+      }),
+    });
+
+    const response = await executeParsedInsightQuery(
+      {
+        intent: "AVG_DEPT_SALARY",
+        originalQuery: "What is the average salary?",
+        department: null,
+        country: null,
+        currency: null,
+        months: null,
+      },
+      context,
+    );
+
+    expect(response.result).toEqual({
+      intent: "AVG_DEPT_SALARY",
+      currency: "USD",
+      country: null,
+      department: null,
+      averageSalary: 119_125,
+      employeeCount: 2,
+    });
+    expect(context.getScopedSalaryStatistics).toHaveBeenCalledWith("USD", null, null);
   });
 
   it("returns COUNTRY_NOT_FOUND when a country filter has no earners", async () => {
@@ -275,7 +310,7 @@ describe("executeParsedInsightQuery", () => {
       kind: "COUNTRY_NOT_FOUND",
       message: "No salary data found for employees in IN (amounts shown in USD).",
     });
-    expect(context.getTopEarners).toHaveBeenCalledWith("USD", "IN");
+    expect(context.getTopEarners).toHaveBeenCalledWith("USD", "IN", null);
   });
 
   it("returns COUNTRY_NOT_FOUND when a scoped salary query has no data", async () => {

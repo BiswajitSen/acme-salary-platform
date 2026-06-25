@@ -1,14 +1,20 @@
 import type { ParsedInsightQuery } from "@acme/shared";
 
+import {
+  extractInsightQueryFilters,
+  hasScopedInsightFilters,
+} from "./insight-query-spec.js";
+
 export function formatInsightScopeLabel(parsedQuery: ParsedInsightQuery): string {
+  const filters = extractInsightQueryFilters(parsedQuery);
   const parts: string[] = [];
 
-  if (parsedQuery.department !== null) {
-    parts.push(parsedQuery.department);
+  if (filters.department !== null) {
+    parts.push(filters.department);
   }
 
-  if (parsedQuery.country !== null) {
-    parts.push(`employees in ${parsedQuery.country}`);
+  if (filters.country !== null) {
+    parts.push(`employees in ${filters.country}`);
   }
 
   if (parts.length === 0) {
@@ -19,5 +25,5 @@ export function formatInsightScopeLabel(parsedQuery: ParsedInsightQuery): string
 }
 
 export function hasInsightEmployeeScope(parsedQuery: ParsedInsightQuery): boolean {
-  return parsedQuery.department !== null || parsedQuery.country !== null;
+  return hasScopedInsightFilters(extractInsightQueryFilters(parsedQuery));
 }

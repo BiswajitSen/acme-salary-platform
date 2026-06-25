@@ -11,11 +11,13 @@ import {
   type PromotedEmployee,
 } from "@acme/shared";
 
-import { parseSafeInsightCurrency } from "./insight-query-safety.js";
 import {
-  formatInsightScopeLabel,
-  hasInsightEmployeeScope,
-} from "./insight-query-scope.js";
+  extractInsightQueryFilters,
+  shouldReportScopedEmptyResult,
+  type InsightQueryFilters,
+} from "./insight-query-spec.js";
+import { parseSafeInsightCurrency } from "./insight-query-safety.js";
+import { formatInsightScopeLabel } from "./insight-query-scope.js";
 import { validateInsightExecutionSafety } from "./validate-insight-execution.js";
 
 export type InsightExecutorContext = {
@@ -34,7 +36,11 @@ export type InsightExecutorContext = {
     averageSalary: number;
     medianSalary: number;
   }>;
-  getTopEarners(currency: string, country: string | null): Promise<AnalyticsTopEarnersResponse>;
+  getTopEarners(
+    currency: string,
+    country: string | null,
+    department: string | null,
+  ): Promise<AnalyticsTopEarnersResponse>;
   getRecentPromotions(
     months: number,
     country: string | null,
@@ -88,36 +94,36 @@ function buildScopeNotFoundResponse(
   };
 }
 
+function resolveFilters(parsedQuery: ParsedInsightQuery): InsightQueryFilters {
+  return extractInsightQueryFilters(parsedQuery);
+}
+
 async function loadScopedSalaryStatistics(
   parsedQuery: ParsedInsightQuery,
   context: InsightExecutorContext,
 ): Promise<
   | {
       currency: string;
-      country: string | null;
-      department: string | null;
+      filters: InsightQueryFilters;
       stats: { employeeCount: number; averageSalary: number; medianSalary: number };
     }
   | ExecuteInsightQueryResponse
 > {
   const currency = resolveInsightCurrency(parsedQuery.currency);
-  const country = parsedQuery.country ?? null;
-  const department = parsedQuery.department ?? null;
+  const filters = resolveFilters(parsedQuery);
+  const response = await context.getScopedSalaryStatistics(
+    currency,
+    filters.country,
+    filters.department,
+  );
 
-  if (!hasInsightEmployeeScope(parsedQuery)) {
-    return buildScopeNotFoundResponse(parsedQuery, currency);
-  }
-
-  const response = await context.getScopedSalaryStatistics(currency, country, department);
-
-  if (response.employeeCount === 0) {
+  if (shouldReportScopedEmptyResult(filters, response.employeeCount > 0)) {
     return buildScopeNotFoundResponse(parsedQuery, currency);
   }
 
   return {
     currency,
-    country,
-    department,
+    filters,
     stats: response,
   };
 }
@@ -137,8 +143,8 @@ async function executeAvgDeptSalaryIntent(
     result: {
       intent: "AVG_DEPT_SALARY",
       currency: loaded.currency,
-      country: loaded.country,
-      department: loaded.department,
+      country: loaded.filters.country,
+      department: loaded.filters.department,
       averageSalary: loaded.stats.averageSalary,
       employeeCount: loaded.stats.employeeCount,
     },
@@ -161,8 +167,8 @@ async function executeMedianDeptSalaryIntent(
     result: {
       intent: "MEDIAN_DEPT_SALARY",
       currency: loaded.currency,
-      country: loaded.country,
-      department: loaded.department,
+      country: loaded.filters.country,
+      department: loaded.filters.department,
       medianSalary: loaded.stats.medianSalary,
       employeeCount: loaded.stats.employeeCount,
     },
@@ -175,11 +181,14 @@ async function executeHeadcountIntent(
   context: InsightExecutorContext,
 ): Promise<ExecuteInsightQueryResponse> {
   const currency = resolveInsightCurrency(parsedQuery.currency);
-  const country = parsedQuery.country ?? null;
-  const department = parsedQuery.department ?? null;
-  const summary = await context.getAnalyticsSummary(currency, country, department);
+  const filters = resolveFilters(parsedQuery);
+  const summary = await context.getAnalyticsSummary(
+    currency,
+    filters.country,
+    filters.department,
+  );
 
-  if (hasInsightEmployeeScope(parsedQuery) && summary.headcount === 0) {
+  if (shouldReportScopedEmptyResult(filters, summary.headcount > 0)) {
     return buildScopeNotFoundResponse(parsedQuery, currency);
   }
 
@@ -188,8 +197,8 @@ async function executeHeadcountIntent(
     result: {
       intent: "HEADCOUNT",
       currency,
-      country,
-      department,
+      country: filters.country,
+      department: filters.department,
       headcount: summary.headcount,
     },
     error: null,
@@ -201,11 +210,14 @@ async function executeTotalPayrollIntent(
   context: InsightExecutorContext,
 ): Promise<ExecuteInsightQueryResponse> {
   const currency = resolveInsightCurrency(parsedQuery.currency);
-  const country = parsedQuery.country ?? null;
-  const department = parsedQuery.department ?? null;
-  const summary = await context.getAnalyticsSummary(currency, country, department);
+  const filters = resolveFilters(parsedQuery);
+  const summary = await context.getAnalyticsSummary(
+    currency,
+    filters.country,
+    filters.department,
+  );
 
-  if (hasInsightEmployeeScope(parsedQuery) && summary.headcount === 0) {
+  if (shouldReportScopedEmptyResult(filters, summary.headcount > 0)) {
     return buildScopeNotFoundResponse(parsedQuery, currency);
   }
 
@@ -214,8 +226,8 @@ async function executeTotalPayrollIntent(
     result: {
       intent: "TOTAL_PAYROLL",
       currency,
-      country,
-      department,
+      country: filters.country,
+      department: filters.department,
       totalPayroll: summary.totalPayroll,
     },
     error: null,
@@ -227,10 +239,14 @@ async function executeTopEarnersIntent(
   context: InsightExecutorContext,
 ): Promise<ExecuteInsightQueryResponse> {
   const currency = resolveInsightCurrency(parsedQuery.currency);
-  const country = parsedQuery.country ?? null;
-  const response = await context.getTopEarners(currency, country);
+  const filters = resolveFilters(parsedQuery);
+  const response = await context.getTopEarners(
+    currency,
+    filters.country,
+    filters.department,
+  );
 
-  if (country !== null && response.earners.length === 0) {
+  if (shouldReportScopedEmptyResult(filters, response.earners.length > 0)) {
     return buildScopeNotFoundResponse(parsedQuery, currency);
   }
 
@@ -239,7 +255,8 @@ async function executeTopEarnersIntent(
     result: {
       intent: "TOP_EARNERS",
       currency,
-      country,
+      country: filters.country,
+      department: filters.department,
       earners: response.earners,
     },
     error: null,
@@ -250,12 +267,15 @@ async function executeRecentPromotionsIntent(
   parsedQuery: ParsedInsightQuery,
   context: InsightExecutorContext,
 ): Promise<ExecuteInsightQueryResponse> {
-  const months = parsedQuery.months ?? DEFAULT_RECENT_PROMOTIONS_MONTHS;
-  const country = parsedQuery.country ?? null;
-  const department = parsedQuery.department ?? null;
-  const response = await context.getRecentPromotions(months, country, department);
+  const filters = resolveFilters(parsedQuery);
+  const months = filters.months ?? DEFAULT_RECENT_PROMOTIONS_MONTHS;
+  const response = await context.getRecentPromotions(
+    months,
+    filters.country,
+    filters.department,
+  );
 
-  if (hasInsightEmployeeScope(parsedQuery) && response.promotions.length === 0) {
+  if (shouldReportScopedEmptyResult(filters, response.promotions.length > 0)) {
     const currency = resolveInsightCurrency(parsedQuery.currency);
     return buildScopeNotFoundResponse(parsedQuery, currency);
   }
@@ -265,8 +285,8 @@ async function executeRecentPromotionsIntent(
     result: {
       intent: "RECENT_PROMOTIONS",
       months,
-      country,
-      department,
+      country: filters.country,
+      department: filters.department,
       promotions: response.promotions,
     },
     error: null,

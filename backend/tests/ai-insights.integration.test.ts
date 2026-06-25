@@ -254,6 +254,7 @@ describe("POST /api/insights/execute", () => {
       intent: "TOP_EARNERS",
       currency: "USD",
       country: "IN",
+      department: null,
       earners: [
         {
           employeeId: "E010",
@@ -336,6 +337,60 @@ describe("POST /api/insights/execute", () => {
           baseSalary: 140_000,
           currency: "USD",
           effectiveDate: "2026-01-01",
+        },
+      ],
+    });
+    expect(response.body.error).toBeNull();
+  });
+
+  it("returns organization-wide average salary without a scope filter", async () => {
+    await runSeed(db);
+
+    const response = await request(app)
+      .post("/api/insights/execute")
+      .send({ query: "What is the average salary?", displayCurrency: "USD" });
+
+    expect(response.status).toBe(200);
+    expect(response.body.parsedQuery).toMatchObject({
+      intent: "AVG_DEPT_SALARY",
+      country: null,
+      department: null,
+    });
+    expect(response.body.result).toMatchObject({
+      intent: "AVG_DEPT_SALARY",
+      currency: "USD",
+      country: null,
+      department: null,
+      employeeCount: 2,
+    });
+    expect(response.body.error).toBeNull();
+  });
+
+  it("returns top earners filtered by department and country together", async () => {
+    await runSeed(db);
+    await seedIndianEmployee();
+
+    const response = await request(app)
+      .post("/api/insights/execute")
+      .send({ query: "Who are the top earners in Engineering in India?", displayCurrency: "USD" });
+
+    expect(response.status).toBe(200);
+    expect(response.body.parsedQuery).toMatchObject({
+      intent: "TOP_EARNERS",
+      country: "IN",
+      department: "Engineering",
+    });
+    expect(response.body.result).toEqual({
+      intent: "TOP_EARNERS",
+      currency: "USD",
+      country: "IN",
+      department: "Engineering",
+      earners: [
+        {
+          employeeId: "E010",
+          fullName: "Raj Patel",
+          department: "Engineering",
+          baseSalary: convertCurrencyAmount(3_000_000, "INR", "USD", TEST_EXCHANGE_RATES_TO_USD),
         },
       ],
     });

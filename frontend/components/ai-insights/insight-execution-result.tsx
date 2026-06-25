@@ -5,6 +5,7 @@ import {
   formatInsightHeadcountScopeMeta,
   formatInsightPayrollScopeMeta,
   formatInsightSalaryScopeMeta,
+  formatInsightTopEarnersScopeMeta,
 } from "@/lib/format-insight-scope-meta";
 import { formatSalary } from "@/lib/format-salary";
 
@@ -58,9 +59,7 @@ export function InsightExecutionResult({ result }: InsightExecutionResultProps) 
       return (
         <Card title="Top earners">
           <p className={styles.meta}>
-            {result.country
-              ? `Employees in ${result.country} · amounts in ${result.currency}`
-              : `Organization-wide · amounts in ${result.currency}`}
+            {formatInsightTopEarnersScopeMeta(result)}
           </p>
           {result.earners.length === 0 ? (
             <p className={styles.meta}>No earners found.</p>
