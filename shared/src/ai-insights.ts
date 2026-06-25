@@ -13,8 +13,11 @@ export const AI_INSIGHT_INTENTS = [
   "HEADCOUNT",
   "TOTAL_PAYROLL",
   "TOP_EARNERS",
+  "RECENT_PROMOTIONS",
   "UNKNOWN",
 ] as const;
+
+export const DEFAULT_RECENT_PROMOTIONS_MONTHS = 3;
 
 export type AiInsightIntent = (typeof AI_INSIGHT_INTENTS)[number];
 
@@ -28,6 +31,10 @@ export const INSIGHT_QUERY_DEPARTMENTS = [
 
 export type InsightQueryDepartment = (typeof INSIGHT_QUERY_DEPARTMENTS)[number];
 
+export const INSIGHT_QUERY_COUNTRIES = ["US", "UK", "SG", "DE", "IN"] as const;
+
+export type InsightQueryCountry = (typeof INSIGHT_QUERY_COUNTRIES)[number];
+
 export const insightQueryRequestSchema = z.object({
   query: z
     .string()
@@ -37,13 +44,37 @@ export const insightQueryRequestSchema = z.object({
   displayCurrency: analyticsDisplayCurrencySchema.optional(),
 });
 
+export const insightAnalyticsQuerySchema = z.object({
+  currency: analyticsDisplayCurrencySchema,
+  country: z.enum(INSIGHT_QUERY_COUNTRIES).optional(),
+  department: z.enum(INSIGHT_QUERY_DEPARTMENTS).optional(),
+});
+
+export type InsightAnalyticsQuery = z.infer<typeof insightAnalyticsQuerySchema>;
+
+/** @deprecated Use insightAnalyticsQuerySchema */
+export const insightTopEarnersQuerySchema = insightAnalyticsQuerySchema;
+
+export type InsightTopEarnersQuery = InsightAnalyticsQuery;
+
 export type InsightQueryRequest = z.infer<typeof insightQueryRequestSchema>;
 
 export type ParsedInsightQuery = {
   intent: AiInsightIntent;
   originalQuery: string;
   department: string | null;
+  country: string | null;
   currency: string | null;
+  months: number | null;
+};
+
+export type PromotedEmployee = {
+  employeeId: string;
+  fullName: string;
+  department: string;
+  baseSalary: number;
+  currency: string;
+  effectiveDate: string;
 };
 
 export type ParseInsightQueryResponse = ParsedInsightQuery;
@@ -53,6 +84,7 @@ export const DEFAULT_INSIGHT_CURRENCY = DEFAULT_ANALYTICS_DISPLAY_CURRENCY;
 export const INSIGHT_EXECUTION_ERROR_KINDS = [
   "UNSUPPORTED_INTENT",
   "DEPARTMENT_NOT_FOUND",
+  "COUNTRY_NOT_FOUND",
   "REJECTED_INPUT",
 ] as const;
 
@@ -66,7 +98,8 @@ export type InsightExecutionError = {
 export type InsightAvgDeptSalaryResult = {
   intent: "AVG_DEPT_SALARY";
   currency: string;
-  department: string;
+  country: string | null;
+  department: string | null;
   averageSalary: number;
   employeeCount: number;
 };
@@ -74,7 +107,8 @@ export type InsightAvgDeptSalaryResult = {
 export type InsightMedianDeptSalaryResult = {
   intent: "MEDIAN_DEPT_SALARY";
   currency: string;
-  department: string;
+  country: string | null;
+  department: string | null;
   medianSalary: number;
   employeeCount: number;
 };
@@ -82,19 +116,32 @@ export type InsightMedianDeptSalaryResult = {
 export type InsightHeadcountResult = {
   intent: "HEADCOUNT";
   currency: string;
+  country: string | null;
+  department: string | null;
   headcount: number;
 };
 
 export type InsightTotalPayrollResult = {
   intent: "TOTAL_PAYROLL";
   currency: string;
+  country: string | null;
+  department: string | null;
   totalPayroll: number;
 };
 
 export type InsightTopEarnersResult = {
   intent: "TOP_EARNERS";
   currency: string;
+  country: string | null;
   earners: TopEarner[];
+};
+
+export type InsightRecentPromotionsResult = {
+  intent: "RECENT_PROMOTIONS";
+  months: number;
+  country: string | null;
+  department: string | null;
+  promotions: PromotedEmployee[];
 };
 
 export type InsightExecutionResult =
@@ -102,7 +149,8 @@ export type InsightExecutionResult =
   | InsightMedianDeptSalaryResult
   | InsightHeadcountResult
   | InsightTotalPayrollResult
-  | InsightTopEarnersResult;
+  | InsightTopEarnersResult
+  | InsightRecentPromotionsResult;
 
 export type ExecuteInsightQueryResponse = {
   parsedQuery: ParsedInsightQuery;

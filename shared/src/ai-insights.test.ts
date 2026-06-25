@@ -62,6 +62,7 @@ describe("insight execution contracts", () => {
   it("includes execution error kinds for unsupported and missing data cases", () => {
     expect(INSIGHT_EXECUTION_ERROR_KINDS).toContain("UNSUPPORTED_INTENT");
     expect(INSIGHT_EXECUTION_ERROR_KINDS).toContain("DEPARTMENT_NOT_FOUND");
+    expect(INSIGHT_EXECUTION_ERROR_KINDS).toContain("COUNTRY_NOT_FOUND");
     expect(INSIGHT_EXECUTION_ERROR_KINDS).toContain("REJECTED_INPUT");
   });
 });
