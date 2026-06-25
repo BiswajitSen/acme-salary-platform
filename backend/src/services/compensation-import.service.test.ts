@@ -22,7 +22,9 @@ describe("CompensationImportService", () => {
       {
         findExistingEmployeeIds: vi.fn().mockResolvedValue(new Set(["E001"])),
       },
-      {},
+      {
+        findEmployeeIdsWithCompensationHistory: vi.fn().mockResolvedValue(new Set()),
+      },
     );
 
     const buffer = buildCompensationSpreadsheetBuffer([
@@ -49,7 +51,9 @@ describe("CompensationImportService", () => {
       {
         findExistingEmployeeIds: vi.fn().mockResolvedValue(new Set()),
       },
-      {},
+      {
+        findEmployeeIdsWithCompensationHistory: vi.fn().mockResolvedValue(new Set()),
+      },
     );
 
     const buffer = buildCompensationSpreadsheetBuffer([
@@ -85,7 +89,7 @@ describe("CompensationImportService", () => {
       {
         findExistingEmployeeIds: vi.fn().mockResolvedValue(new Set(["E001"])),
       },
-      { insertManyCompensationHistoryRecords },
+      { insertManyCompensationHistoryRecords, findEmployeeIdsWithCompensationHistory: vi.fn().mockResolvedValue(new Set()) },
     );
 
     const buffer = buildCompensationSpreadsheetBuffer([
@@ -111,7 +115,9 @@ describe("CompensationImportService", () => {
       {
         findExistingEmployeeIds: vi.fn().mockResolvedValue(new Set()),
       },
-      {},
+      {
+        findEmployeeIdsWithCompensationHistory: vi.fn().mockResolvedValue(new Set()),
+      },
     );
 
     const buffer = buildCompensationSpreadsheetBuffer([
@@ -129,5 +135,80 @@ describe("CompensationImportService", () => {
     await expect(service.importCompensationSpreadsheet(buffer)).rejects.toBeInstanceOf(
       CompensationImportValidationError,
     );
+  });
+
+  it("rejects duplicate New Hire rows for the same employee in one import", async () => {
+    const service = createService(
+      {
+        findExistingEmployeeIds: vi.fn().mockResolvedValue(new Set(["E001"])),
+      },
+      {
+        findEmployeeIdsWithCompensationHistory: vi.fn().mockResolvedValue(new Set()),
+      },
+    );
+
+    const buffer = buildCompensationSpreadsheetBuffer([
+      {
+        employee_id: "E001",
+        base_salary: 120000,
+        currency: "USD",
+        effective_date: "2024-01-01",
+        reason: "New Hire",
+        changed_by: "HR Admin",
+        notes: "",
+      },
+      {
+        employee_id: "E001",
+        base_salary: 130000,
+        currency: "USD",
+        effective_date: "2025-01-01",
+        reason: "New Hire",
+        changed_by: "HR Admin",
+        notes: "",
+      },
+    ]);
+
+    const preview = await service.previewCompensationSpreadsheet(buffer);
+
+    expect(preview.isValid).toBe(false);
+    expect(preview.errors).toEqual([
+      {
+        rowNumber: 3,
+        field: "reason",
+        message: 'Employee "E001" already has a New Hire row in this import (row 2)',
+      },
+    ]);
+  });
+
+  it("rejects New Hire rows when the employee already has compensation history", async () => {
+    const service = createService(
+      {
+        findExistingEmployeeIds: vi.fn().mockResolvedValue(new Set(["E001"])),
+      },
+      {
+        findEmployeeIdsWithCompensationHistory: vi.fn().mockResolvedValue(new Set(["E001"])),
+      },
+    );
+
+    const buffer = buildCompensationSpreadsheetBuffer([
+      {
+        employee_id: "E001",
+        base_salary: 120000,
+        currency: "USD",
+        effective_date: "2024-01-01",
+        reason: "New Hire",
+        changed_by: "HR Admin",
+        notes: "",
+      },
+    ]);
+
+    const preview = await service.previewCompensationSpreadsheet(buffer);
+
+    expect(preview.isValid).toBe(false);
+    expect(preview.errors[0]).toEqual({
+      rowNumber: 2,
+      field: "reason",
+      message: 'Employee "E001" already has compensation history; use a different reason',
+    });
   });
 });

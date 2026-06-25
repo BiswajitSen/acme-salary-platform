@@ -2,7 +2,11 @@ import type { CompensationImportPreviewResponse } from "@acme/shared";
 
 import type { CompensationImportPreview } from "../domain/compensation-import.types.js";
 import { parseCompensationSpreadsheet } from "../domain/parse-compensation-spreadsheet.js";
-import { collectUnknownEmployeeIdErrors } from "../domain/validate-compensation-import.js";
+import {
+  collectDuplicateNewHireInSpreadsheetErrors,
+  collectNewHireWithExistingHistoryErrors,
+  collectUnknownEmployeeIdErrors,
+} from "../domain/validate-compensation-import.js";
 import { CompensationImportValidationError } from "../lib/compensation-import-validation-error.js";
 import type { ICompensationRepository } from "../repositories/interfaces/compensation.repository.js";
 import type { IEmployeeRepository } from "../repositories/interfaces/employee.repository.js";
@@ -61,7 +65,19 @@ export class CompensationImportService {
       this.employees,
       parsedPreview.records,
     );
-    const errors = [...parsedPreview.errors, ...employeeErrors];
+    const duplicateNewHireErrors = collectDuplicateNewHireInSpreadsheetErrors(
+      parsedPreview.records,
+    );
+    const existingHistoryErrors = await collectNewHireWithExistingHistoryErrors(
+      this.compensation,
+      parsedPreview.records,
+    );
+    const errors = [
+      ...parsedPreview.errors,
+      ...employeeErrors,
+      ...duplicateNewHireErrors,
+      ...existingHistoryErrors,
+    ];
 
     return {
       records: parsedPreview.records,

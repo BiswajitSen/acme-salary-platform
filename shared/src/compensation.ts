@@ -56,6 +56,7 @@ export type EmployeeProfileResponse = {
 export type CompensationTimelineEntry = {
   id: number;
   previousSalary: number | null;
+  previousCurrency: string | null;
   baseSalary: number;
   currency: string;
   effectiveDate: string;

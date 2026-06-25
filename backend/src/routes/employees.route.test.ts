@@ -137,6 +137,7 @@ describe("createEmployeesRouter", () => {
         entry: {
           id: 3,
           previousSalary: 132_000,
+          previousCurrency: "USD",
           baseSalary: 140_000,
           currency: "USD",
           effectiveDate: "2026-06-01",

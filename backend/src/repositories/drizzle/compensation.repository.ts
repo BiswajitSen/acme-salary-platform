@@ -1,4 +1,4 @@
-import { eq } from "drizzle-orm";
+import { eq, inArray } from "drizzle-orm";
 
 import type { CompensationHistoryRecord } from "../../domain/compensation.types.js";
 import { ensureCompensationMonthPartitionExists } from "../../db/ensure-compensation-month-partition.js";
@@ -33,6 +33,21 @@ export class DrizzleCompensationRepository implements ICompensationRepository {
       .where(eq(compensationHistory.employeeId, employeeId));
 
     return rows;
+  }
+
+  async findEmployeeIdsWithCompensationHistory(
+    employeeIds: string[],
+  ): Promise<Set<string>> {
+    if (employeeIds.length === 0) {
+      return new Set();
+    }
+
+    const rows = await this.database
+      .selectDistinct({ employeeId: compensationHistory.employeeId })
+      .from(compensationHistory)
+      .where(inArray(compensationHistory.employeeId, employeeIds));
+
+    return new Set(rows.map((row) => row.employeeId));
   }
 
   async insertCompensationHistoryRecord(

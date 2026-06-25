@@ -1,7 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
 
 import type { ParsedCompensationSpreadsheetRow } from "./compensation-import.types.js";
-import { collectUnknownEmployeeIdErrors } from "./validate-compensation-import.js";
+import {
+  collectDuplicateNewHireInSpreadsheetErrors,
+  collectNewHireWithExistingHistoryErrors,
+  collectUnknownEmployeeIdErrors,
+} from "./validate-compensation-import.js";
 
 describe("collectUnknownEmployeeIdErrors", () => {
   it("returns errors for employee ids that do not exist", async () => {
@@ -83,5 +87,71 @@ describe("collectUnknownEmployeeIdErrors", () => {
       },
     ]);
     expect(employees.findExistingEmployeeIds).toHaveBeenCalledWith(["E404"]);
+  });
+});
+
+describe("collectDuplicateNewHireInSpreadsheetErrors", () => {
+  it("flags later New Hire rows for the same employee in one import", () => {
+    const records: ParsedCompensationSpreadsheetRow[] = [
+      {
+        rowNumber: 2,
+        employeeId: "E001",
+        baseSalary: 120_000,
+        currency: "USD",
+        effectiveDate: "2024-01-01",
+        reason: "New Hire",
+        changedBy: "HR Admin",
+        notes: null,
+      },
+      {
+        rowNumber: 3,
+        employeeId: "E001",
+        baseSalary: 130_000,
+        currency: "USD",
+        effectiveDate: "2025-01-01",
+        reason: "New Hire",
+        changedBy: "HR Admin",
+        notes: null,
+      },
+    ];
+
+    expect(collectDuplicateNewHireInSpreadsheetErrors(records)).toEqual([
+      {
+        rowNumber: 3,
+        field: "reason",
+        message: 'Employee "E001" already has a New Hire row in this import (row 2)',
+      },
+    ]);
+  });
+});
+
+describe("collectNewHireWithExistingHistoryErrors", () => {
+  it("flags New Hire rows when the employee already has compensation history", async () => {
+    const compensation = {
+      findEmployeeIdsWithCompensationHistory: vi.fn().mockResolvedValue(new Set(["E001"])),
+    };
+
+    const records: ParsedCompensationSpreadsheetRow[] = [
+      {
+        rowNumber: 2,
+        employeeId: "E001",
+        baseSalary: 120_000,
+        currency: "USD",
+        effectiveDate: "2024-01-01",
+        reason: "New Hire",
+        changedBy: "HR Admin",
+        notes: null,
+      },
+    ];
+
+    await expect(
+      collectNewHireWithExistingHistoryErrors(compensation, records),
+    ).resolves.toEqual([
+      {
+        rowNumber: 2,
+        field: "reason",
+        message: 'Employee "E001" already has compensation history; use a different reason',
+      },
+    ]);
   });
 });

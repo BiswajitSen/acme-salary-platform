@@ -137,6 +137,7 @@ describe("recordCompensationChange", () => {
             changedBy: "HR Admin",
             notes: null,
             previousSalary: 132_000,
+            previousCurrency: "USD",
             createdAt: "2026-06-02T10:00:00.000Z",
           },
         }),

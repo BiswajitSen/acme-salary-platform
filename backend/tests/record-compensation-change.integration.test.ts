@@ -26,6 +26,7 @@ describe("Record compensation change API", () => {
       currency: "USD",
       reason: "New Hire",
       previousSalary: null,
+      previousCurrency: null,
     });
 
     const historyResponse = await request(app).get("/api/employees/E003/compensation");

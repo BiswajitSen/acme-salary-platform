@@ -136,6 +136,25 @@ describe("CompensationService.recordCompensationChange", () => {
     ).rejects.toThrow();
   });
 
+  it("rejects New Hire when the employee already has compensation history", async () => {
+    const service = new CompensationService(
+      createMockEmployeeRepository(),
+      createMockCompensationRepository(),
+    );
+
+    await expect(
+      service.recordCompensationChange("E001", {
+        baseSalary: 100_000,
+        currency: "USD",
+        effectiveDate: "2026-01-01",
+        reason: "New Hire",
+        changedBy: "HR Admin",
+      }),
+    ).rejects.toEqual(
+      new AppError(400, "New Hire can only be used for an employee's first compensation record"),
+    );
+  });
+
   it("returns 404 when the employee does not exist", async () => {
     const service = new CompensationService(
       createMockEmployeeRepository(null),

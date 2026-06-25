@@ -107,6 +107,7 @@ describe("CompensationTimeline", () => {
           {
             id: 2,
             previousSalary: 120_000,
+            previousCurrency: "USD",
             baseSalary: 132_000,
             currency: "USD",
             effectiveDate: "2025-01-01",
@@ -132,6 +133,7 @@ describe("CompensationTimeline", () => {
           {
             id: 1,
             previousSalary: 50_487,
+            previousCurrency: "SGD",
             baseSalary: 86_300,
             currency: "SGD",
             effectiveDate: "2025-01-01",
@@ -157,6 +159,7 @@ describe("CompensationTimeline", () => {
           {
             id: 1,
             previousSalary: 50_487,
+            previousCurrency: "SGD",
             baseSalary: 86_300,
             currency: "SGD",
             effectiveDate: "2025-01-01",
@@ -194,6 +197,7 @@ describe("CompensationTimeline", () => {
           {
             id: 1,
             previousSalary: null,
+            previousCurrency: null,
             baseSalary: 90_000,
             currency: "USD",
             effectiveDate: "2024-01-01",

@@ -16,6 +16,7 @@ function createMockCompensationRepository(
   return {
     findCompensationHistoryByEmployeeId: vi.fn().mockResolvedValue(history),
     insertCompensationHistoryRecord: vi.fn(),
+    findEmployeeIdsWithCompensationHistory: vi.fn().mockResolvedValue(new Set()),
   };
 }
 

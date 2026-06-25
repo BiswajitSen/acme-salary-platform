@@ -25,6 +25,16 @@ export class CompensationService {
       throw new AppError(404, `Employee ${employeeId} not found`);
     }
 
+    const existingHistory =
+      await this.compensation.findCompensationHistoryByEmployeeId(employeeId);
+
+    if (parsedChange.reason === "New Hire" && existingHistory.length > 0) {
+      throw new AppError(
+        400,
+        "New Hire can only be used for an employee's first compensation record",
+      );
+    }
+
     await this.compensation.insertCompensationHistoryRecord({
       employeeId,
       baseSalary: parsedChange.baseSalary,

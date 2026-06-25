@@ -49,7 +49,10 @@ export function CompensationTimeline({
                   <td>
                     {entry.previousSalary === null
                       ? "—"
-                      : formatAmount(entry.previousSalary, entry.currency)}
+                      : formatAmount(
+                          entry.previousSalary,
+                          entry.previousCurrency ?? entry.currency,
+                        )}
                   </td>
                   <td>{formatAmount(entry.baseSalary, entry.currency)}</td>
                   <td>{entry.reason}</td>

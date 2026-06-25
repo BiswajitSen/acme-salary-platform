@@ -88,6 +88,7 @@ describe("EmployeeProfile", () => {
         {
           id: 2,
           previousSalary: 120_000,
+          previousCurrency: "USD",
           baseSalary: 132_000,
           currency: "USD",
           effectiveDate: "2025-01-01",
@@ -235,6 +236,7 @@ describe("EmployeeProfile", () => {
       entry: {
         id: 3,
         previousSalary: null,
+        previousCurrency: null,
         baseSalary: 140_000,
         currency: "USD",
         effectiveDate: "2026-06-01",
