@@ -1,3 +1,18 @@
+.splitCounts {
+  display: grid;
+  grid-template-columns: repeat(2, minmax(0, 1fr));
+  gap: 1rem;
+}
+
+.splitLabel {
+  margin: 0;
+  color: var(--text-subtle);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.05em;
+  text-transform: uppercase;
+}
+
 .metric {
   margin: 0;
   font-size: 1.75rem;

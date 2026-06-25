@@ -7,6 +7,7 @@ import {
   formatInsightBottomEarnersScopeMeta,
   formatInsightHeadcountScopeMeta,
   formatInsightNearMedianScopeMeta,
+  formatInsightMedianSplitScopeMeta,
   formatInsightPayrollScopeMeta,
   formatInsightSalaryScopeMeta,
   formatInsightTopEarnersScopeMeta,
@@ -131,6 +132,27 @@ export function InsightExecutionResult({ result }: InsightExecutionResultProps) 
           earners={result.earners}
           currency={result.currency}
         />
+      );
+    case "MEDIAN_SPLIT_COUNTS":
+      return (
+        <Card title="Below vs above median">
+          <div className={styles.splitCounts}>
+            <div>
+              <p className={styles.splitLabel}>Below median</p>
+              <p className={styles.metric}>{result.belowMedianCount.toLocaleString()}</p>
+            </div>
+            <div>
+              <p className={styles.splitLabel}>Above median</p>
+              <p className={styles.metric}>{result.aboveMedianCount.toLocaleString()}</p>
+            </div>
+          </div>
+          <p className={styles.scopeMeta}>
+            {formatInsightMedianSplitScopeMeta({
+              ...result,
+              medianSalary: result.medianSalary,
+            })}
+          </p>
+        </Card>
       );
     case "RECENT_PROMOTIONS":
       return (

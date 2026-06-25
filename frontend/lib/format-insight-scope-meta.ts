@@ -1,3 +1,5 @@
+import { formatSalary } from "@/lib/format-salary";
+
 type InsightFilterScopeParts = {
   department?: string | null;
   country?: string | null;
@@ -95,6 +97,25 @@ export function formatInsightNearMedianScopeMeta(
   }
 
   return `${band} · ${parts.join(" · ")} · amounts in ${scope.currency}`;
+}
+
+export function formatInsightMedianSplitScopeMeta(
+  scope: InsightScopeParts & {
+    employeeCount: number;
+    medianSalary: number;
+    belowMedianCount: number;
+    aboveMedianCount: number;
+  },
+): string {
+  const parts = buildScopeParts(scope);
+  const medianLabel = `median ${formatSalary(scope.medianSalary, scope.currency)}`;
+  const splitLabel = `${scope.belowMedianCount.toLocaleString()} below · ${scope.aboveMedianCount.toLocaleString()} above`;
+
+  if (parts.length === 0) {
+    return `${splitLabel} · ${medianLabel} · ${scope.employeeCount.toLocaleString()} employees`;
+  }
+
+  return `${parts.join(" · ")} · ${splitLabel} · ${medianLabel}`;
 }
 
 export function formatInsightTimelineScopeMeta(scope: InsightFilterScopeParts & {
