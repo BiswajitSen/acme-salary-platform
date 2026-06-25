@@ -2,7 +2,7 @@ import type { ParsedCompensationSpreadsheetRow } from "./compensation-import.typ
 import type { CompensationImportError } from "./compensation-import.types.js";
 import type { CompensationHistoryRecord } from "./compensation.types.js";
 import {
-  SALARY_INCREASE_REASONS,
+  isSalaryIncreaseReason,
   validateSalaryIncreaseReason,
 } from "./validate-compensation-change.js";
 import type { ICompensationRepository } from "../repositories/interfaces/compensation.repository.js";
@@ -133,7 +133,7 @@ export function collectSalaryIncreaseReasonErrorsFromHistory(
     return sortedRecords.flatMap((record) => {
       const errors: CompensationImportError[] = [];
 
-      if ((SALARY_INCREASE_REASONS as readonly string[]).includes(record.reason)) {
+      if (isSalaryIncreaseReason(record.reason)) {
         const validationError = validateSalaryIncreaseReason(simulatedHistory, record);
 
         if (validationError) {

@@ -48,12 +48,22 @@ const employees: CompensatedEmployeeRecord[] = [
 ];
 
 describe("computeMedian", () => {
+  it("returns zero for an empty array", () => {
+    expect(computeMedian([])).toBe(0);
+  });
+
   it("returns the middle value for odd-length arrays", () => {
     expect(computeMedian([10, 30, 20])).toBe(20);
   });
 
   it("averages the middle pair for even-length arrays", () => {
     expect(computeMedian([100_000, 200_000, 100_000, 200_000])).toBe(150_000);
+  });
+});
+
+describe("sumDisplaySalaries", () => {
+  it("returns zero for an empty workforce", () => {
+    expect(sumDisplaySalaries([])).toBe(0);
   });
 });
 

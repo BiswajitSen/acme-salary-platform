@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
 import type { ParsedCompensationSpreadsheetRow } from "./compensation-import.types.js";
+import type { CompensationHistoryRecord } from "./compensation.types.js";
 import {
   collectSalaryIncreaseReasonErrorsFromHistory,
   collectDuplicateNewHireInSpreadsheetErrors,
@@ -204,4 +205,110 @@ describe("collectSalaryIncreaseReasonErrorsFromHistory", () => {
     ]);
     },
   );
+
+  it("chains validation across multiple rows for the same employee in one import", () => {
+    const existingHistoryByEmployee = new Map<string, CompensationHistoryRecord[]>();
+
+    const records: ParsedCompensationSpreadsheetRow[] = [
+      {
+        rowNumber: 2,
+        employeeId: "E001",
+        baseSalary: 120_000,
+        currency: "USD",
+        effectiveDate: "2024-01-01",
+        reason: "New Hire",
+        changedBy: "HR Admin",
+        notes: null,
+      },
+      {
+        rowNumber: 3,
+        employeeId: "E001",
+        baseSalary: 130_000,
+        currency: "USD",
+        effectiveDate: "2025-01-01",
+        reason: "Annual Increment",
+        changedBy: "HR Admin",
+        notes: null,
+      },
+    ];
+
+    expect(
+      collectSalaryIncreaseReasonErrorsFromHistory(existingHistoryByEmployee, records),
+    ).toEqual([]);
+  });
+
+  it("validates rows in effective-date order even when spreadsheet row order differs", () => {
+    const existingHistoryByEmployee = new Map<string, CompensationHistoryRecord[]>();
+
+    const records: ParsedCompensationSpreadsheetRow[] = [
+      {
+        rowNumber: 3,
+        employeeId: "E001",
+        baseSalary: 130_000,
+        currency: "USD",
+        effectiveDate: "2025-01-01",
+        reason: "Annual Increment",
+        changedBy: "HR Admin",
+        notes: null,
+      },
+      {
+        rowNumber: 2,
+        employeeId: "E001",
+        baseSalary: 120_000,
+        currency: "USD",
+        effectiveDate: "2024-01-01",
+        reason: "New Hire",
+        changedBy: "HR Admin",
+        notes: null,
+      },
+    ];
+
+    expect(
+      collectSalaryIncreaseReasonErrorsFromHistory(existingHistoryByEmployee, records),
+    ).toEqual([]);
+  });
+
+  it("flags currency mismatches for salary increase rows in an import", () => {
+    const existingHistoryByEmployee = new Map([
+      [
+        "E001",
+        [
+          {
+            id: 1,
+            employeeId: "E001",
+            baseSalary: 120_000,
+            currency: "USD",
+            effectiveDate: "2024-01-01",
+            reason: "New Hire",
+            changedBy: "HR Admin",
+            notes: null,
+            createdAt: "2024-01-02T10:00:00.000Z",
+          },
+        ],
+      ],
+    ]);
+
+    const records: ParsedCompensationSpreadsheetRow[] = [
+      {
+        rowNumber: 2,
+        employeeId: "E001",
+        baseSalary: 130_000,
+        currency: "EUR",
+        effectiveDate: "2025-01-01",
+        reason: "Promotion",
+        changedBy: "HR Admin",
+        notes: null,
+      },
+    ];
+
+    expect(
+      collectSalaryIncreaseReasonErrorsFromHistory(existingHistoryByEmployee, records),
+    ).toEqual([
+      {
+        rowNumber: 2,
+        field: "baseSalary",
+        message: "Promotion must use USD to match the previous salary",
+      },
+    ]);
+  });
 });

@@ -105,4 +105,72 @@ describe("Record compensation change API", () => {
     expect(promotionResponse.status).toBe(400);
     expect(promotionResponse.body.message).toMatch(/cannot be less than the previous salary/);
   });
+
+  it("rejects New Hire when the employee already has compensation history", async () => {
+    await runSeed(db);
+
+    const response = await request(app).post("/api/employees/E001/compensation").send({
+      baseSalary: 100_000,
+      currency: "USD",
+      effectiveDate: "2026-01-01",
+      reason: "New Hire",
+      changedBy: "HR Admin",
+    });
+
+    expect(response.status).toBe(400);
+    expect(response.body.message).toBe(
+      "New Hire can only be used for an employee's first compensation record",
+    );
+  });
+
+  it("rejects a missing effective date", async () => {
+    await runSeed(db);
+
+    const response = await request(app).post("/api/employees/E001/compensation").send({
+      baseSalary: 140_000,
+      currency: "USD",
+      effectiveDate: "",
+      reason: "Promotion",
+      changedBy: "HR Admin",
+    });
+
+    expect(response.status).toBe(400);
+    expect(response.body.error).toBe("Validation Error");
+  });
+
+  it("allows a promotion equal to the previous salary", async () => {
+    await runSeed(db);
+
+    const response = await request(app).post("/api/employees/E001/compensation").send({
+      baseSalary: 132_000,
+      currency: "USD",
+      effectiveDate: "2026-06-01",
+      reason: "Promotion",
+      changedBy: "HR Admin",
+    });
+
+    expect(response.status).toBe(201);
+    expect(response.body.entry).toMatchObject({
+      baseSalary: 132_000,
+      previousSalary: 132_000,
+      reason: "Promotion",
+    });
+  });
+
+  it("rejects salary increase reasons in a different currency than the predecessor", async () => {
+    await runSeed(db);
+
+    const response = await request(app).post("/api/employees/E001/compensation").send({
+      baseSalary: 140_000,
+      currency: "EUR",
+      effectiveDate: "2026-06-01",
+      reason: "Annual Increment",
+      changedBy: "HR Admin",
+    });
+
+    expect(response.status).toBe(400);
+    expect(response.body.message).toBe(
+      "Annual Increment must use USD to match the previous salary",
+    );
+  });
 });

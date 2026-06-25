@@ -33,10 +33,17 @@ vi.mock("@/lib/hooks/use-employee-profile", () => ({
   useEmployeeProfile: (employeeId: string) => useEmployeeProfileMock(employeeId),
 }));
 
+vi.mock("next/navigation", () => ({
+  useRouter: () => ({
+    push: vi.fn(),
+  }),
+}));
+
 vi.mock("@/lib/api/employees", () => ({
   getEmployeeProfile,
   listEmployeeCompensationHistory,
   recordCompensationChange,
+  deleteEmployee: vi.fn(),
 }));
 
 describe("EmployeeProfile", () => {

@@ -19,6 +19,12 @@ describe("convertCurrencyAmount", () => {
   it("converts foreign amounts into the selected display currency", () => {
     expect(convertCurrencyAmount(85_000, "GBP", "USD", testRates)).toBe(106_250);
     expect(convertCurrencyAmount(132_000, "USD", "GBP", testRates)).toBe(105_600);
+    expect(convertCurrencyAmount(3_000_000, "INR", "USD", testRates)).toBe(36_000);
+  });
+
+  it("round-trips through USD without drift for whole-number results", () => {
+    const converted = convertCurrencyAmount(132_000, "USD", "GBP", testRates);
+    expect(convertCurrencyAmount(converted, "GBP", "USD", testRates)).toBe(132_000);
   });
 
   it("rejects unsupported currency codes", () => {

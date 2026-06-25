@@ -1,6 +1,10 @@
-import type { CompensationImportPreviewResponse } from "@acme/shared";
+import type {
+  CompensationImportPreviewResponse,
+  CompensationImportResultResponse,
+} from "@acme/shared";
 
 import type { CompensationImportPreview } from "../domain/compensation-import.types.js";
+import { spreadsheetRowToNewCompensationHistoryRecord } from "../domain/compensation-record.js";
 import { parseCompensationSpreadsheet } from "../domain/parse-compensation-spreadsheet.js";
 import {
   collectSalaryIncreaseReasonErrors,
@@ -35,7 +39,9 @@ export class CompensationImportService {
     return toPreviewResponse(preview);
   }
 
-  async importCompensationSpreadsheet(spreadsheetBuffer: Buffer) {
+  async importCompensationSpreadsheet(
+    spreadsheetBuffer: Buffer,
+  ): Promise<CompensationImportResultResponse> {
     const preview = await this.buildValidatedPreview(spreadsheetBuffer);
 
     if (!preview.isValid) {
@@ -46,15 +52,7 @@ export class CompensationImportService {
     }
 
     return this.compensation.insertManyCompensationHistoryRecords(
-      preview.records.map((record) => ({
-        employeeId: record.employeeId,
-        baseSalary: record.baseSalary,
-        currency: record.currency,
-        effectiveDate: record.effectiveDate,
-        reason: record.reason,
-        changedBy: record.changedBy,
-        notes: record.notes,
-      })),
+      preview.records.map(spreadsheetRowToNewCompensationHistoryRecord),
     );
   }
 

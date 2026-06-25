@@ -1,7 +1,10 @@
 export {
   COMPENSATION_REASONS,
   COMPENSATION_TIMELINE_ORDER,
+  isSalaryIncreaseReason,
+  NEW_HIRE_REQUIRES_EMPTY_HISTORY_MESSAGE,
   recordCompensationChangeSchema,
+  SALARY_INCREASE_REASONS,
   type CompensationReason,
   type CompensationTimelineEntry,
   type CurrentCompensation,
@@ -9,7 +12,14 @@ export {
   type EmployeeProfileResponse,
   type RecordCompensationChangeInput,
   type RecordCompensationChangeResponse,
+  type SalaryIncreaseReason,
 } from "./compensation.js";
+
+export {
+  isoCurrencyCodeSchema,
+  isoDateSchema,
+  requiredEffectiveDateSchema,
+} from "./zod-fields.js";
 
 export type HealthStatus = {
   status: "ok";
@@ -24,11 +34,15 @@ export type ApiError = {
 };
 
 export {
+  createEmployeeSchema,
   DEFAULT_EMPLOYEE_LIMIT,
   DEFAULT_EMPLOYEE_PAGE,
+  employeeCoreFieldsSchema,
   EMPLOYEE_EMPLOYMENT_STATUSES,
   listEmployeesQuerySchema,
   MAX_EMPLOYEE_LIMIT,
+  updateEmployeeSchema,
+  type CreateEmployeeInput,
   type EmployeeDirectoryStats,
   type EmployeeEmploymentStatus,
   type EmployeeSummary,
@@ -36,6 +50,7 @@ export {
   type ListEmployeesQuery,
   type PaginatedEmployeesResponse,
   type PaginationMeta,
+  type UpdateEmployeeInput,
 } from "./employees.js";
 
 export type {

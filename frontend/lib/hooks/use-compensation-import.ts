@@ -12,7 +12,7 @@ import {
   previewCompensationImport,
   readCompensationImportValidationIssues,
 } from "@/lib/api/compensation-import";
-import { isApiRequestError } from "@/lib/api/client";
+import { getRequestErrorMessage } from "@/lib/errors";
 
 const MAX_VISIBLE_VALIDATION_ISSUES = 50;
 
@@ -102,9 +102,10 @@ export function useCompensationImport(): CompensationImportState {
       setPreview(null);
       setValidationIssues(readCompensationImportValidationIssues(error));
       setErrorMessage(
-        isApiRequestError(error)
-          ? error.message
-          : "Import failed. Check the spreadsheet and try again.",
+        getRequestErrorMessage(
+          error,
+          "Import failed. Check the spreadsheet and try again.",
+        ),
       );
     } finally {
       setIsImporting(false);

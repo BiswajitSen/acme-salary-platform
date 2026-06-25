@@ -192,6 +192,75 @@ describe("CompensationService.recordCompensationChange", () => {
     );
   });
 
+  it("allows salary increase reasons equal to the previous salary", async () => {
+    const compensationRepository = createMockCompensationRepository([
+      ...existingHistory,
+      {
+        id: 2,
+        employeeId: "E001",
+        baseSalary: 132_000,
+        currency: "USD",
+        effectiveDate: "2025-01-01",
+        reason: "Annual Increment",
+        changedBy: "HR Admin",
+        notes: null,
+        createdAt: "2025-01-02T10:00:00.000Z",
+      },
+    ]);
+    const service = new CompensationService(
+      createMockEmployeeRepository(),
+      compensationRepository,
+    );
+
+    await expect(
+      service.recordCompensationChange("E001", {
+        baseSalary: 132_000,
+        currency: "USD",
+        effectiveDate: "2026-01-01",
+        reason: "Annual Increment",
+        changedBy: "HR Admin",
+      }),
+    ).resolves.toMatchObject({
+      entry: { baseSalary: 132_000, reason: "Annual Increment" },
+    });
+  });
+
+  it("rejects salary increase reasons in a different currency than the predecessor", async () => {
+    const service = new CompensationService(
+      createMockEmployeeRepository(),
+      createMockCompensationRepository(),
+    );
+
+    await expect(
+      service.recordCompensationChange("E001", {
+        baseSalary: 140_000,
+        currency: "EUR",
+        effectiveDate: "2026-01-01",
+        reason: "Promotion",
+        changedBy: "HR Admin",
+      }),
+    ).rejects.toEqual(
+      new AppError(400, "Promotion must use USD to match the previous salary"),
+    );
+  });
+
+  it("rejects a missing effective date", async () => {
+    const service = new CompensationService(
+      createMockEmployeeRepository(),
+      createMockCompensationRepository(),
+    );
+
+    await expect(
+      service.recordCompensationChange("E001", {
+        baseSalary: 132_000,
+        currency: "USD",
+        effectiveDate: "",
+        reason: "Correction",
+        changedBy: "HR Admin",
+      }),
+    ).rejects.toThrow();
+  });
+
   it("returns 404 when the employee does not exist", async () => {
     const service = new CompensationService(
       createMockEmployeeRepository(null),

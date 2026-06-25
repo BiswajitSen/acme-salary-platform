@@ -29,3 +29,8 @@
   border-color: var(--primary);
   box-shadow: 0 0 0 3px var(--primary-soft);
 }
+
+.error {
+  color: var(--color-danger);
+  font-size: 0.8125rem;
+}

@@ -4,7 +4,11 @@ import {
 } from "@acme/shared";
 
 import { buildCompensationTimeline } from "../domain/compensation-timeline.js";
-import { validateSalaryIncreaseReason } from "../domain/validate-compensation-change.js";
+import { toNewCompensationHistoryRecord } from "../domain/compensation-record.js";
+import {
+  validateNewHireReason,
+  validateSalaryIncreaseReason,
+} from "../domain/validate-compensation-change.js";
 import { AppError } from "../lib/errors.js";
 import type { ICompensationRepository } from "../repositories/interfaces/compensation.repository.js";
 import type { IEmployeeRepository } from "../repositories/interfaces/employee.repository.js";
@@ -29,11 +33,10 @@ export class CompensationService {
     const existingHistory =
       await this.compensation.findCompensationHistoryByEmployeeId(employeeId);
 
-    if (parsedChange.reason === "New Hire" && existingHistory.length > 0) {
-      throw new AppError(
-        400,
-        "New Hire can only be used for an employee's first compensation record",
-      );
+    const newHireError = validateNewHireReason(existingHistory, parsedChange.reason);
+
+    if (newHireError) {
+      throw new AppError(400, newHireError);
     }
 
     const salaryIncreaseError = validateSalaryIncreaseReason(existingHistory, parsedChange);
@@ -42,15 +45,9 @@ export class CompensationService {
       throw new AppError(400, salaryIncreaseError);
     }
 
-    await this.compensation.insertCompensationHistoryRecord({
-      employeeId,
-      baseSalary: parsedChange.baseSalary,
-      currency: parsedChange.currency,
-      effectiveDate: parsedChange.effectiveDate,
-      reason: parsedChange.reason,
-      changedBy: parsedChange.changedBy,
-      notes: parsedChange.notes ?? null,
-    });
+    await this.compensation.insertCompensationHistoryRecord(
+      toNewCompensationHistoryRecord(employeeId, parsedChange),
+    );
 
     const updatedHistory =
       await this.compensation.findCompensationHistoryByEmployeeId(employeeId);

@@ -1,11 +1,11 @@
 import type { CompensationReason } from "@acme/shared";
+import {
+  isSalaryIncreaseReason,
+  NEW_HIRE_REQUIRES_EMPTY_HISTORY_MESSAGE,
+} from "@acme/shared";
 
 import type { CompensationHistoryRecord } from "./compensation.types.js";
 import { sortCompensationHistoryOldestFirst } from "./compensation-timeline.js";
-
-export const SALARY_INCREASE_REASONS = ["Annual Increment", "Promotion"] as const;
-
-export type SalaryIncreaseReason = (typeof SALARY_INCREASE_REASONS)[number];
 
 export type ProposedCompensationChange = {
   baseSalary: number;
@@ -13,10 +13,6 @@ export type ProposedCompensationChange = {
   effectiveDate: string;
   reason: CompensationReason;
 };
-
-function isSalaryIncreaseReason(reason: CompensationReason): reason is SalaryIncreaseReason {
-  return (SALARY_INCREASE_REASONS as readonly CompensationReason[]).includes(reason);
-}
 
 export function findPredecessorForNewRecord(
   records: CompensationHistoryRecord[],
@@ -34,6 +30,17 @@ export function findPredecessorForNewRecord(
   }
 
   return predecessor;
+}
+
+export function validateNewHireReason(
+  existingHistory: CompensationHistoryRecord[],
+  reason: CompensationReason,
+): string | null {
+  if (reason === "New Hire" && existingHistory.length > 0) {
+    return NEW_HIRE_REQUIRES_EMPTY_HISTORY_MESSAGE;
+  }
+
+  return null;
 }
 
 export function validateSalaryIncreaseReason(
@@ -60,3 +67,5 @@ export function validateSalaryIncreaseReason(
 
   return null;
 }
+
+export { isSalaryIncreaseReason, SALARY_INCREASE_REASONS } from "@acme/shared";

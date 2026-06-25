@@ -202,7 +202,7 @@ describe("useCompensationImport", () => {
     });
 
     await waitFor(() => {
-      expect(result.current.errorMessage).toContain("Import failed");
+      expect(result.current.errorMessage).toBe("Network error");
     });
   });
 

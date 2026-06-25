@@ -1,6 +1,11 @@
 "use client";
 
-import { ANALYTICS_DISPLAY_CURRENCIES, COMPENSATION_REASONS, recordCompensationChangeSchema } from "@acme/shared";
+import {
+  ANALYTICS_DISPLAY_CURRENCIES,
+  COMPENSATION_REASONS,
+  recordCompensationChangeSchema,
+  type CompensationReason,
+} from "@acme/shared";
 import { useState } from "react";
 
 import { Alert } from "@/components/ui/alert";
@@ -9,6 +14,8 @@ import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
 import { Select } from "@/components/ui/select";
 import { recordCompensationChange } from "@/lib/api/employees";
+import { getRequestErrorMessage } from "@/lib/errors";
+import { collectFieldErrorsFromValidationIssues } from "@/lib/forms/zod-field-errors";
 
 import styles from "./record-compensation-change-form.module.css";
 
@@ -21,7 +28,7 @@ type FormState = {
   baseSalary: string;
   currency: string;
   effectiveDate: string;
-  reason: string;
+  reason: CompensationReason;
   changedBy: string;
   notes: string;
 };
@@ -34,22 +41,6 @@ const emptyFormState: FormState = {
   changedBy: "",
   notes: "",
 };
-
-function collectFieldErrorsFromValidationIssues(
-  issues: { path: (string | number)[]; message: string }[],
-): Record<string, string> {
-  const fieldErrors: Record<string, string> = {};
-
-  for (const issue of issues) {
-    const fieldName = issue.path[0];
-
-    if (typeof fieldName === "string" && !fieldErrors[fieldName]) {
-      fieldErrors[fieldName] = issue.message;
-    }
-  }
-
-  return fieldErrors;
-}
 
 export function RecordCompensationChangeForm({
   employeeId,
@@ -98,9 +89,7 @@ export function RecordCompensationChangeForm({
       onRecorded();
     } catch (error) {
       setSubmitError(
-        error instanceof Error
-          ? error.message
-          : "Unable to record the compensation change.",
+        getRequestErrorMessage(error, "Unable to record the compensation change."),
       );
     } finally {
       setIsSubmitting(false);
@@ -126,6 +115,7 @@ export function RecordCompensationChangeForm({
             label="Currency"
             value={formState.currency}
             onChange={(event) => updateField("currency", event.target.value)}
+            error={fieldErrors.currency}
           >
             <option value="">Select currency</option>
             {ANALYTICS_DISPLAY_CURRENCIES.map((currency) => (
@@ -147,7 +137,10 @@ export function RecordCompensationChangeForm({
             id="compensation-reason"
             label="Reason"
             value={formState.reason}
-            onChange={(event) => updateField("reason", event.target.value)}
+            onChange={(event) =>
+              updateField("reason", event.target.value as CompensationReason)
+            }
+            error={fieldErrors.reason}
           >
             {COMPENSATION_REASONS.map((reason) => (
               <option key={reason} value={reason}>
@@ -171,8 +164,6 @@ export function RecordCompensationChangeForm({
           />
         </div>
 
-        {fieldErrors.currency && <p className={styles.fieldError}>{fieldErrors.currency}</p>}
-        {fieldErrors.reason && <p className={styles.fieldError}>{fieldErrors.reason}</p>}
         {submitError && <Alert variant="error">{submitError}</Alert>}
 
         <div className={styles.actions}>

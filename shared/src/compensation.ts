@@ -1,5 +1,7 @@
 import { z } from "zod";
 
+import { isoCurrencyCodeSchema, requiredEffectiveDateSchema } from "./zod-fields.js";
+
 export const COMPENSATION_REASONS = [
   "Annual Increment",
   "Promotion",
@@ -10,19 +12,26 @@ export const COMPENSATION_REASONS = [
 
 export type CompensationReason = (typeof COMPENSATION_REASONS)[number];
 
+export const SALARY_INCREASE_REASONS = [
+  "Annual Increment",
+  "Promotion",
+] as const satisfies readonly CompensationReason[];
+
+export type SalaryIncreaseReason = (typeof SALARY_INCREASE_REASONS)[number];
+
+export function isSalaryIncreaseReason(
+  reason: CompensationReason,
+): reason is SalaryIncreaseReason {
+  return (SALARY_INCREASE_REASONS as readonly CompensationReason[]).includes(reason);
+}
+
+export const NEW_HIRE_REQUIRES_EMPTY_HISTORY_MESSAGE =
+  "New Hire can only be used for an employee's first compensation record";
+
 export const recordCompensationChangeSchema = z.object({
   baseSalary: z.number().positive("Base salary must be greater than zero"),
-  currency: z
-    .string()
-    .trim()
-    .length(3, "Currency must be a 3-letter ISO 4217 code")
-    .regex(/^[A-Za-z]{3}$/, "Currency must be a 3-letter ISO 4217 code")
-    .transform((value) => value.toUpperCase()),
-  effectiveDate: z
-    .string()
-    .trim()
-    .min(1, "Effective date is required")
-    .regex(/^\d{4}-\d{2}-\d{2}$/, "Effective date must use YYYY-MM-DD format"),
+  currency: isoCurrencyCodeSchema,
+  effectiveDate: requiredEffectiveDateSchema,
   reason: z.enum(COMPENSATION_REASONS, {
     errorMap: () => ({ message: "Reason must be a valid compensation reason" }),
   }),

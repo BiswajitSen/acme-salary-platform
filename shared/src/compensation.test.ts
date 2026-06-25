@@ -93,6 +93,18 @@ describe("recordCompensationChangeSchema", () => {
     }
   });
 
+  it("rejects an invalid effective date format", () => {
+    const result = recordCompensationChangeSchema.safeParse({
+      baseSalary: 100_000,
+      currency: "USD",
+      effectiveDate: "01-01-2026",
+      reason: "Promotion",
+      changedBy: "HR Admin",
+    });
+
+    expect(result.success).toBe(false);
+  });
+
   it("exports the PRD compensation reason enum", () => {
     expect(COMPENSATION_REASONS).toHaveLength(5);
     expect(COMPENSATION_REASONS).toContain("Annual Increment");

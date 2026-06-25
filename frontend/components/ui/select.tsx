@@ -4,17 +4,28 @@ import styles from "./select.module.css";
 
 type SelectProps = SelectHTMLAttributes<HTMLSelectElement> & {
   label?: string;
+  error?: string;
   children: ReactNode;
 };
 
-export function Select({ label, id, className, children, ...props }: SelectProps) {
+export function Select({
+  label,
+  id,
+  className,
+  error,
+  children,
+  ...props
+}: SelectProps) {
   const selectClassName = [styles.select, className].filter(Boolean).join(" ");
 
   if (!label) {
     return (
-      <select id={id} className={selectClassName} {...props}>
-        {children}
-      </select>
+      <>
+        <select id={id} className={selectClassName} {...props}>
+          {children}
+        </select>
+        {error && <span className={styles.error}>{error}</span>}
+      </>
     );
   }
 
@@ -24,6 +35,7 @@ export function Select({ label, id, className, children, ...props }: SelectProps
       <select id={id} className={selectClassName} {...props}>
         {children}
       </select>
+      {error && <span className={styles.error}>{error}</span>}
     </label>
   );
 }

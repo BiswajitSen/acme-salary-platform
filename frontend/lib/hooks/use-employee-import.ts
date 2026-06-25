@@ -12,6 +12,7 @@ import {
   previewEmployeeImport,
   readEmployeeImportValidationIssues,
 } from "@/lib/api/employee-import";
+import { getRequestErrorMessage } from "@/lib/errors";
 
 const MAX_VISIBLE_VALIDATION_ISSUES = 50;
 
@@ -100,7 +101,9 @@ export function useEmployeeImport(): EmployeeImportState {
     } catch (error) {
       setResult(null);
       setValidationIssues(readEmployeeImportValidationIssues(error));
-      setErrorMessage("Import failed. Fix the spreadsheet issues and try again.");
+      setErrorMessage(
+        getRequestErrorMessage(error, "Import failed. Fix the spreadsheet issues and try again."),
+      );
     } finally {
       setIsImporting(false);
     }
