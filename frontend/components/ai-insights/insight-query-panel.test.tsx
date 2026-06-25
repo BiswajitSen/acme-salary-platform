@@ -28,7 +28,9 @@ describe("ParsedInsightSummary", () => {
           intent: "AVG_DEPT_SALARY",
           originalQuery: "average salary in Engineering",
           department: "Engineering",
+          country: null,
           currency: null,
+          months: null,
         }}
       />,
     );
@@ -37,19 +39,39 @@ describe("ParsedInsightSummary", () => {
     expect(screen.getByText("Engineering")).toBeTruthy();
   });
 
-  it("renders placeholders when department and currency are absent", () => {
+  it("defaults display currency to USD when none is provided", () => {
     render(
       <ParsedInsightSummary
         parsedQuery={{
           intent: "HEADCOUNT",
           originalQuery: "headcount",
           department: null,
+          country: null,
           currency: null,
         }}
       />,
     );
 
-    expect(screen.getAllByText("—")).toHaveLength(2);
+    expect(screen.getByText("USD")).toBeTruthy();
+    expect(screen.getAllByText("—")).toHaveLength(3);
+  });
+
+  it("shows the employee country filter when the query mentions a country", () => {
+    render(
+      <ParsedInsightSummary
+        parsedQuery={{
+          intent: "TOP_EARNERS",
+          originalQuery: "Who are the top earners in INDIA?",
+          department: null,
+          country: "IN",
+          currency: null,
+        }}
+        executionCurrency="USD"
+      />,
+    );
+
+    expect(screen.getByText("IN")).toBeTruthy();
+    expect(screen.getByText("USD")).toBeTruthy();
   });
 });
 
@@ -60,6 +82,7 @@ describe("InsightExecutionResult", () => {
         result={{
           intent: "AVG_DEPT_SALARY",
           currency: "USD",
+          country: null,
           department: "Engineering",
           averageSalary: 120_000,
           employeeCount: 10,
@@ -94,6 +117,8 @@ describe("InsightExecutionResult", () => {
         result={{
           intent: "HEADCOUNT",
           currency: "USD",
+          country: null,
+          department: null,
           headcount: 42,
         }}
       />,
@@ -108,6 +133,8 @@ describe("InsightExecutionResult", () => {
         result={{
           intent: "TOTAL_PAYROLL",
           currency: "USD",
+          country: null,
+          department: null,
           totalPayroll: 5_280_000,
         }}
       />,
@@ -122,6 +149,7 @@ describe("InsightExecutionResult", () => {
         result={{
           intent: "TOP_EARNERS",
           currency: "USD",
+          country: null,
           earners: [
             {
               employeeId: "E001",
@@ -138,18 +166,46 @@ describe("InsightExecutionResult", () => {
     expect(screen.getByText("$132,000")).toBeTruthy();
   });
 
+  it("renders recent promotion results", () => {
+    render(
+      <InsightExecutionResult
+        result={{
+          intent: "RECENT_PROMOTIONS",
+          months: 3,
+          country: null,
+          department: null,
+          promotions: [
+            {
+              employeeId: "E001",
+              fullName: "Jane Doe",
+              department: "Engineering",
+              baseSalary: 140_000,
+              currency: "USD",
+              effectiveDate: "2026-01-01",
+            },
+          ],
+        }}
+      />,
+    );
+
+    expect(screen.getByText("Recent promotions")).toBeTruthy();
+    expect(screen.getByText("Jane Doe")).toBeTruthy();
+    expect(screen.getByText("$140,000")).toBeTruthy();
+  });
+
   it("renders an empty top earners message", () => {
     render(
       <InsightExecutionResult
         result={{
           intent: "TOP_EARNERS",
           currency: "USD",
+          country: null,
           earners: [],
         }}
       />,
     );
 
-    expect(screen.getByText("No earners found for USD.")).toBeTruthy();
+    expect(screen.getByText("No earners found.")).toBeTruthy();
   });
 });
 
@@ -202,11 +258,13 @@ describe("InsightQueryPanel", () => {
           intent: "AVG_DEPT_SALARY",
           originalQuery: "average salary in Engineering",
           department: "Engineering",
+          country: null,
           currency: null,
         },
         result: {
           intent: "AVG_DEPT_SALARY",
           currency: "USD",
+          country: null,
           department: "Engineering",
           averageSalary: 120_000,
           employeeCount: 10,
@@ -236,6 +294,7 @@ describe("InsightQueryPanel", () => {
           intent: "UNKNOWN",
           originalQuery: "Tell me a joke",
           department: null,
+          country: null,
           currency: null,
         },
         result: null,

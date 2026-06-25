@@ -86,11 +86,13 @@ describe("useInsightQueryParser", () => {
         intent: "TOP_EARNERS",
         originalQuery: "top earners in USD",
         department: null,
+        country: null,
         currency: "USD",
       },
       result: {
         intent: "TOP_EARNERS",
         currency: "USD",
+        country: null,
         earners: [],
       },
       error: null,
@@ -117,8 +119,8 @@ describe("useInsightQueryParser", () => {
     expect(result.current.response).toBeNull();
   });
 
-  it("clears the previous response when display currency changes", async () => {
-    executeInsightQueryMock.mockResolvedValue({
+  it("re-runs the previous query when display currency changes", async () => {
+    executeInsightQueryMock.mockResolvedValueOnce({
       parsedQuery: {
         intent: "HEADCOUNT",
         originalQuery: "headcount",
@@ -131,6 +133,22 @@ describe("useInsightQueryParser", () => {
         headcount: 42,
       },
       error: null,
+      exchangeRatesAsOf: "2026-01-01",
+    });
+    executeInsightQueryMock.mockResolvedValueOnce({
+      parsedQuery: {
+        intent: "HEADCOUNT",
+        originalQuery: "headcount",
+        department: null,
+        currency: null,
+      },
+      result: {
+        intent: "HEADCOUNT",
+        currency: "GBP",
+        headcount: 42,
+      },
+      error: null,
+      exchangeRatesAsOf: "2026-01-01",
     });
 
     const { result, rerender } = renderHook(
@@ -146,13 +164,15 @@ describe("useInsightQueryParser", () => {
     });
 
     await waitFor(() => {
-      expect(result.current.response?.result?.headcount).toBe(42);
+      expect(result.current.response?.result?.currency).toBe("USD");
     });
 
     rerender({ displayCurrency: "GBP" });
 
     await waitFor(() => {
-      expect(result.current.response).toBeNull();
+      expect(result.current.response?.result?.currency).toBe("GBP");
     });
+    expect(executeInsightQueryMock).toHaveBeenCalledTimes(2);
+    expect(executeInsightQueryMock).toHaveBeenLastCalledWith("headcount", "GBP");
   });
 });

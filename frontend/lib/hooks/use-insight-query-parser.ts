@@ -24,7 +24,41 @@ export function useInsightQueryParser(displayCurrency: string): InsightQueryPars
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
 
   useEffect(() => {
-    setResponse(null);
+    const trimmedQuery = query.trim();
+
+    if (!response || !trimmedQuery) {
+      return;
+    }
+
+    let isCancelled = false;
+
+    async function rerunQuery() {
+      setIsSubmitting(true);
+      setErrorMessage(null);
+
+      try {
+        const nextResponse = await executeInsightQuery(trimmedQuery, displayCurrency);
+
+        if (!isCancelled) {
+          setResponse(nextResponse);
+        }
+      } catch {
+        if (!isCancelled) {
+          setResponse(null);
+          setErrorMessage(EXECUTE_ERROR_MESSAGE);
+        }
+      } finally {
+        if (!isCancelled) {
+          setIsSubmitting(false);
+        }
+      }
+    }
+
+    void rerunQuery();
+
+    return () => {
+      isCancelled = true;
+    };
   }, [displayCurrency]);
 
   function updateQuery(nextQuery: string) {

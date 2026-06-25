@@ -14,8 +14,8 @@ import styles from "./insight-query-panel.module.css";
 
 const EXAMPLE_QUERIES = [
   "What is the average salary in Engineering?",
-  "total payroll in USD",
-  "Who are the top earners in INR?",
+  "total payroll",
+  "Who are the top earners?",
 ] as const;
 
 export function InsightQueryPanel() {
@@ -34,7 +34,7 @@ export function InsightQueryPanel() {
     <section className={styles.page}>
       <PageHeader
         title="AI Insights"
-        subtitle="Ask salary analytics questions in plain English. Amounts are converted to a display currency for comparison."
+        subtitle="Ask salary analytics questions in plain English. Country names such as India filter by employee country; amounts use the display currency selector."
       />
 
       <Card title="Ask a question">
@@ -87,7 +87,10 @@ export function InsightQueryPanel() {
       {isSubmitting && <StatusMessage isLoading message="Running query…" />}
 
       {!isSubmitting && response?.parsedQuery && (
-        <ParsedInsightSummary parsedQuery={response.parsedQuery} />
+        <ParsedInsightSummary
+          parsedQuery={response.parsedQuery}
+          executionCurrency={response.result?.currency}
+        />
       )}
 
       {!isSubmitting && response?.error && (
