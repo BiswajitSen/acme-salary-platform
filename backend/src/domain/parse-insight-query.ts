@@ -1,5 +1,4 @@
 import {
-  DEFAULT_INSIGHT_TIMELINE_MONTHS,
   INSIGHT_QUERY_DEPARTMENTS,
   type AiInsightIntent,
   type ParsedInsightQuery,
@@ -7,7 +6,10 @@ import {
 
 import { looksLikeSqlInjection } from "./insight-query-safety.js";
 import { extractInsightCountry } from "./insight-query-country-aliases.js";
-import { resolveInsightTimelineMonths } from "./insight-query-timeline.js";
+import { extractInsightDepartment } from "./insight-query-department-aliases.js";
+import { JOINED_AS_PATTERN, extractJoinedAsScope, extractInsightJobTitle } from "./insight-query-job-title.js";
+import { resolveParsedTimelineFields } from "./insight-query-timeline.js";
+import { extractInsightBottomEarnersLimit, extractInsightTopEarnersLimit } from "./insight-query-ranked-earners.js";
 
 const ISO_CURRENCY_PATTERN = /\b(USD|GBP|EUR|INR|SGD)\b/i;
 
@@ -18,7 +20,7 @@ const INTENT_PATTERNS: ReadonlyArray<{
   {
     intent: "RECENT_SALARY_INCREASES",
     pattern:
-      /\b(?:salary\s+(?:hike|hikes|increase|increases|raise|raises)|(?:got|received)\s+(?:a\s+)?(?:salary\s+)?(?:hike|raise|increment|increments?)|annual\s+increments?)\b/,
+      /\b(?:salary\s+(?:hike|hikes|increase|increases|raise|raises)|(?:got|received)\s+(?:a\s+)?(?:salary\s+)?(?:hike|raise|increment|increments?)|annual\s+increments?|market\s+adjustments?)\b/,
   },
   {
     intent: "RECENT_NEW_HIRES",
@@ -29,10 +31,20 @@ const INTENT_PATTERNS: ReadonlyArray<{
     intent: "RECENT_PROMOTIONS",
     pattern: /\b(?:promotion|promoted|promotions)\b/,
   },
+  {
+    intent: "NEAR_MEDIAN_EARNERS",
+    pattern:
+      /\b(?:(?:who\s+)?(?:earn|earning|earns|paid)\s+(?:around|near|close to)|(?:around|near|close to))\s+(?:the\s+)?median(?:\s+(?:salary|pay|compensation))?\b/,
+  },
   { intent: "MEDIAN_DEPT_SALARY", pattern: /\bmedian\s+(?:salary|pay|compensation)\b/ },
   {
     intent: "AVG_DEPT_SALARY",
     pattern: /\b(?:average|avg|mean)\s+(?:salary|pay|compensation)\b/,
+  },
+  {
+    intent: "BOTTOM_EARNERS",
+    pattern:
+      /\b(?:(?:bottom|least|lowest)\s+(?:\d+\s+)?earners?|(?:least|lowest)\s+paid(?:\s+employees?)?)\b/,
   },
   {
     intent: "TOP_EARNERS",
@@ -57,29 +69,6 @@ function extractInsightCurrency(normalizedQuery: string): string | null {
   return isoMatch ? isoMatch[1]!.toUpperCase() : null;
 }
 
-const DEPARTMENT_ALIASES: Record<string, (typeof INSIGHT_QUERY_DEPARTMENTS)[number]> = {
-  engineers: "Engineering",
-  engineer: "Engineering",
-};
-
-function extractInsightDepartment(normalizedQuery: string): string | null {
-  for (const department of INSIGHT_QUERY_DEPARTMENTS) {
-    const pattern = new RegExp(`\\b${department}\\b`, "i");
-    if (pattern.test(normalizedQuery)) {
-      return department;
-    }
-  }
-
-  for (const [alias, department] of Object.entries(DEPARTMENT_ALIASES)) {
-    const pattern = new RegExp(`\\b${alias}\\b`, "i");
-    if (pattern.test(normalizedQuery)) {
-      return department;
-    }
-  }
-
-  return null;
-}
-
 function detectInsightIntent(normalizedQuery: string): AiInsightIntent {
   for (const { intent, pattern } of INTENT_PATTERNS) {
     if (pattern.test(normalizedQuery)) {
@@ -96,8 +85,11 @@ function buildUnknownInsightQuery(originalQuery: string): ParsedInsightQuery {
     originalQuery,
     department: null,
     country: null,
+    jobTitle: null,
     currency: null,
     months: null,
+    sinceDate: null,
+    limit: null,
   };
 }
 
@@ -112,8 +104,22 @@ export function parseInsightQuery(query: string): ParsedInsightQuery {
   const intent = detectInsightIntent(normalizedQuery);
   const currency = extractInsightCurrency(normalizedQuery);
   const country = extractInsightCountry(normalizedQuery);
-  const department = extractInsightDepartment(normalizedQuery);
-  const months = resolveInsightTimelineMonths(intent, normalizedQuery);
+  const joinedAsScope = extractJoinedAsScope(originalQuery, normalizedQuery);
+  const queryForDepartment =
+    joinedAsScope.jobTitle === null
+      ? normalizedQuery
+      : normalizedQuery.replace(JOINED_AS_PATTERN, " ");
+  const department =
+    joinedAsScope.department ?? extractInsightDepartment(queryForDepartment);
+  const jobTitle =
+    joinedAsScope.jobTitle ?? extractInsightJobTitle(originalQuery, normalizedQuery);
+  const timeline = resolveParsedTimelineFields(intent, normalizedQuery);
+  const limit =
+    intent === "TOP_EARNERS"
+      ? extractInsightTopEarnersLimit(normalizedQuery)
+      : intent === "BOTTOM_EARNERS"
+        ? extractInsightBottomEarnersLimit(normalizedQuery)
+        : null;
 
   if (intent === "UNKNOWN") {
     return buildUnknownInsightQuery(originalQuery);
@@ -124,7 +130,10 @@ export function parseInsightQuery(query: string): ParsedInsightQuery {
     originalQuery,
     department,
     country,
+    jobTitle,
     currency,
-    months,
+    months: timeline.months,
+    sinceDate: timeline.sinceDate,
+    limit,
   };
 }

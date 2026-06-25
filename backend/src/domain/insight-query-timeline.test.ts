@@ -1,10 +1,10 @@
 import { describe, expect, it } from "vitest";
 
 import {
-  extractInsightTimelineMonths,
   isInsightTimelineIntent,
   resolveInsightTimelineMonths,
 } from "./insight-query-timeline.js";
+import { extractInsightTimelineWindow } from "./insight-query-timeline-window.js";
 
 describe("insight-query-timeline", () => {
   it("recognizes timeline intents", () => {
@@ -14,8 +14,9 @@ describe("insight-query-timeline", () => {
   });
 
   it("extracts month windows from natural language", () => {
-    expect(extractInsightTimelineMonths("employees who joined after 6 months")).toBe(6);
-    expect(extractInsightTimelineMonths("new joiners in the last 3 months")).toBe(3);
+    expect(extractInsightTimelineWindow("employees who joined after 6 months").months).toBe(6);
+    expect(extractInsightTimelineWindow("new joiners in the last 3 months").months).toBe(3);
+    expect(extractInsightTimelineWindow("promotions since 2025-06-01").sinceDate).toBe("2025-06-01");
   });
 
   it("defaults timeline intents to three months", () => {

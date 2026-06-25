@@ -13,6 +13,10 @@ export function formatInsightScopeLabel(parsedQuery: ParsedInsightQuery): string
     parts.push(filters.department);
   }
 
+  if (filters.jobTitle !== null) {
+    parts.push(filters.jobTitle);
+  }
+
   if (filters.country !== null) {
     parts.push(`employees in ${filters.country}`);
   }
