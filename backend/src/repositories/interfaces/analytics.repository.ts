@@ -4,11 +4,13 @@ import type {
 } from "../../domain/analytics.types.js";
 
 export interface IAnalyticsRepository {
-  findAvailableCurrencies(): Promise<string[]>;
-  countEmployeesWithLatestCompensationInCurrency(currency: string): Promise<number>;
-  sumLatestCompensationSalariesInCurrency(currency: string): Promise<number>;
-  findDepartmentSalaryStatisticsByCurrency(
-    currency: string,
+  countEmployeesWithLatestCompensation(): Promise<number>;
+  sumLatestCompensationSalariesInDisplayCurrency(currency: string): Promise<number>;
+  findDepartmentSalaryStatisticsInDisplayCurrency(
+    displayCurrency: string,
   ): Promise<DepartmentSalaryStatisticsRecord[]>;
-  findTopEarnersByCurrency(currency: string, limit: number): Promise<TopEarnerRecord[]>;
+  findTopEarnersInDisplayCurrency(
+    displayCurrency: string,
+    limit: number,
+  ): Promise<TopEarnerRecord[]>;
 }

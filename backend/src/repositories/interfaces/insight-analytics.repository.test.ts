@@ -5,10 +5,10 @@ import type { IInsightAnalyticsRepository } from "./insight-analytics.repository
 describe("IInsightAnalyticsRepository", () => {
   it("exposes read-only analytics methods for insight executors", () => {
     const repository = {
-      countEmployeesWithLatestCompensationInCurrency: async () => 0,
-      sumLatestCompensationSalariesInCurrency: async () => 0,
-      findDepartmentSalaryStatisticsByCurrency: async () => [],
-      findTopEarnersByCurrency: async () => [],
+      countEmployeesWithLatestCompensation: async () => 0,
+      sumLatestCompensationSalariesInDisplayCurrency: async () => 0,
+      findDepartmentSalaryStatisticsInDisplayCurrency: async () => [],
+      findTopEarnersInDisplayCurrency: async () => [],
     } satisfies IInsightAnalyticsRepository;
 
     expect(repository).toBeDefined();
