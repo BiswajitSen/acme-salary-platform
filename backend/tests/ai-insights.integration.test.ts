@@ -52,6 +52,7 @@ describe("POST /api/insights/parse", () => {
       jobTitle: null,
       sinceDate: null,
       limit: null,
+      medianSplitFocus: null,
     });
   });
 
@@ -387,6 +388,56 @@ describe("POST /api/insights/execute", () => {
     ]);
   });
 
+  it("returns an empty new-hire list for scoped timeline queries with no matches", async () => {
+    await runSeed(db);
+
+    const response = await request(app)
+      .post("/api/insights/execute")
+      .send({ query: "employees who joined as engineers in the last 12 months" });
+
+    expect(response.status).toBe(200);
+    expect(response.body.parsedQuery).toMatchObject({
+      intent: "RECENT_NEW_HIRES",
+      department: "Engineering",
+      months: 12,
+    });
+    expect(response.body.result).toMatchObject({
+      intent: "RECENT_NEW_HIRES",
+      department: "Engineering",
+      months: 12,
+      hires: [],
+    });
+    expect(response.body.error).toBeNull();
+  });
+
+  it("returns scoped new hires within the requested lookback window", async () => {
+    await runSeed(db);
+    await seedIndianEmployee();
+
+    const response = await request(app)
+      .post("/api/insights/execute")
+      .send({ query: "employees who joined as engineers in the last 12 months" });
+
+    expect(response.status).toBe(200);
+    expect(response.body.parsedQuery).toMatchObject({
+      intent: "RECENT_NEW_HIRES",
+      department: "Engineering",
+      months: 12,
+    });
+    expect(response.body.result.hires).toEqual([
+      {
+        employeeId: "E010",
+        fullName: "Raj Patel",
+        department: "Engineering",
+        baseSalary: 3_000_000,
+        currency: "INR",
+        effectiveDate: "2025-01-01",
+        reason: "New Hire",
+      },
+    ]);
+    expect(response.body.error).toBeNull();
+  });
+
   it("returns salary hikes for employees in a country", async () => {
     await runSeed(db);
     await seedIndianEmployee();
@@ -508,6 +559,37 @@ describe("POST /api/insights/execute", () => {
     expect(response.body.error).toBeNull();
   });
 
+  it("returns below-median employee counts for scoped single-sided split questions", async () => {
+    await runSeed(db);
+    await seedIndianEmployee();
+
+    const response = await request(app)
+      .post("/api/insights/execute")
+      .send({
+        query: "How many employees are earning below median in Engineering in India?",
+        displayCurrency: "INR",
+      });
+
+    expect(response.status).toBe(200);
+    expect(response.body.parsedQuery).toMatchObject({
+      intent: "MEDIAN_SPLIT_COUNTS",
+      department: "Engineering",
+      country: "IN",
+      medianSplitFocus: "below",
+    });
+    expect(response.body.result).toMatchObject({
+      intent: "MEDIAN_SPLIT_COUNTS",
+      currency: "INR",
+      department: "Engineering",
+      country: "IN",
+      medianSplitFocus: "below",
+      employeeCount: 1,
+      belowMedianCount: 0,
+      aboveMedianCount: 0,
+    });
+    expect(response.body.error).toBeNull();
+  });
+
   it("returns below and above median employee counts for scoped split questions", async () => {
     await runSeed(db);
 
@@ -522,11 +604,13 @@ describe("POST /api/insights/execute", () => {
     expect(response.body.parsedQuery.intent).toBe("MEDIAN_SPLIT_COUNTS");
     expect(response.body.parsedQuery.department).toBe("Engineering");
     expect(response.body.parsedQuery.country).toBeNull();
+    expect(response.body.parsedQuery.medianSplitFocus).toBe("both");
     expect(response.body.result).toMatchObject({
       intent: "MEDIAN_SPLIT_COUNTS",
       currency: "USD",
       department: "Engineering",
       country: null,
+      medianSplitFocus: "both",
     });
     expect(response.body.result.belowMedianCount).toBeGreaterThanOrEqual(0);
     expect(response.body.result.aboveMedianCount).toBeGreaterThanOrEqual(0);

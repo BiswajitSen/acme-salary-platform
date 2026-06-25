@@ -287,6 +287,7 @@ export async function executeMedianSplitCountsIntent(
       intent: "MEDIAN_SPLIT_COUNTS",
       currency: execution.currency,
       ...scopedResultFields(execution.filters),
+      medianSplitFocus: parsedQuery.medianSplitFocus ?? "both",
       medianSalary: response.medianSalary,
       belowMedianCount: response.belowMedianCount,
       aboveMedianCount: response.aboveMedianCount,
@@ -329,11 +330,6 @@ export async function executeTimelineIntent(
     jobTitle: filters.jobTitle,
     reasons,
   });
-
-  if (shouldReportScopedEmptyResult(filters, response.events.length > 0)) {
-    const currency = resolveInsightCurrency(parsedQuery.currency);
-    return buildScopeNotFoundResponse(parsedQuery, currency);
-  }
 
   return {
     parsedQuery,

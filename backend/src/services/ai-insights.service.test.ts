@@ -53,6 +53,7 @@ describe("AiInsightsService", () => {
       jobTitle: null,
       sinceDate: null,
       limit: null,
+      medianSplitFocus: null,
     });
   });
 

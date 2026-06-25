@@ -19,6 +19,7 @@ function parsed(
     months: null,
     sinceDate: null,
     limit: null,
+    medianSplitFocus: null,
     ...overrides,
   };
 }
@@ -523,6 +524,36 @@ describe("executeParsedInsightQuery", () => {
     });
   });
 
+  it("returns an empty scoped timeline result instead of a scope-not-found error", async () => {
+    const context = createContext({
+      getRecentTimelineEvents: vi.fn().mockResolvedValue({
+        asOfDate: "2026-01-01",
+        events: [],
+      }),
+    });
+
+    const response = await executeParsedInsightQuery(
+      parsed({
+        intent: "RECENT_NEW_HIRES",
+        originalQuery: "employees who joined as engineers in the last 12 months",
+        department: "Engineering",
+        months: 12,
+      }),
+      context,
+    );
+
+    expect(response.error).toBeNull();
+    expect(response.result).toEqual({
+      intent: "RECENT_NEW_HIRES",
+      months: 12,
+      sinceDate: null,
+      country: null,
+      department: "Engineering",
+      jobTitle: null,
+      hires: [],
+    });
+  });
+
   it("executes RECENT_SALARY_INCREASES for country-scoped hike questions", async () => {
     const context = createContext({
       getRecentTimelineEvents: vi.fn().mockResolvedValue({
@@ -619,6 +650,7 @@ describe("executeParsedInsightQuery", () => {
         originalQuery:
           "how many employees are earning below and above median in Engineering?",
         department: "Engineering",
+        medianSplitFocus: "both",
       }),
       context,
     );
@@ -627,6 +659,7 @@ describe("executeParsedInsightQuery", () => {
       intent: "MEDIAN_SPLIT_COUNTS",
       currency: "USD",
       department: "Engineering",
+      medianSplitFocus: "both",
       medianSalary: 118_000,
       belowMedianCount: 4,
       aboveMedianCount: 5,

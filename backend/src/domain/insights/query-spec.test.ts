@@ -22,6 +22,7 @@ describe("query-spec", () => {
       months: null,
       sinceDate: null,
       limit: null,
+      medianSplitFocus: null,
     };
 
     expect(buildInsightQuerySpec(parsedQuery)).toEqual({
@@ -51,6 +52,7 @@ describe("query-spec", () => {
         months: null,
         sinceDate: null,
         limit: null,
+      medianSplitFocus: null,
       }),
     ).toEqual({
       country: null,

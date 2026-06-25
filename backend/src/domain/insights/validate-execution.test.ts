@@ -59,6 +59,7 @@ describe("validateInsightExecutionSafety", () => {
         months: null,
         sinceDate: null,
         limit: null,
+        medianSplitFocus: null,
       }),
     ).toBeNull();
   });
