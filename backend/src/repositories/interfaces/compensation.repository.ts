@@ -14,6 +14,9 @@ export interface ICompensationRepository {
   findCompensationHistoryByEmployeeId(
     employeeId: string,
   ): Promise<CompensationHistoryRecord[]>;
+  findCompensationHistoryByEmployeeIds(
+    employeeIds: string[],
+  ): Promise<Map<string, CompensationHistoryRecord[]>>;
   insertCompensationHistoryRecord(
     record: NewCompensationHistoryRecord,
   ): Promise<CompensationHistoryRecord>;

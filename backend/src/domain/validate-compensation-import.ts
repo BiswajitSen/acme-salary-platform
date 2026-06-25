@@ -156,16 +156,8 @@ export async function collectSalaryIncreaseReasonErrors(
   records: ParsedCompensationSpreadsheetRow[],
 ): Promise<CompensationImportError[]> {
   const employeeIds = [...new Set(records.map((record) => record.employeeId))];
-  const existingHistoryByEmployee = new Map<string, CompensationHistoryRecord[]>();
-
-  await Promise.all(
-    employeeIds.map(async (employeeId) => {
-      existingHistoryByEmployee.set(
-        employeeId,
-        await compensation.findCompensationHistoryByEmployeeId(employeeId),
-      );
-    }),
-  );
+  const existingHistoryByEmployee =
+    await compensation.findCompensationHistoryByEmployeeIds(employeeIds);
 
   return collectSalaryIncreaseReasonErrorsFromHistory(existingHistoryByEmployee, records);
 }

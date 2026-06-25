@@ -10,6 +10,21 @@ import type {
 } from "../interfaces/compensation.repository.js";
 
 const COMPENSATION_INSERT_BATCH_SIZE = 500;
+const COMPENSATION_HISTORY_LOOKUP_BATCH_SIZE = 1_000;
+
+function groupCompensationHistoryRows(
+  rows: CompensationHistoryRecord[],
+): Map<string, CompensationHistoryRecord[]> {
+  const historyByEmployee = new Map<string, CompensationHistoryRecord[]>();
+
+  for (const row of rows) {
+    const employeeHistory = historyByEmployee.get(row.employeeId) ?? [];
+    employeeHistory.push(row);
+    historyByEmployee.set(row.employeeId, employeeHistory);
+  }
+
+  return historyByEmployee;
+}
 
 export class DrizzleCompensationRepository implements ICompensationRepository {
   constructor(private readonly database: Database) {}
@@ -33,6 +48,46 @@ export class DrizzleCompensationRepository implements ICompensationRepository {
       .where(eq(compensationHistory.employeeId, employeeId));
 
     return rows;
+  }
+
+  async findCompensationHistoryByEmployeeIds(
+    employeeIds: string[],
+  ): Promise<Map<string, CompensationHistoryRecord[]>> {
+    if (employeeIds.length === 0) {
+      return new Map();
+    }
+
+    const historyByEmployee = new Map<string, CompensationHistoryRecord[]>();
+
+    for (
+      let index = 0;
+      index < employeeIds.length;
+      index += COMPENSATION_HISTORY_LOOKUP_BATCH_SIZE
+    ) {
+      const batch = employeeIds.slice(index, index + COMPENSATION_HISTORY_LOOKUP_BATCH_SIZE);
+      const rows = await this.database
+        .select({
+          id: compensationHistory.id,
+          employeeId: compensationHistory.employeeId,
+          baseSalary: compensationHistory.baseSalary,
+          currency: compensationHistory.currency,
+          effectiveDate: compensationHistory.effectiveDate,
+          reason: compensationHistory.reason,
+          changedBy: compensationHistory.changedBy,
+          notes: compensationHistory.notes,
+          createdAt: compensationHistory.createdAt,
+        })
+        .from(compensationHistory)
+        .where(inArray(compensationHistory.employeeId, batch));
+
+      for (const [employeeId, employeeHistory] of groupCompensationHistoryRows(rows)) {
+        const existingHistory = historyByEmployee.get(employeeId) ?? [];
+        existingHistory.push(...employeeHistory);
+        historyByEmployee.set(employeeId, existingHistory);
+      }
+    }
+
+    return historyByEmployee;
   }
 
   async findEmployeeIdsWithCompensationHistory(

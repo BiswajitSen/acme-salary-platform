@@ -24,7 +24,7 @@ describe("CompensationImportService", () => {
       },
       {
         findEmployeeIdsWithCompensationHistory: vi.fn().mockResolvedValue(new Set()),
-        findCompensationHistoryByEmployeeId: vi.fn().mockResolvedValue([]),
+        findCompensationHistoryByEmployeeIds: vi.fn().mockResolvedValue(new Map()),
       },
     );
 
@@ -54,7 +54,7 @@ describe("CompensationImportService", () => {
       },
       {
         findEmployeeIdsWithCompensationHistory: vi.fn().mockResolvedValue(new Set()),
-        findCompensationHistoryByEmployeeId: vi.fn().mockResolvedValue([]),
+        findCompensationHistoryByEmployeeIds: vi.fn().mockResolvedValue(new Map()),
       },
     );
 
@@ -91,7 +91,7 @@ describe("CompensationImportService", () => {
       {
         findExistingEmployeeIds: vi.fn().mockResolvedValue(new Set(["E001"])),
       },
-      { insertManyCompensationHistoryRecords, findEmployeeIdsWithCompensationHistory: vi.fn().mockResolvedValue(new Set()), findCompensationHistoryByEmployeeId: vi.fn().mockResolvedValue([]) },
+      { insertManyCompensationHistoryRecords, findEmployeeIdsWithCompensationHistory: vi.fn().mockResolvedValue(new Set()), findCompensationHistoryByEmployeeIds: vi.fn().mockResolvedValue(new Map()) },
     );
 
     const buffer = buildCompensationSpreadsheetBuffer([
@@ -119,7 +119,7 @@ describe("CompensationImportService", () => {
       },
       {
         findEmployeeIdsWithCompensationHistory: vi.fn().mockResolvedValue(new Set()),
-        findCompensationHistoryByEmployeeId: vi.fn().mockResolvedValue([]),
+        findCompensationHistoryByEmployeeIds: vi.fn().mockResolvedValue(new Map()),
       },
     );
 
@@ -147,7 +147,7 @@ describe("CompensationImportService", () => {
       },
       {
         findEmployeeIdsWithCompensationHistory: vi.fn().mockResolvedValue(new Set()),
-        findCompensationHistoryByEmployeeId: vi.fn().mockResolvedValue([]),
+        findCompensationHistoryByEmployeeIds: vi.fn().mockResolvedValue(new Map()),
       },
     );
 
@@ -191,7 +191,7 @@ describe("CompensationImportService", () => {
       },
       {
         findEmployeeIdsWithCompensationHistory: vi.fn().mockResolvedValue(new Set(["E001"])),
-        findCompensationHistoryByEmployeeId: vi.fn().mockResolvedValue([]),
+        findCompensationHistoryByEmployeeIds: vi.fn().mockResolvedValue(new Map()),
       },
     );
 
@@ -224,19 +224,26 @@ describe("CompensationImportService", () => {
       },
       {
         findEmployeeIdsWithCompensationHistory: vi.fn().mockResolvedValue(new Set()),
-        findCompensationHistoryByEmployeeId: vi.fn().mockResolvedValue([
-          {
-            id: 1,
-            employeeId: "E001",
-            baseSalary: 120_000,
-            currency: "USD",
-            effectiveDate: "2024-01-01",
-            reason: "New Hire",
-            changedBy: "HR Admin",
-            notes: null,
-            createdAt: "2024-01-02T10:00:00.000Z",
-          },
-        ]),
+        findCompensationHistoryByEmployeeIds: vi.fn().mockResolvedValue(
+          new Map([
+            [
+              "E001",
+              [
+                {
+                  id: 1,
+                  employeeId: "E001",
+                  baseSalary: 120_000,
+                  currency: "USD",
+                  effectiveDate: "2024-01-01",
+                  reason: "New Hire",
+                  changedBy: "HR Admin",
+                  notes: null,
+                  createdAt: "2024-01-02T10:00:00.000Z",
+                },
+              ],
+            ],
+          ]),
+        ),
       },
     );
 

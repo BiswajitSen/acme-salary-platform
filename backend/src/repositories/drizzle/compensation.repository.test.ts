@@ -17,6 +17,18 @@ describe("DrizzleCompensationRepository", () => {
     expect(history.every((record) => record.employeeId === "E001")).toBe(true);
   });
 
+  it("returns compensation history grouped by employee id", async () => {
+    await runSeed(db);
+
+    const historyByEmployee = await repository.findCompensationHistoryByEmployeeIds([
+      "E001",
+      "E003",
+    ]);
+
+    expect(historyByEmployee.get("E001")?.length).toBeGreaterThanOrEqual(2);
+    expect(historyByEmployee.get("E003") ?? []).toEqual([]);
+  });
+
   it("returns an empty list when an employee has no compensation history", async () => {
     await runSeed(db);
 
