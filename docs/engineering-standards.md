@@ -5,39 +5,44 @@ This doc is the source of truth — see also [architecture.md](./architecture.md
 
 ---
 
-## 1. Target architecture
+## 1. Architecture
 
-```
-┌─────────────────────────────────────────────────────────────┐
-│  frontend/          Next.js (UI + Server Components)        │
-│  lib/api/           HTTP client only — no business logic    │
-└──────────────────────────┬──────────────────────────────────┘
-                           │ JSON /api/*
-┌──────────────────────────▼──────────────────────────────────┐
-│  backend/                                                   │
-│                                                             │
-│  routes/        HTTP adapters — parse request, call service, │
-│                 map response. No business rules.            │
-│       ↓                                                     │
-│  validators/    Zod schemas (request/response)              │
-│       ↓                                                     │
-│  services/      Use cases — orchestrate domain + repos      │
-│       ↓                                                     │
-│  domain/        Pure rules (enums, invariants, calculations) │
-│       ↓                                                     │
-│  repositories/  Interfaces (I*Repository) + Drizzle impl    │
-│       ↓                                                     │
-│  db/            Schema, migrations, connection              │
-│                                                             │
-│  container/     Wires dependencies (manual DI)            │
-└─────────────────────────────────────────────────────────────┘
-                           │
-┌──────────────────────────▼──────────────────────────────────┐
-│  shared/          Types, enums, Zod schemas (@acme/shared)    │
-└─────────────────────────────────────────────────────────────┘
+Layered monorepo architecture. **Mermaid diagrams** (context, system overview, backend flow, feature map) live in [architecture.md](./architecture.md).
+
+```mermaid
+flowchart TB
+  subgraph Frontend["frontend/"]
+    Next["Next.js UI"]
+    Api["lib/api"]
+  end
+
+  subgraph Backend["backend/"]
+    Routes["routes/"]
+    Services["services/"]
+    Domain["domain/"]
+    Repos["repositories/"]
+    Db["db/"]
+    Container["container/"]
+  end
+
+  subgraph Shared["shared/"]
+    Contracts["@acme/shared"]
+  end
+
+  Next --> Api
+  Api -->|"JSON /api/*"| Routes
+  Routes --> Services
+  Services --> Domain
+  Services --> Repos
+  Repos --> Db
+  Routes -.-> Contracts
+  Api -.-> Contracts
+  Container -.-> Routes
+  Container -.-> Services
+  Container -.-> Repos
 ```
 
-### Folder layout (backend, target)
+### Folder layout (backend)
 
 ```
 backend/src/
