@@ -2,6 +2,8 @@ import { z } from "zod";
 
 import type { TopEarner } from "./analytics";
 
+import { DEFAULT_ANALYTICS_DISPLAY_CURRENCY } from "./currency-conversion";
+
 export const AI_INSIGHT_INTENTS = [
   "AVG_DEPT_SALARY",
   "MEDIAN_DEPT_SALARY",
@@ -42,7 +44,7 @@ export type ParsedInsightQuery = {
 
 export type ParseInsightQueryResponse = ParsedInsightQuery;
 
-export const DEFAULT_INSIGHT_CURRENCY = "USD";
+export const DEFAULT_INSIGHT_CURRENCY = DEFAULT_ANALYTICS_DISPLAY_CURRENCY;
 
 export const INSIGHT_EXECUTION_ERROR_KINDS = [
   "UNSUPPORTED_INTENT",

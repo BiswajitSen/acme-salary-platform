@@ -13,4 +13,8 @@ describe("analyticsSummaryQuerySchema", () => {
     expect(() => analyticsSummaryQuerySchema.parse({ currency: "US" })).toThrow();
     expect(() => analyticsSummaryQuerySchema.parse({ currency: "USDD" })).toThrow();
   });
+
+  it("rejects unsupported display currencies", () => {
+    expect(() => analyticsSummaryQuerySchema.parse({ currency: "AUD" })).toThrow();
+  });
 });

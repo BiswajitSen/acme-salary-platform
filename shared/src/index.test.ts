@@ -3,6 +3,8 @@ import { describe, expect, it } from "vitest";
 import {
   analyticsSummaryQuerySchema,
   COMPENSATION_REASONS,
+  convertCurrencyAmount,
+  DEFAULT_ANALYTICS_DISPLAY_CURRENCY,
   DEFAULT_EMPLOYEE_LIMIT,
   DEFAULT_EMPLOYEE_PAGE,
   DEFAULT_INSIGHT_CURRENCY,
@@ -32,6 +34,7 @@ describe("shared exports", () => {
     expect(analyticsSummaryQuerySchema.parse({ currency: "EUR" })).toEqual({
       currency: "EUR",
     });
+    expect(DEFAULT_ANALYTICS_DISPLAY_CURRENCY).toBe("USD");
   });
 
   it("re-exports ai insight query contract symbols", () => {
