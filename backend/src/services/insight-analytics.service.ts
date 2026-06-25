@@ -3,18 +3,34 @@ import {
   type AnalyticsDepartmentStatisticsResponse,
   type AnalyticsSummaryResponse,
   type AnalyticsTopEarnersResponse,
+  type CompensationReason,
   type InsightTimelineEvent,
 } from "@acme/shared";
 
 import type { ScopedSalaryStatisticsRecord } from "../domain/analytics.types.js";
 import { parseAnalyticsCurrencyQuery } from "../domain/analytics-query.js";
-import { parseInsightAnalyticsQuery } from "../domain/insight-top-earners-query.js";
+import {
+  parseInsightAnalyticsQuery,
+  parseInsightTimelineQuery,
+  toEmployeeScopeFromQuery,
+} from "../domain/insight-top-earners-query.js";
+import type { InsightTimelineWindow } from "../domain/insight-query-timeline-window.js";
 import {
   INSIGHT_TIMELINE_INTENT_REASONS,
   type InsightTimelineIntent,
 } from "../domain/insight-query-timeline.js";
 import type { IInsightAnalyticsRepository } from "../repositories/interfaces/insight-analytics.repository.js";
 import type { IExchangeRateProvider } from "./exchange-rate.provider.js";
+
+function buildTimelineWindow(query: {
+  months?: number;
+  sinceDate?: string;
+}): InsightTimelineWindow {
+  return {
+    months: query.sinceDate === undefined ? (query.months ?? null) : null,
+    sinceDate: query.sinceDate ?? null,
+  };
+}
 
 export class InsightAnalyticsService {
   constructor(
@@ -23,17 +39,15 @@ export class InsightAnalyticsService {
   ) {}
 
   async getAnalyticsSummary(query: unknown): Promise<AnalyticsSummaryResponse> {
-    const { currency, country, department } = parseInsightAnalyticsQuery(query);
+    const parsed = parseInsightAnalyticsQuery(query);
+    const { currency, ...scopeQuery } = parsed;
+    const scope = toEmployeeScopeFromQuery(scopeQuery);
     const { asOf, ratesToUsd } = await this.exchangeRates.fetchSnapshot();
-    const headcount = await this.analytics.countEmployeesWithLatestCompensation(
-      country,
-      department,
-    );
+    const headcount = await this.analytics.countEmployeesWithLatestCompensation(scope);
     const totalPayroll = await this.analytics.sumLatestCompensationSalariesInDisplayCurrency(
       currency,
       ratesToUsd,
-      country,
-      department,
+      scope,
     );
 
     return {
@@ -50,13 +64,14 @@ export class InsightAnalyticsService {
       exchangeRatesAsOf: string;
     }
   > {
-    const { currency, country, department } = parseInsightAnalyticsQuery(query);
+    const parsed = parseInsightAnalyticsQuery(query);
+    const { currency, ...scopeQuery } = parsed;
+    const scope = toEmployeeScopeFromQuery(scopeQuery);
     const { asOf, ratesToUsd } = await this.exchangeRates.fetchSnapshot();
     const statistics = await this.analytics.findSalaryStatisticsInDisplayCurrency(
       currency,
       ratesToUsd,
-      country,
-      department,
+      scope,
     );
 
     return {
@@ -84,19 +99,67 @@ export class InsightAnalyticsService {
   }
 
   async getTopEarners(query: unknown): Promise<AnalyticsTopEarnersResponse> {
-    const { currency, country, department } = parseInsightAnalyticsQuery(query);
+    const parsed = parseInsightAnalyticsQuery(query);
+    const { currency, limit, ...scopeQuery } = parsed;
+    const scope = toEmployeeScopeFromQuery(scopeQuery);
     const { asOf, ratesToUsd } = await this.exchangeRates.fetchSnapshot();
     const earners = await this.analytics.findTopEarnersInDisplayCurrency(
       currency,
       ratesToUsd,
-      ANALYTICS_TOP_EARNERS_LIMIT,
-      country,
-      department,
+      limit ?? ANALYTICS_TOP_EARNERS_LIMIT,
+      scope,
     );
 
     return {
       currency,
       earners,
+      exchangeRatesAsOf: asOf,
+    };
+  }
+
+  async getBottomEarners(query: unknown): Promise<AnalyticsTopEarnersResponse> {
+    const parsed = parseInsightAnalyticsQuery(query);
+    const { currency, limit, ...scopeQuery } = parsed;
+    const scope = toEmployeeScopeFromQuery(scopeQuery);
+    const { asOf, ratesToUsd } = await this.exchangeRates.fetchSnapshot();
+    const earners = await this.analytics.findBottomEarnersInDisplayCurrency(
+      currency,
+      ratesToUsd,
+      limit ?? ANALYTICS_TOP_EARNERS_LIMIT,
+      scope,
+    );
+
+    return {
+      currency,
+      earners,
+      exchangeRatesAsOf: asOf,
+    };
+  }
+
+  async getNearMedianEarners(query: {
+    currency: string;
+    country?: string;
+    department?: string;
+    jobTitle?: string;
+    tolerancePercent: number;
+  }): Promise<
+    AnalyticsTopEarnersResponse & { medianSalary: number; tolerancePercent: number }
+  > {
+    const { currency, tolerancePercent, ...scopeQuery } = query;
+    const scope = toEmployeeScopeFromQuery(scopeQuery);
+    const { asOf, ratesToUsd } = await this.exchangeRates.fetchSnapshot();
+    const result = await this.analytics.findNearMedianEarnersInDisplayCurrency(
+      currency,
+      ratesToUsd,
+      tolerancePercent,
+      scope,
+    );
+
+    return {
+      currency,
+      earners: result.earners,
+      medianSalary: result.medianSalary,
+      tolerancePercent,
       exchangeRatesAsOf: asOf,
     };
   }
@@ -109,18 +172,26 @@ export class InsightAnalyticsService {
   async getRecentTimelineEvents(
     intent: InsightTimelineIntent,
     query: {
-      months: number;
+      months?: number;
+      sinceDate?: string;
       country?: string;
       department?: string;
+      jobTitle?: string;
+      reasons?: readonly CompensationReason[];
     },
   ): Promise<{ asOfDate: string; events: InsightTimelineEvent[] }> {
+    const { reasons, ...parseable } = query;
+    const parsed = parseInsightTimelineQuery(parseable);
+    const { months, sinceDate, ...scopeQuery } = parsed;
+    const scope = toEmployeeScopeFromQuery(scopeQuery);
+    const window = buildTimelineWindow({ months, sinceDate });
+    const resolvedReasons = reasons ?? INSIGHT_TIMELINE_INTENT_REASONS[intent];
     const { asOf } = await this.exchangeRates.fetchSnapshot();
     const events = await this.analytics.findRecentCompensationEvents(
       asOf,
-      query.months,
-      INSIGHT_TIMELINE_INTENT_REASONS[intent],
-      query.country,
-      query.department,
+      window,
+      resolvedReasons,
+      scope,
     );
 
     return {
@@ -130,9 +201,11 @@ export class InsightAnalyticsService {
   }
 
   async getRecentPromotions(query: {
-    months: number;
+    months?: number;
+    sinceDate?: string;
     country?: string;
     department?: string;
+    jobTitle?: string;
   }): Promise<{ asOfDate: string; promotions: InsightTimelineEvent[] }> {
     const response = await this.getRecentTimelineEvents("RECENT_PROMOTIONS", query);
 

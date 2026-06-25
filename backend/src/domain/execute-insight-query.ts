@@ -11,12 +11,18 @@ import {
   type ParsedInsightQuery,
 } from "@acme/shared";
 
+import { resolveInsightBottomEarnersLimit, resolveInsightTopEarnersLimit } from "./insight-query-ranked-earners.js";
+import { resolveInsightNearMedianTolerancePercent } from "./insight-query-near-median.js";
 import {
   extractInsightQueryFilters,
+  scopedResultFields,
   shouldReportScopedEmptyResult,
+  timelineResultScope,
+  toEmployeeScopeParams,
   type InsightQueryFilters,
 } from "./insight-query-spec.js";
 import {
+  resolveTimelineReasons,
   type InsightTimelineIntent,
 } from "./insight-query-timeline.js";
 import { parseSafeInsightCurrency } from "./insight-query-safety.js";
@@ -26,13 +32,11 @@ import { validateInsightExecutionSafety } from "./validate-insight-execution.js"
 export type InsightExecutorContext = {
   getAnalyticsSummary(
     currency: string,
-    country: string | null,
-    department: string | null,
+    scope: ReturnType<typeof toEmployeeScopeParams>,
   ): Promise<AnalyticsSummaryResponse>;
   getScopedSalaryStatistics(
     currency: string,
-    country: string | null,
-    department: string | null,
+    scope: ReturnType<typeof toEmployeeScopeParams>,
   ): Promise<{
     currency: string;
     employeeCount: number;
@@ -41,14 +45,29 @@ export type InsightExecutorContext = {
   }>;
   getTopEarners(
     currency: string,
-    country: string | null,
-    department: string | null,
+    scope: ReturnType<typeof toEmployeeScopeParams>,
+    limit: number,
   ): Promise<AnalyticsTopEarnersResponse>;
+  getBottomEarners(
+    currency: string,
+    scope: ReturnType<typeof toEmployeeScopeParams>,
+    limit: number,
+  ): Promise<AnalyticsTopEarnersResponse>;
+  getNearMedianEarners(
+    currency: string,
+    scope: ReturnType<typeof toEmployeeScopeParams>,
+    tolerancePercent: number,
+  ): Promise<AnalyticsTopEarnersResponse & { medianSalary: number; tolerancePercent: number }>;
   getRecentTimelineEvents(
     intent: InsightTimelineIntent,
-    months: number,
-    country: string | null,
-    department: string | null,
+    query: {
+      months: number | null;
+      sinceDate: string | null;
+      country: string | null;
+      department: string | null;
+      jobTitle: string | null;
+      reasons: readonly string[];
+    },
   ): Promise<{ asOfDate: string; events: InsightTimelineEvent[] }>;
 };
 
@@ -115,11 +134,8 @@ async function loadScopedSalaryStatistics(
 > {
   const currency = resolveInsightCurrency(parsedQuery.currency);
   const filters = resolveFilters(parsedQuery);
-  const response = await context.getScopedSalaryStatistics(
-    currency,
-    filters.country,
-    filters.department,
-  );
+  const scope = toEmployeeScopeParams(filters);
+  const response = await context.getScopedSalaryStatistics(currency, scope);
 
   if (shouldReportScopedEmptyResult(filters, response.employeeCount > 0)) {
     return buildScopeNotFoundResponse(parsedQuery, currency);
@@ -147,8 +163,7 @@ async function executeAvgDeptSalaryIntent(
     result: {
       intent: "AVG_DEPT_SALARY",
       currency: loaded.currency,
-      country: loaded.filters.country,
-      department: loaded.filters.department,
+      ...scopedResultFields(loaded.filters),
       averageSalary: loaded.stats.averageSalary,
       employeeCount: loaded.stats.employeeCount,
     },
@@ -171,8 +186,7 @@ async function executeMedianDeptSalaryIntent(
     result: {
       intent: "MEDIAN_DEPT_SALARY",
       currency: loaded.currency,
-      country: loaded.filters.country,
-      department: loaded.filters.department,
+      ...scopedResultFields(loaded.filters),
       medianSalary: loaded.stats.medianSalary,
       employeeCount: loaded.stats.employeeCount,
     },
@@ -186,11 +200,8 @@ async function executeHeadcountIntent(
 ): Promise<ExecuteInsightQueryResponse> {
   const currency = resolveInsightCurrency(parsedQuery.currency);
   const filters = resolveFilters(parsedQuery);
-  const summary = await context.getAnalyticsSummary(
-    currency,
-    filters.country,
-    filters.department,
-  );
+  const scope = toEmployeeScopeParams(filters);
+  const summary = await context.getAnalyticsSummary(currency, scope);
 
   if (shouldReportScopedEmptyResult(filters, summary.headcount > 0)) {
     return buildScopeNotFoundResponse(parsedQuery, currency);
@@ -201,8 +212,7 @@ async function executeHeadcountIntent(
     result: {
       intent: "HEADCOUNT",
       currency,
-      country: filters.country,
-      department: filters.department,
+      ...scopedResultFields(filters),
       headcount: summary.headcount,
     },
     error: null,
@@ -215,11 +225,8 @@ async function executeTotalPayrollIntent(
 ): Promise<ExecuteInsightQueryResponse> {
   const currency = resolveInsightCurrency(parsedQuery.currency);
   const filters = resolveFilters(parsedQuery);
-  const summary = await context.getAnalyticsSummary(
-    currency,
-    filters.country,
-    filters.department,
-  );
+  const scope = toEmployeeScopeParams(filters);
+  const summary = await context.getAnalyticsSummary(currency, scope);
 
   if (shouldReportScopedEmptyResult(filters, summary.headcount > 0)) {
     return buildScopeNotFoundResponse(parsedQuery, currency);
@@ -230,8 +237,7 @@ async function executeTotalPayrollIntent(
     result: {
       intent: "TOTAL_PAYROLL",
       currency,
-      country: filters.country,
-      department: filters.department,
+      ...scopedResultFields(filters),
       totalPayroll: summary.totalPayroll,
     },
     error: null,
@@ -244,11 +250,11 @@ async function executeTopEarnersIntent(
 ): Promise<ExecuteInsightQueryResponse> {
   const currency = resolveInsightCurrency(parsedQuery.currency);
   const filters = resolveFilters(parsedQuery);
-  const response = await context.getTopEarners(
-    currency,
-    filters.country,
-    filters.department,
-  );
+  const scope = toEmployeeScopeParams(filters);
+  const limit =
+    filters.limit ??
+    resolveInsightTopEarnersLimit(parsedQuery.originalQuery.toLowerCase());
+  const response = await context.getTopEarners(currency, scope, limit);
 
   if (shouldReportScopedEmptyResult(filters, response.earners.length > 0)) {
     return buildScopeNotFoundResponse(parsedQuery, currency);
@@ -259,8 +265,69 @@ async function executeTopEarnersIntent(
     result: {
       intent: "TOP_EARNERS",
       currency,
-      country: filters.country,
-      department: filters.department,
+      ...scopedResultFields(filters),
+      limit,
+      earners: response.earners,
+    },
+    error: null,
+  };
+}
+
+async function executeBottomEarnersIntent(
+  parsedQuery: ParsedInsightQuery,
+  context: InsightExecutorContext,
+): Promise<ExecuteInsightQueryResponse> {
+  const currency = resolveInsightCurrency(parsedQuery.currency);
+  const filters = resolveFilters(parsedQuery);
+  const scope = toEmployeeScopeParams(filters);
+  const limit =
+    filters.limit ??
+    resolveInsightBottomEarnersLimit(parsedQuery.originalQuery.toLowerCase());
+  const response = await context.getBottomEarners(currency, scope, limit);
+
+  if (shouldReportScopedEmptyResult(filters, response.earners.length > 0)) {
+    return buildScopeNotFoundResponse(parsedQuery, currency);
+  }
+
+  return {
+    parsedQuery,
+    result: {
+      intent: "BOTTOM_EARNERS",
+      currency,
+      ...scopedResultFields(filters),
+      limit,
+      earners: response.earners,
+    },
+    error: null,
+  };
+}
+
+async function executeNearMedianEarnersIntent(
+  parsedQuery: ParsedInsightQuery,
+  context: InsightExecutorContext,
+): Promise<ExecuteInsightQueryResponse> {
+  const currency = resolveInsightCurrency(parsedQuery.currency);
+  const filters = resolveFilters(parsedQuery);
+  const scope = toEmployeeScopeParams(filters);
+  const tolerancePercent = resolveInsightNearMedianTolerancePercent(
+    parsedQuery.originalQuery.toLowerCase(),
+  );
+  const stats = await context.getScopedSalaryStatistics(currency, scope);
+
+  if (shouldReportScopedEmptyResult(filters, stats.employeeCount > 0)) {
+    return buildScopeNotFoundResponse(parsedQuery, currency);
+  }
+
+  const response = await context.getNearMedianEarners(currency, scope, tolerancePercent);
+
+  return {
+    parsedQuery,
+    result: {
+      intent: "NEAR_MEDIAN_EARNERS",
+      currency,
+      ...scopedResultFields(filters),
+      medianSalary: response.medianSalary,
+      tolerancePercent,
       earners: response.earners,
     },
     error: null,
@@ -269,36 +336,18 @@ async function executeTopEarnersIntent(
 
 function buildTimelineResult(
   intent: InsightTimelineIntent,
-  parsedQuery: ParsedInsightQuery,
-  months: number,
   filters: InsightQueryFilters,
   events: InsightTimelineEvent[],
 ): InsightExecutionResult {
+  const scope = timelineResultScope(filters);
+
   switch (intent) {
     case "RECENT_PROMOTIONS":
-      return {
-        intent,
-        months,
-        country: filters.country,
-        department: filters.department,
-        promotions: events,
-      };
+      return { intent, ...scope, promotions: events };
     case "RECENT_NEW_HIRES":
-      return {
-        intent,
-        months,
-        country: filters.country,
-        department: filters.department,
-        hires: events,
-      };
+      return { intent, ...scope, hires: events };
     case "RECENT_SALARY_INCREASES":
-      return {
-        intent,
-        months,
-        country: filters.country,
-        department: filters.department,
-        increases: events,
-      };
+      return { intent, ...scope, increases: events };
   }
 }
 
@@ -308,13 +357,16 @@ async function executeTimelineIntent(
   intent: InsightTimelineIntent,
 ): Promise<ExecuteInsightQueryResponse> {
   const filters = resolveFilters(parsedQuery);
-  const months = filters.months ?? DEFAULT_INSIGHT_TIMELINE_MONTHS;
-  const response = await context.getRecentTimelineEvents(
-    intent,
-    months,
-    filters.country,
-    filters.department,
-  );
+  const normalizedQuery = parsedQuery.originalQuery.toLowerCase();
+  const reasons = resolveTimelineReasons(intent, normalizedQuery);
+  const response = await context.getRecentTimelineEvents(intent, {
+    months: filters.sinceDate === null ? filters.months : null,
+    sinceDate: filters.sinceDate,
+    country: filters.country,
+    department: filters.department,
+    jobTitle: filters.jobTitle,
+    reasons,
+  });
 
   if (shouldReportScopedEmptyResult(filters, response.events.length > 0)) {
     const currency = resolveInsightCurrency(parsedQuery.currency);
@@ -323,7 +375,7 @@ async function executeTimelineIntent(
 
   return {
     parsedQuery,
-    result: buildTimelineResult(intent, parsedQuery, months, filters, response.events),
+    result: buildTimelineResult(intent, filters, response.events),
     error: null,
   };
 }
@@ -340,6 +392,8 @@ const INSIGHT_EXECUTORS: Record<
   HEADCOUNT: executeHeadcountIntent,
   TOTAL_PAYROLL: executeTotalPayrollIntent,
   TOP_EARNERS: executeTopEarnersIntent,
+  BOTTOM_EARNERS: executeBottomEarnersIntent,
+  NEAR_MEDIAN_EARNERS: executeNearMedianEarnersIntent,
   RECENT_PROMOTIONS: (parsedQuery, context) =>
     executeTimelineIntent(parsedQuery, context, "RECENT_PROMOTIONS"),
   RECENT_NEW_HIRES: (parsedQuery, context) =>
