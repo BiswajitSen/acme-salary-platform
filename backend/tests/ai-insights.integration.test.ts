@@ -52,6 +52,7 @@ describe("POST /api/insights/execute", () => {
       employeeCount: 1,
     });
     expect(response.body.error).toBeNull();
+    expect(response.body.exchangeRatesAsOf).toBe("2026-01-01");
   });
 
   it("returns a graceful error for unsupported questions", async () => {

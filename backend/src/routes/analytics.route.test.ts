@@ -18,6 +18,14 @@ describe("createAnalyticsRouter", () => {
     const analyticsService = {
       getAvailableCurrencies: vi.fn().mockResolvedValue({
         currencies: ["GBP", "INR", "USD"],
+        exchangeRatesAsOf: "2026-01-01",
+        ratesToUsd: {
+          USD: 1,
+          GBP: 1.25,
+          EUR: 1.1,
+          INR: 0.012,
+          SGD: 0.75,
+        },
       }),
     } as unknown as AnalyticsService;
 
@@ -26,7 +34,17 @@ describe("createAnalyticsRouter", () => {
     );
 
     expect(response.status).toBe(200);
-    expect(response.body).toEqual({ currencies: ["GBP", "INR", "USD"] });
+    expect(response.body).toEqual({
+      currencies: ["GBP", "INR", "USD"],
+      exchangeRatesAsOf: "2026-01-01",
+      ratesToUsd: {
+        USD: 1,
+        GBP: 1.25,
+        EUR: 1.1,
+        INR: 0.012,
+        SGD: 0.75,
+      },
+    });
   });
 
   it("returns analytics summary for a valid currency query", async () => {
@@ -35,6 +53,7 @@ describe("createAnalyticsRouter", () => {
         currency: "USD",
         headcount: 3,
         totalPayroll: 396_000,
+        exchangeRatesAsOf: "2026-01-01",
       }),
     } as unknown as AnalyticsService;
 
@@ -43,19 +62,27 @@ describe("createAnalyticsRouter", () => {
     );
 
     expect(response.status).toBe(200);
-    expect(response.body).toEqual({ currency: "USD", headcount: 3, totalPayroll: 396_000 });
+    expect(response.body).toEqual({
+      currency: "USD",
+      headcount: 3,
+      totalPayroll: 396_000,
+      exchangeRatesAsOf: "2026-01-01",
+    });
     expect(analyticsService.getAnalyticsSummary).toHaveBeenCalledWith({
       currency: "USD",
     });
   });
 
   it("returns 400 when currency query validation fails", async () => {
-    const analyticsService = new AnalyticsService({
-      countEmployeesWithLatestCompensation: vi.fn(),
-      sumLatestCompensationSalariesInDisplayCurrency: vi.fn(),
-      findDepartmentSalaryStatisticsInDisplayCurrency: vi.fn(),
-      findTopEarnersInDisplayCurrency: vi.fn(),
-    });
+    const analyticsService = new AnalyticsService(
+      {
+        countEmployeesWithLatestCompensation: vi.fn(),
+        sumLatestCompensationSalariesInDisplayCurrency: vi.fn(),
+        findDepartmentSalaryStatisticsInDisplayCurrency: vi.fn(),
+        findTopEarnersInDisplayCurrency: vi.fn(),
+      },
+      { fetchSnapshot: vi.fn() },
+    );
 
     const response = await request(createTestApp(analyticsService)).get(
       "/analytics/summary?currency=US",
