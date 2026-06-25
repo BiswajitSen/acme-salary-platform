@@ -14,7 +14,11 @@
     "db:generate": "npm run db:generate -w backend",
     "db:migrate": "npm run db:migrate -w backend",
     "db:import": "npm run db:import -w backend",
-    "db:generate-spreadsheet": "npm run db:generate-spreadsheet -w backend"
+    "db:generate-spreadsheet": "npm run db:generate-spreadsheet -w backend",
+    "render:build:api": "./scripts/render-build-backend.sh",
+    "render:start:api": "./scripts/render-start-backend.sh",
+    "render:build:web": "./scripts/render-build-frontend.sh",
+    "render:start:web": "./scripts/render-start-frontend.sh"
   },
   "devDependencies": {
     "prettier": "^3.4.2"

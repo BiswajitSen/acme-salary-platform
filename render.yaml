@@ -1,0 +1,48 @@
+# Render Blueprint — deploy both services from this monorepo.
+#
+# Setup:
+# 1. Push this repo to GitHub
+# 2. Render Dashboard → New → Blueprint → connect repo
+# 3. When prompted, paste your Neon DATABASE_URL for acme-salary-api
+# 4. After first deploy, open acme-salary-web and click "Manual Deploy" if API
+#    rewrites still point at localhost (API_URL must exist before frontend build)
+# 5. Seed data once from your laptop:
+#      DATABASE_URL="<neon-url>" npm run db:seed -w backend
+
+services:
+  - type: web
+    name: acme-salary-api
+    runtime: node
+    plan: free
+    region: oregon
+    buildCommand: ./scripts/render-build-backend.sh
+    startCommand: ./scripts/render-start-backend.sh
+    healthCheckPath: /api/health
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: LOG_LEVEL
+        value: info
+      - key: DATABASE_URL
+        sync: false
+      - key: CORS_ORIGIN
+        fromService:
+          type: web
+          name: acme-salary-web
+          envVarKey: RENDER_EXTERNAL_URL
+
+  - type: web
+    name: acme-salary-web
+    runtime: node
+    plan: free
+    region: oregon
+    buildCommand: ./scripts/render-build-frontend.sh
+    startCommand: ./scripts/render-start-frontend.sh
+    envVars:
+      - key: NODE_ENV
+        value: production
+      - key: API_URL
+        fromService:
+          type: web
+          name: acme-salary-api
+          envVarKey: RENDER_EXTERNAL_URL

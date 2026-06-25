@@ -1,5 +1,9 @@
 import { z } from "zod";
 
+function emptyEnvToUndefined(value: unknown): unknown {
+  return typeof value === "string" && value.trim() === "" ? undefined : value;
+}
+
 const envSchema = z.object({
   NODE_ENV: z
     .enum(["development", "test", "production"])
@@ -9,7 +13,10 @@ const envSchema = z.object({
     .string()
     .min(1)
     .default("postgresql://acme:acme@localhost:5433/acme_salary"),
-  CORS_ORIGIN: z.string().url().default("http://localhost:3000"),
+  CORS_ORIGIN: z.preprocess(
+    emptyEnvToUndefined,
+    z.string().url(),
+  ).default("http://localhost:3000"),
   LOG_LEVEL: z
     .enum(["fatal", "error", "warn", "info", "debug", "trace"])
     .default("info"),
