@@ -109,7 +109,7 @@ export function RecordCompensationChangeForm({
 
   return (
     <Card title="Record compensation change">
-      <form className={styles.form} onSubmit={handleSubmit}>
+      <form className={styles.form} noValidate onSubmit={handleSubmit}>
         <div className={styles.grid}>
           <Input
             id="compensation-base-salary"
@@ -138,6 +138,7 @@ export function RecordCompensationChangeForm({
             id="compensation-effective-date"
             label="Effective date"
             type="date"
+            required
             value={formState.effectiveDate}
             onChange={(event) => updateField("effectiveDate", event.target.value)}
             error={fieldErrors.effectiveDate}

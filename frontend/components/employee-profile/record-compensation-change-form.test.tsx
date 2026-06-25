@@ -39,6 +39,7 @@ describe("RecordCompensationChangeForm", () => {
 
     await waitFor(() => {
       expect(screen.getByText("Base salary must be greater than zero")).toBeInTheDocument();
+      expect(screen.getByText("Effective date is required")).toBeInTheDocument();
     });
     expect(mockedRecordCompensationChange).not.toHaveBeenCalled();
   });
@@ -88,6 +89,12 @@ describe("RecordCompensationChangeForm", () => {
     await waitFor(() => {
       expect(screen.getByText("Employee E404 not found")).toBeInTheDocument();
     });
+  });
+
+  it("requires an effective date before submitting", () => {
+    render(<RecordCompensationChangeForm employeeId="E001" onRecorded={vi.fn()} />);
+
+    expect(screen.getByLabelText("Effective date")).toBeRequired();
   });
 
   it("shows a generic submit error for non-error rejections", async () => {

@@ -251,7 +251,7 @@ describe("EmployeeProfile", () => {
     render(<EmployeeProfile employeeId="E001" />);
 
     await user.type(screen.getByLabelText("Base salary"), "140000");
-    await user.type(screen.getByLabelText("Currency"), "USD");
+    await user.selectOptions(screen.getByLabelText("Currency"), "USD");
     fireEvent.change(screen.getByLabelText("Effective date"), {
       target: { value: "2026-06-01" },
     });
