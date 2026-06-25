@@ -1,6 +1,6 @@
 import type { EmployeeImportValidationIssue } from "@acme/shared";
 
-import styles from "./employee-import-preview.module.css";
+import styles from "@/components/import/import-preview-shared.module.css";
 
 type EmployeeImportPreviewPanelProps = {
   employeeCount: number;
@@ -19,6 +19,9 @@ export function EmployeeImportPreviewPanel({
     <section className={styles.panel} aria-live="polite">
       {isValid ? (
         <p className={styles.successMessage}>
+          <span className={styles.successIcon} aria-hidden="true">
+            ✓
+          </span>
           All clear. {employeeCount.toLocaleString()} employees are ready to import.
         </p>
       ) : (
@@ -39,8 +42,8 @@ export function EmployeeImportPreviewPanel({
               <tbody>
                 {validationIssues.map((issue) => (
                   <tr key={`${issue.rowNumber}-${issue.field}-${issue.message}`}>
-                    <td>{issue.rowNumber}</td>
-                    <td>{issue.field}</td>
+                    <td className={styles.rowNumber}>{issue.rowNumber}</td>
+                    <td className={styles.fieldName}>{issue.field}</td>
                     <td>{issue.message}</td>
                   </tr>
                 ))}

@@ -1,0 +1,90 @@
+.panel {
+  display: flex;
+  flex-direction: column;
+  gap: 0.875rem;
+}
+
+.successMessage {
+  display: flex;
+  gap: 0.75rem;
+  align-items: flex-start;
+  margin: 0;
+  padding: 0.95rem 1rem;
+  border: 1px solid color-mix(in srgb, var(--success) 35%, var(--border));
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--success) 10%, var(--surface));
+  color: var(--text);
+  font-size: 0.9375rem;
+  font-weight: 600;
+}
+
+.successIcon {
+  color: var(--success);
+  font-size: 1.1rem;
+  line-height: 1.2;
+}
+
+.errorSummary {
+  margin: 0;
+  padding: 0.75rem 0.9rem;
+  border: 1px solid color-mix(in srgb, var(--danger) 25%, var(--border));
+  border-radius: var(--radius-md);
+  background: color-mix(in srgb, var(--danger-soft) 70%, var(--surface));
+  color: var(--text-muted);
+  font-size: 0.875rem;
+}
+
+.tableWrap {
+  overflow-x: auto;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+}
+
+.table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 0.8125rem;
+}
+
+.table th,
+.table td {
+  padding: 0.7rem 0.9rem;
+  border-bottom: 1px solid var(--border);
+  text-align: left;
+  vertical-align: top;
+}
+
+.table th {
+  background: var(--surface-muted);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.04em;
+  text-transform: uppercase;
+  color: var(--text-subtle);
+}
+
+.table tbody tr:nth-child(even) {
+  background: color-mix(in srgb, var(--surface-muted) 45%, var(--surface));
+}
+
+.table tbody tr:last-child td {
+  border-bottom: none;
+}
+
+.rowNumber {
+  font-variant-numeric: tabular-nums;
+  font-weight: 600;
+}
+
+.fieldName {
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 0.75rem;
+  color: var(--foreground);
+}
+
+.moreIssues {
+  margin: 0;
+  color: var(--text-subtle);
+  font-size: 0.8125rem;
+}

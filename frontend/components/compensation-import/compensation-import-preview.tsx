@@ -1,6 +1,6 @@
 import type { CompensationImportValidationIssue } from "@acme/shared";
 
-import styles from "./compensation-import-preview.module.css";
+import styles from "@/components/import/import-preview-shared.module.css";
 
 type CompensationImportPreviewPanelProps = {
   recordCount: number;
@@ -19,6 +19,9 @@ export function CompensationImportPreviewPanel({
     <section className={styles.panel} aria-live="polite">
       {isValid ? (
         <p className={styles.successMessage}>
+          <span className={styles.successIcon} aria-hidden="true">
+            ✓
+          </span>
           All clear. {recordCount.toLocaleString()} compensation records are ready to
           import.
         </p>
@@ -40,8 +43,8 @@ export function CompensationImportPreviewPanel({
               <tbody>
                 {validationIssues.map((issue) => (
                   <tr key={`${issue.rowNumber}-${issue.field}-${issue.message}`}>
-                    <td>{issue.rowNumber}</td>
-                    <td>{issue.field}</td>
+                    <td className={styles.rowNumber}>{issue.rowNumber}</td>
+                    <td className={styles.fieldName}>{issue.field}</td>
                     <td>{issue.message}</td>
                   </tr>
                 ))}
