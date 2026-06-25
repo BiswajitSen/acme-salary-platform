@@ -135,16 +135,28 @@ export function InsightExecutionResult({ result }: InsightExecutionResultProps) 
       );
     case "MEDIAN_SPLIT_COUNTS":
       return (
-        <Card title="Below vs above median">
+        <Card
+          title={
+            result.medianSplitFocus === "below"
+              ? "Below median"
+              : result.medianSplitFocus === "above"
+                ? "Above median"
+                : "Below vs above median"
+          }
+        >
           <div className={styles.splitCounts}>
-            <div>
-              <p className={styles.splitLabel}>Below median</p>
-              <p className={styles.metric}>{result.belowMedianCount.toLocaleString()}</p>
-            </div>
-            <div>
-              <p className={styles.splitLabel}>Above median</p>
-              <p className={styles.metric}>{result.aboveMedianCount.toLocaleString()}</p>
-            </div>
+            {(result.medianSplitFocus === "below" || result.medianSplitFocus === "both") && (
+              <div>
+                <p className={styles.splitLabel}>Below median</p>
+                <p className={styles.metric}>{result.belowMedianCount.toLocaleString()}</p>
+              </div>
+            )}
+            {(result.medianSplitFocus === "above" || result.medianSplitFocus === "both") && (
+              <div>
+                <p className={styles.splitLabel}>Above median</p>
+                <p className={styles.metric}>{result.aboveMedianCount.toLocaleString()}</p>
+              </div>
+            )}
           </div>
           <p className={styles.scopeMeta}>
             {formatInsightMedianSplitScopeMeta({

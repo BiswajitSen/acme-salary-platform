@@ -34,6 +34,7 @@ describe("ParsedInsightSummary", () => {
           months: null,
           sinceDate: null,
           limit: null,
+          medianSplitFocus: null,
         }}
       />,
     );
@@ -55,12 +56,13 @@ describe("ParsedInsightSummary", () => {
           months: null,
           sinceDate: null,
           limit: null,
+          medianSplitFocus: null,
         }}
       />,
     );
 
     expect(screen.getByText("USD")).toBeTruthy();
-    expect(screen.getAllByText("—")).toHaveLength(6);
+    expect(screen.getAllByText("—")).toHaveLength(7);
   });
 
   it("shows the employee country filter when the query mentions a country", () => {
@@ -76,6 +78,7 @@ describe("ParsedInsightSummary", () => {
           months: null,
           sinceDate: null,
           limit: null,
+          medianSplitFocus: null,
         }}
         executionCurrency="USD"
       />,

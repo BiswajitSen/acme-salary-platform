@@ -75,6 +75,12 @@ export function ParsedInsightSummary({
           </dd>
         </div>
         <div>
+          <dt>Median split</dt>
+          <dd className={valueClassName(parsedQuery.medianSplitFocus)}>
+            {formatFieldValue(parsedQuery.medianSplitFocus)}
+          </dd>
+        </div>
+        <div>
           <dt>Display currency</dt>
           <dd className={styles.valueSet}>{resolvedCurrency}</dd>
         </div>

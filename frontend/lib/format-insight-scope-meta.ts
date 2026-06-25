@@ -105,11 +105,17 @@ export function formatInsightMedianSplitScopeMeta(
     medianSalary: number;
     belowMedianCount: number;
     aboveMedianCount: number;
+    medianSplitFocus?: "below" | "above" | "both";
   },
 ): string {
   const parts = buildScopeParts(scope);
   const medianLabel = `median ${formatSalary(scope.medianSalary, scope.currency)}`;
-  const splitLabel = `${scope.belowMedianCount.toLocaleString()} below · ${scope.aboveMedianCount.toLocaleString()} above`;
+  const splitLabel =
+    scope.medianSplitFocus === "below"
+      ? `${scope.belowMedianCount.toLocaleString()} below`
+      : scope.medianSplitFocus === "above"
+        ? `${scope.aboveMedianCount.toLocaleString()} above`
+        : `${scope.belowMedianCount.toLocaleString()} below · ${scope.aboveMedianCount.toLocaleString()} above`;
 
   if (parts.length === 0) {
     return `${splitLabel} · ${medianLabel} · ${scope.employeeCount.toLocaleString()} employees`;

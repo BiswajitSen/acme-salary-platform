@@ -14,5 +14,6 @@ export const INSIGHT_EXAMPLE_QUERIES = [
   "Who are the least earners?",
   "Who earn around the median in Engineering?",
   "How many employees are earning below and above median in Engineering?",
+  "How many employees are earning below median in Engineering in India?",
   "median salary in HR",
 ] as const;
