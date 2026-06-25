@@ -98,14 +98,6 @@ function buildUnknownInsightQuery(originalQuery: string): ParsedInsightQuery {
   };
 }
 
-function salaryIntentRequiresEmployeeScope(intent: AiInsightIntent): boolean {
-  return intent === "AVG_DEPT_SALARY" || intent === "MEDIAN_DEPT_SALARY";
-}
-
-function hasEmployeeScope(department: string | null, country: string | null): boolean {
-  return department !== null || country !== null;
-}
-
 export function parseInsightQuery(query: string): ParsedInsightQuery {
   const originalQuery = normalizeInsightQuery(query);
   const normalizedQuery = originalQuery.toLowerCase();
@@ -121,10 +113,6 @@ export function parseInsightQuery(query: string): ParsedInsightQuery {
   const months = resolveInsightMonths(intent, normalizedQuery);
 
   if (intent === "UNKNOWN") {
-    return buildUnknownInsightQuery(originalQuery);
-  }
-
-  if (salaryIntentRequiresEmployeeScope(intent) && !hasEmployeeScope(department, country)) {
     return buildUnknownInsightQuery(originalQuery);
   }
 

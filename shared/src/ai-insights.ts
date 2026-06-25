@@ -133,6 +133,7 @@ export type InsightTopEarnersResult = {
   intent: "TOP_EARNERS";
   currency: string;
   country: string | null;
+  department: string | null;
   earners: TopEarner[];
 };
 

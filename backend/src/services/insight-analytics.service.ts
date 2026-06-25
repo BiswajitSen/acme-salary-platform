@@ -80,13 +80,14 @@ export class InsightAnalyticsService {
   }
 
   async getTopEarners(query: unknown): Promise<AnalyticsTopEarnersResponse> {
-    const { currency, country } = parseInsightAnalyticsQuery(query);
+    const { currency, country, department } = parseInsightAnalyticsQuery(query);
     const { asOf, ratesToUsd } = await this.exchangeRates.fetchSnapshot();
     const earners = await this.analytics.findTopEarnersInDisplayCurrency(
       currency,
       ratesToUsd,
       ANALYTICS_TOP_EARNERS_LIMIT,
       country,
+      department,
     );
 
     return {

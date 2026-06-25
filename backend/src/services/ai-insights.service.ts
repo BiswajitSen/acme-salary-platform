@@ -36,10 +36,11 @@ export class AiInsightsService {
           ...(country === null ? {} : { country }),
           ...(department === null ? {} : { department }),
         }),
-      getTopEarners: (currency, country) =>
+      getTopEarners: (currency, country, department) =>
         this.insightAnalyticsService.getTopEarners({
           currency,
           ...(country === null ? {} : { country }),
+          ...(department === null ? {} : { department }),
         }),
       getRecentPromotions: (months, country, department) =>
         this.insightAnalyticsService.getRecentPromotions({

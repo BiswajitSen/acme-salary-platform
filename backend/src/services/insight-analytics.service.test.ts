@@ -217,6 +217,7 @@ describe("InsightAnalyticsService", () => {
       expect.any(Object),
       expect.any(Number),
       "IN",
+      undefined,
     );
   });
 });

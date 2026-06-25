@@ -181,10 +181,10 @@ export class DrizzleAnalyticsRepository implements IAnalyticsRepository {
     ratesToUsd: ExchangeRatesToUsd,
     limit: number,
     country?: string,
+    department?: string,
   ): Promise<TopEarnerRecord[]> {
     const convertedSalary = buildConvertedSalarySql(displayCurrency, ratesToUsd);
-    const countryFilter =
-      country === undefined ? sql`TRUE` : sql`e.country = ${country}`;
+    const scopeFilter = buildEmployeeScopeFilter(country, department);
 
     const result = await this.database.execute<{
       employee_id: string;
@@ -200,7 +200,7 @@ export class DrizzleAnalyticsRepository implements IAnalyticsRepository {
         ${convertedSalary} AS base_salary
       FROM latest_compensation lc
       INNER JOIN employees e ON e.id = lc.employee_id
-      WHERE ${countryFilter}
+      WHERE ${scopeFilter}
       ORDER BY base_salary DESC, lc.employee_id ASC
       LIMIT ${limit}
     `);

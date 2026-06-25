@@ -181,6 +181,17 @@ describe("DrizzleAnalyticsRepository", () => {
         baseSalary: convertCurrencyAmount(3_000_000, "INR", "USD", testRates),
       },
     ]);
+
+    await expect(
+      repository.findTopEarnersInDisplayCurrency("USD", testRates, 10, "IN", "Engineering"),
+    ).resolves.toEqual([
+      {
+        employeeId: "E010",
+        fullName: "Raj Patel",
+        department: "Engineering",
+        baseSalary: convertCurrencyAmount(3_000_000, "INR", "USD", testRates),
+      },
+    ]);
   });
 
   it("returns top earners ordered by converted salary descending", async () => {

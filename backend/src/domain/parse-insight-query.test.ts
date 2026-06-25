@@ -167,7 +167,7 @@ describe("parseInsightQuery", () => {
 
   it("returns UNKNOWN when a salary intent has no department or country scope", () => {
     expect(parseInsightQuery("What is the average salary?")).toEqual({
-      intent: "UNKNOWN",
+      intent: "AVG_DEPT_SALARY",
       originalQuery: "What is the average salary?",
       department: null,
       country: null,

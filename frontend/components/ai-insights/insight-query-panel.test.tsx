@@ -150,6 +150,7 @@ describe("InsightExecutionResult", () => {
           intent: "TOP_EARNERS",
           currency: "USD",
           country: null,
+          department: null,
           earners: [
             {
               employeeId: "E001",
@@ -200,6 +201,7 @@ describe("InsightExecutionResult", () => {
           intent: "TOP_EARNERS",
           currency: "USD",
           country: null,
+          department: null,
           earners: [],
         }}
       />,

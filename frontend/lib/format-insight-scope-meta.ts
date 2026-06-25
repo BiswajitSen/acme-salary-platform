@@ -51,3 +51,13 @@ export function formatInsightSalaryScopeMeta(
 
   return `${parts.join(" · ")} · ${scope.employeeCount} employees · ${scope.currency}`;
 }
+
+export function formatInsightTopEarnersScopeMeta(scope: InsightScopeParts): string {
+  const parts = buildScopeParts(scope);
+
+  if (parts.length === 0) {
+    return `Organization-wide · amounts in ${scope.currency}`;
+  }
+
+  return `${parts.join(" · ")} · amounts in ${scope.currency}`;
+}

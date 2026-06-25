@@ -29,6 +29,7 @@ export interface IInsightAnalyticsRepository {
     ratesToUsd: ExchangeRatesToUsd,
     limit: number,
     country?: string,
+    department?: string,
   ): Promise<TopEarnerRecord[]>;
   findRecentPromotions(
     asOfDate: string,
