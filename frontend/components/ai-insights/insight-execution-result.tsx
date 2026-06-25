@@ -1,10 +1,12 @@
 "use client";
 
-import type { InsightExecutionResult } from "@acme/shared";
+import type { InsightExecutionResult, TopEarner } from "@acme/shared";
 
 import { Card } from "@/components/ui/card";
 import {
+  formatInsightBottomEarnersScopeMeta,
   formatInsightHeadcountScopeMeta,
+  formatInsightNearMedianScopeMeta,
   formatInsightPayrollScopeMeta,
   formatInsightSalaryScopeMeta,
   formatInsightTopEarnersScopeMeta,
@@ -17,6 +19,48 @@ import styles from "./insight-execution-result.module.css";
 type InsightExecutionResultProps = {
   result: InsightExecutionResult;
 };
+
+type RankedEarnersCardProps = {
+  title: string;
+  meta: string;
+  emptyMessage: string;
+  earners: TopEarner[];
+  currency: string;
+};
+
+function RankedEarnersCard({
+  title,
+  meta,
+  emptyMessage,
+  earners,
+  currency,
+}: RankedEarnersCardProps) {
+  return (
+    <Card title={title}>
+      <p className={styles.meta}>{meta}</p>
+      {earners.length === 0 ? (
+        <p className={styles.meta}>{emptyMessage}</p>
+      ) : (
+        <ol className={styles.list}>
+          {earners.map((earner, index) => (
+            <li key={earner.employeeId} className={styles.item}>
+              <span className={styles.rank}>{index + 1}</span>
+              <div>
+                <p className={styles.name}>{earner.fullName}</p>
+                <p className={styles.meta}>
+                  {earner.employeeId} · {earner.department}
+                </p>
+              </div>
+              <span className={styles.salary}>
+                {formatSalary(earner.baseSalary, currency)}
+              </span>
+            </li>
+          ))}
+        </ol>
+      )}
+    </Card>
+  );
+}
 
 export function InsightExecutionResult({ result }: InsightExecutionResultProps) {
   switch (result.intent) {
@@ -60,31 +104,33 @@ export function InsightExecutionResult({ result }: InsightExecutionResultProps) 
       );
     case "TOP_EARNERS":
       return (
-        <Card title="Top earners">
-          <p className={styles.meta}>
-            {formatInsightTopEarnersScopeMeta(result)}
-          </p>
-          {result.earners.length === 0 ? (
-            <p className={styles.meta}>No earners found.</p>
-          ) : (
-            <ol className={styles.list}>
-              {result.earners.map((earner, index) => (
-                <li key={earner.employeeId} className={styles.item}>
-                  <span className={styles.rank}>{index + 1}</span>
-                  <div>
-                    <p className={styles.name}>{earner.fullName}</p>
-                    <p className={styles.meta}>
-                      {earner.employeeId} · {earner.department}
-                    </p>
-                  </div>
-                  <span className={styles.salary}>
-                    {formatSalary(earner.baseSalary, result.currency)}
-                  </span>
-                </li>
-              ))}
-            </ol>
-          )}
-        </Card>
+        <RankedEarnersCard
+          title="Top earners"
+          meta={formatInsightTopEarnersScopeMeta(result)}
+          emptyMessage="No earners found."
+          earners={result.earners}
+          currency={result.currency}
+        />
+      );
+    case "BOTTOM_EARNERS":
+      return (
+        <RankedEarnersCard
+          title="Bottom earners"
+          meta={formatInsightBottomEarnersScopeMeta(result)}
+          emptyMessage="No earners found."
+          earners={result.earners}
+          currency={result.currency}
+        />
+      );
+    case "NEAR_MEDIAN_EARNERS":
+      return (
+        <RankedEarnersCard
+          title="Near-median earners"
+          meta={`${formatInsightNearMedianScopeMeta(result)} · median ${formatSalary(result.medianSalary, result.currency)}`}
+          emptyMessage="No employees found within the median band."
+          earners={result.earners}
+          currency={result.currency}
+        />
       );
     case "RECENT_PROMOTIONS":
       return (
@@ -92,8 +138,10 @@ export function InsightExecutionResult({ result }: InsightExecutionResultProps) 
           title="Recent promotions"
           emptyMessage="No promotions found in this period."
           months={result.months}
+          sinceDate={result.sinceDate}
           country={result.country}
           department={result.department}
+          jobTitle={result.jobTitle}
           events={result.promotions}
         />
       );
@@ -103,8 +151,10 @@ export function InsightExecutionResult({ result }: InsightExecutionResultProps) 
           title="Recent new hires"
           emptyMessage="No new hires found in this period."
           months={result.months}
+          sinceDate={result.sinceDate}
           country={result.country}
           department={result.department}
+          jobTitle={result.jobTitle}
           events={result.hires}
         />
       );
@@ -114,8 +164,10 @@ export function InsightExecutionResult({ result }: InsightExecutionResultProps) 
           title="Recent salary increases"
           emptyMessage="No salary increases found in this period."
           months={result.months}
+          sinceDate={result.sinceDate}
           country={result.country}
           department={result.department}
+          jobTitle={result.jobTitle}
           events={result.increases}
         />
       );

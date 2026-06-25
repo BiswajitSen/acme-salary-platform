@@ -29,8 +29,11 @@ describe("ParsedInsightSummary", () => {
           originalQuery: "average salary in Engineering",
           department: "Engineering",
           country: null,
+          jobTitle: null,
           currency: null,
           months: null,
+          sinceDate: null,
+          limit: null,
         }}
       />,
     );
@@ -53,7 +56,7 @@ describe("ParsedInsightSummary", () => {
     );
 
     expect(screen.getByText("USD")).toBeTruthy();
-    expect(screen.getAllByText("—")).toHaveLength(3);
+    expect(screen.getAllByText("—")).toHaveLength(6);
   });
 
   it("shows the employee country filter when the query mentions a country", () => {
@@ -64,7 +67,11 @@ describe("ParsedInsightSummary", () => {
           originalQuery: "Who are the top earners in INDIA?",
           department: null,
           country: "IN",
+          jobTitle: null,
           currency: null,
+          months: null,
+          sinceDate: null,
+          limit: null,
         }}
         executionCurrency="USD"
       />,
@@ -84,6 +91,7 @@ describe("InsightExecutionResult", () => {
           currency: "USD",
           country: null,
           department: "Engineering",
+          jobTitle: null,
           averageSalary: 120_000,
           employeeCount: 10,
         }}
@@ -151,6 +159,8 @@ describe("InsightExecutionResult", () => {
           currency: "USD",
           country: null,
           department: null,
+          jobTitle: null,
+          limit: 10,
           earners: [
             {
               employeeId: "E001",
@@ -173,8 +183,10 @@ describe("InsightExecutionResult", () => {
         result={{
           intent: "RECENT_PROMOTIONS",
           months: 3,
+          sinceDate: null,
           country: null,
           department: null,
+          jobTitle: null,
           promotions: [
             {
               employeeId: "E001",
@@ -203,6 +215,8 @@ describe("InsightExecutionResult", () => {
           currency: "USD",
           country: null,
           department: null,
+          jobTitle: null,
+          limit: 10,
           earners: [],
         }}
       />,
@@ -269,6 +283,7 @@ describe("InsightQueryPanel", () => {
           currency: "USD",
           country: null,
           department: "Engineering",
+          jobTitle: null,
           averageSalary: 120_000,
           employeeCount: 10,
         },
