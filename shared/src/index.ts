@@ -53,11 +53,12 @@ export type {
 export {
   ANALYTICS_TOP_EARNERS_LIMIT,
   ANALYTICS_DISPLAY_CURRENCIES,
-  ANALYTICS_EXCHANGE_RATES_TO_USD,
   analyticsSummaryQuerySchema,
   convertCurrencyAmount,
+  createTestExchangeRateSnapshot,
   DEFAULT_ANALYTICS_DISPLAY_CURRENCY,
   getAnalyticsDisplayCurrencyRateToUsd,
+  TEST_EXCHANGE_RATES_TO_USD,
   type AnalyticsCurrenciesResponse,
   type AnalyticsDepartmentStatisticsResponse,
   type AnalyticsDisplayCurrency,
@@ -65,6 +66,8 @@ export {
   type AnalyticsSummaryResponse,
   type AnalyticsTopEarnersResponse,
   type DepartmentSalaryStatistics,
+  type ExchangeRateSnapshot,
+  type ExchangeRatesToUsd,
   type TopEarner,
 } from "./analytics";
 

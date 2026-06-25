@@ -23,6 +23,27 @@ describe("insightQueryRequestSchema", () => {
       insightQueryRequestSchema.parse({ query: "a".repeat(501) }),
     ).toThrow();
   });
+
+  it("accepts an optional display currency override", () => {
+    expect(
+      insightQueryRequestSchema.parse({
+        query: "headcount",
+        displayCurrency: "gbp",
+      }),
+    ).toEqual({
+      query: "headcount",
+      displayCurrency: "GBP",
+    });
+  });
+
+  it("rejects unsupported display currencies", () => {
+    expect(() =>
+      insightQueryRequestSchema.parse({
+        query: "headcount",
+        displayCurrency: "XYZ",
+      }),
+    ).toThrow();
+  });
 });
 
 describe("AI_INSIGHT_INTENTS", () => {

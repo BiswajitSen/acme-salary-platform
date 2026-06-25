@@ -2,7 +2,10 @@ import { z } from "zod";
 
 import type { TopEarner } from "./analytics";
 
-import { DEFAULT_ANALYTICS_DISPLAY_CURRENCY } from "./currency-conversion";
+import {
+  analyticsDisplayCurrencySchema,
+  DEFAULT_ANALYTICS_DISPLAY_CURRENCY,
+} from "./currency-conversion";
 
 export const AI_INSIGHT_INTENTS = [
   "AVG_DEPT_SALARY",
@@ -31,6 +34,7 @@ export const insightQueryRequestSchema = z.object({
     .trim()
     .min(1, "Query is required")
     .max(500, "Query must be 500 characters or fewer"),
+  displayCurrency: analyticsDisplayCurrencySchema.optional(),
 });
 
 export type InsightQueryRequest = z.infer<typeof insightQueryRequestSchema>;
@@ -104,4 +108,5 @@ export type ExecuteInsightQueryResponse = {
   parsedQuery: ParsedInsightQuery;
   result: InsightExecutionResult | null;
   error: InsightExecutionError | null;
+  exchangeRatesAsOf: string;
 };
