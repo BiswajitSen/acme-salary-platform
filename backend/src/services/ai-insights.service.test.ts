@@ -11,18 +11,14 @@ function createInsightAnalyticsServiceMock(): InsightAnalyticsService {
       totalPayroll: 5_280_000,
       exchangeRatesAsOf: "2026-01-01",
     }),
-    getDepartmentSalaryStatistics: vi.fn().mockResolvedValue({
+    getScopedSalaryStatistics: vi.fn().mockResolvedValue({
       currency: "USD",
-      departments: [
-        {
-          department: "Engineering",
-          employeeCount: 10,
-          averageSalary: 120_000,
-          medianSalary: 118_000,
-        },
-      ],
+      employeeCount: 10,
+      averageSalary: 120_000,
+      medianSalary: 118_000,
       exchangeRatesAsOf: "2026-01-01",
     }),
+    getDepartmentSalaryStatistics: vi.fn(),
     getTopEarners: vi.fn().mockResolvedValue({
       currency: "USD",
       earners: [
@@ -36,6 +32,10 @@ function createInsightAnalyticsServiceMock(): InsightAnalyticsService {
       exchangeRatesAsOf: "2026-01-01",
     }),
     getExchangeRatesAsOf: vi.fn().mockResolvedValue("2026-01-01"),
+    getRecentPromotions: vi.fn().mockResolvedValue({
+      asOfDate: "2026-01-01",
+      promotions: [],
+    }),
   } as unknown as InsightAnalyticsService;
 }
 
@@ -47,7 +47,9 @@ describe("AiInsightsService", () => {
       intent: "AVG_DEPT_SALARY",
       originalQuery: "average salary in Engineering",
       department: "Engineering",
+      country: null,
       currency: null,
+      months: null,
     });
   });
 
@@ -68,11 +70,14 @@ describe("AiInsightsService", () => {
         intent: "AVG_DEPT_SALARY",
         originalQuery: "average salary in Engineering",
         department: "Engineering",
+        country: null,
         currency: null,
+        months: null,
       },
       result: {
         intent: "AVG_DEPT_SALARY",
         currency: "USD",
+        country: null,
         department: "Engineering",
         averageSalary: 120_000,
         employeeCount: 10,
@@ -80,8 +85,9 @@ describe("AiInsightsService", () => {
       error: null,
       exchangeRatesAsOf: "2026-01-01",
     });
-    expect(analyticsService.getDepartmentSalaryStatistics).toHaveBeenCalledWith({
+    expect(analyticsService.getScopedSalaryStatistics).toHaveBeenCalledWith({
       currency: "USD",
+      department: "Engineering",
     });
   });
 
@@ -93,7 +99,9 @@ describe("AiInsightsService", () => {
         intent: "UNKNOWN",
         originalQuery: "Tell me a joke",
         department: null,
+        country: null,
         currency: null,
+        months: null,
       },
       result: null,
       error: {
@@ -138,19 +146,19 @@ describe("AiInsightsService", () => {
     expect(analyticsService.getAnalyticsSummary).toHaveBeenCalledWith({ currency: "USD" });
   });
 
-  it("uses the display currency selector instead of the parsed query currency", async () => {
+  it("uses the display currency when the query does not specify a currency", async () => {
     const analyticsService = createInsightAnalyticsServiceMock();
     const service = new AiInsightsService(analyticsService);
 
     await expect(
       service.executeQuery({
-        query: "headcount in USD",
+        query: "headcount",
         displayCurrency: "GBP",
       }),
     ).resolves.toMatchObject({
       parsedQuery: {
         intent: "HEADCOUNT",
-        currency: "USD",
+        currency: null,
       },
       result: {
         intent: "HEADCOUNT",
@@ -160,6 +168,57 @@ describe("AiInsightsService", () => {
       error: null,
     });
     expect(analyticsService.getAnalyticsSummary).toHaveBeenCalledWith({ currency: "GBP" });
+  });
+
+  it("uses an explicit query currency instead of the display currency selector", async () => {
+    const analyticsService = createInsightAnalyticsServiceMock();
+    const service = new AiInsightsService(analyticsService);
+
+    await expect(
+      service.executeQuery({
+        query: "Who are the top earners in INR?",
+        displayCurrency: "USD",
+      }),
+    ).resolves.toMatchObject({
+      parsedQuery: {
+        intent: "TOP_EARNERS",
+        currency: "INR",
+      },
+      result: {
+        intent: "TOP_EARNERS",
+        currency: "INR",
+      },
+      error: null,
+    });
+    expect(analyticsService.getTopEarners).toHaveBeenCalledWith({ currency: "INR" });
+  });
+
+  it("filters top earners by employee country when the query mentions a country", async () => {
+    const analyticsService = createInsightAnalyticsServiceMock();
+    const service = new AiInsightsService(analyticsService);
+
+    await expect(
+      service.executeQuery({
+        query: "Who are the top earners in INDIA?",
+        displayCurrency: "USD",
+      }),
+    ).resolves.toMatchObject({
+      parsedQuery: {
+        intent: "TOP_EARNERS",
+        country: "IN",
+        currency: null,
+      },
+      result: {
+        intent: "TOP_EARNERS",
+        currency: "USD",
+        country: "IN",
+      },
+      error: null,
+    });
+    expect(analyticsService.getTopEarners).toHaveBeenCalledWith({
+      currency: "USD",
+      country: "IN",
+    });
   });
 
   it("rejects injection-style queries before calling analytics", async () => {
@@ -178,6 +237,6 @@ describe("AiInsightsService", () => {
         message: "Invalid or unsafe query input.",
       },
     });
-    expect(analyticsService.getDepartmentSalaryStatistics).not.toHaveBeenCalled();
+    expect(analyticsService.getScopedSalaryStatistics).not.toHaveBeenCalled();
   });
 });
