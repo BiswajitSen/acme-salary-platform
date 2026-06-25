@@ -13,6 +13,11 @@ export const EMPLOYMENT_STATUS_LABELS: Record<EmployeeEmploymentStatus, string> 
   NO_COMPENSATION: "No compensation",
 };
 
+export const EMPLOYMENT_STATUS_ROW_LABELS: Record<EmployeeEmploymentStatus, string> = {
+  ACTIVE: "Active",
+  NO_COMPENSATION: "No salary",
+};
+
 export type DirectoryFilters = {
   search: string;
   countries: string[];

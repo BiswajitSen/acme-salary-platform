@@ -10,10 +10,24 @@ type BadgeProps = {
 const variantClassName: Record<BadgeVariant, string> = {
   default: styles.badge,
   department: `${styles.badge} ${styles.department}`,
-  statusActive: `${styles.badge} ${styles.statusActive}`,
-  statusInactive: `${styles.badge} ${styles.statusInactive}`,
+  statusActive: `${styles.badge} ${styles.status}`,
+  statusInactive: `${styles.badge} ${styles.status}`,
 };
 
+const statusToneClassName = {
+  statusActive: styles.statusActive,
+  statusInactive: styles.statusInactive,
+} as const;
+
 export function Badge({ label, variant = "default" }: BadgeProps) {
+  if (variant === "statusActive" || variant === "statusInactive") {
+    return (
+      <span className={`${variantClassName[variant]} ${statusToneClassName[variant]}`}>
+        <span className={styles.statusDot} aria-hidden="true" />
+        <span className={styles.statusLabel}>{label}</span>
+      </span>
+    );
+  }
+
   return <span className={variantClassName[variant]}>{label}</span>;
 }

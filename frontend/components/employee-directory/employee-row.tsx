@@ -2,6 +2,7 @@ import type { EmployeeSummary } from "@acme/shared";
 import type { ExchangeRatesToUsd } from "@acme/shared";
 import Link from "next/link";
 
+import { EMPLOYMENT_STATUS_ROW_LABELS } from "@/components/employee-directory/types";
 import { Badge } from "@/components/ui/badge";
 import { countryFlag } from "@/lib/country-flag";
 import { formatDisplaySalary } from "@/lib/format-display-salary";
@@ -39,7 +40,7 @@ function formatEmployeeSalary(
 }
 
 function employmentStatusLabel(status: EmployeeSummary["employmentStatus"]): string {
-  return status === "ACTIVE" ? "Active" : "No compensation";
+  return EMPLOYMENT_STATUS_ROW_LABELS[status];
 }
 
 export function EmployeeRow({
@@ -81,10 +82,12 @@ export function EmployeeRow({
 
       <div className={hasSalary ? styles.salary : styles.salaryMuted}>{salaryLabel}</div>
 
-      <Badge
-        label={employmentStatusLabel(employee.employmentStatus)}
-        variant={employee.employmentStatus === "ACTIVE" ? "statusActive" : "statusInactive"}
-      />
+      <div className={styles.statusCell}>
+        <Badge
+          label={employmentStatusLabel(employee.employmentStatus)}
+          variant={employee.employmentStatus === "ACTIVE" ? "statusActive" : "statusInactive"}
+        />
+      </div>
 
       <div className={styles.actions}>
         <Link href={`/employees/${employee.id}`} className={styles.viewLink}>

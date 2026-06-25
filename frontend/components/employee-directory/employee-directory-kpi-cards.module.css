@@ -15,6 +15,9 @@
 }
 
 button.card {
+  appearance: none;
+  font: inherit;
+  color: inherit;
   cursor: pointer;
   transition:
     border-color var(--transition-fast),

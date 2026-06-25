@@ -18,14 +18,47 @@
   color: var(--primary);
 }
 
+.status {
+  gap: 0.4rem;
+  max-width: 100%;
+  padding: 0.2rem 0.55rem 0.2rem 0.45rem;
+  border-radius: var(--radius-sm);
+  font-size: 0.6875rem;
+  font-weight: 600;
+  letter-spacing: 0.01em;
+  line-height: 1.2;
+}
+
+.statusLabel {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.statusDot {
+  flex-shrink: 0;
+  width: 0.4rem;
+  height: 0.4rem;
+  border-radius: 50%;
+}
+
 .statusActive {
-  background: var(--success-soft);
-  border-color: color-mix(in srgb, var(--success) 25%, var(--border));
-  color: var(--success);
+  background: color-mix(in srgb, var(--success) 12%, var(--surface));
+  border-color: color-mix(in srgb, var(--success) 22%, var(--border));
+  color: color-mix(in srgb, var(--success) 72%, var(--foreground));
+}
+
+.statusActive .statusDot {
+  background: var(--success);
+  box-shadow: 0 0 0 2px color-mix(in srgb, var(--success) 18%, transparent);
 }
 
 .statusInactive {
   background: var(--surface-muted);
   border-color: var(--border);
   color: var(--text-muted);
+}
+
+.statusInactive .statusDot {
+  background: var(--text-subtle);
 }
