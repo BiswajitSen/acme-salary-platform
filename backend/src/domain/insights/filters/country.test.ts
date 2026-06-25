@@ -29,4 +29,15 @@ describe("extractInsightCountry", () => {
   it("returns null when no country is mentioned", () => {
     expect(extractInsightCountry("top earners in inr")).toBeNull();
   });
+
+  it("normalizes USA country tokens in for-country phrasing", () => {
+    expect(extractInsightCountry("total payroll for USA")).toBe("US");
+  });
+
+  it("maps for-country and iso country code phrasing", () => {
+    expect(extractInsightCountry("headcount for uk")).toBe("UK");
+    expect(extractInsightCountry("payroll for SG")).toBe("SG");
+    expect(extractInsightCountry("payroll cost DE")).toBe("DE");
+    expect(extractInsightCountry("top earners in US")).toBe("US");
+  });
 });
