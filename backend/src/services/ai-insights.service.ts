@@ -4,9 +4,11 @@ import {
   type ParseInsightQueryResponse,
 } from "@acme/shared";
 
-import { executeParsedInsightQuery } from "../domain/execute-insight-query.js";
-import { parseInsightQuery } from "../domain/parse-insight-query.js";
-import { resolveInsightExecutionCurrency } from "../domain/resolve-insight-execution-currency.js";
+import {
+  executeParsedInsightQuery,
+  parseInsightQuery,
+  resolveInsightExecutionCurrency,
+} from "../domain/insights/index.js";
 import type { InsightAnalyticsService } from "./insight-analytics.service.js";
 
 function buildScopeQuery(
