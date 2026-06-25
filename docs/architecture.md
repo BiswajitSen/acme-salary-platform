@@ -12,7 +12,8 @@ acme-salary-platform/
 ```
 
 See [engineering-standards.md](./engineering-standards.md) for SOLID, TDD, and DI patterns.  
-See [roadmap.md](./roadmap.md) for feature delivery plan.
+See [roadmap.md](./roadmap.md) for feature delivery plan.  
+See [adr/README.md](./adr/README.md) for architecture decision records.
 
 ---
 
@@ -73,7 +74,7 @@ Server Components fetch the backend directly. Client-side calls use `/api/backen
 ## Key business rules
 
 - **Append-only:** compensation history is insert-only
-- **Currency isolation:** metrics grouped per ISO currency, never blended
+- **Display currency:** analytics convert all employees to a selected ISO currency using daily FX rates (see [ADR 001](./adr/001-daily-frankfurter-exchange-rates-and-display-currency.md)); native currencies are never blended without conversion
 - **Import:** all-or-nothing transactional dry-run
 - **AI:** intent → whitelisted analytics functions only (no dynamic SQL)
 
