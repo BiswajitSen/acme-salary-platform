@@ -8,26 +8,71 @@
 
 .header {
   display: grid;
-  grid-template-columns: 1.1fr 1.4fr 1.2fr 1.4fr 0.8fr;
-  gap: 1rem;
+  grid-template-columns: minmax(12rem, 1.6fr) minmax(8rem, 1fr) 5rem minmax(7rem, 0.9fr) minmax(7rem, 0.8fr) auto;
+  gap: 0.875rem;
   align-items: center;
   min-height: 44px;
   padding: 0 1rem;
   border-bottom: 1px solid var(--border);
   background: var(--surface-muted);
-  font-size: 0.75rem;
+}
+
+.headerCell {
+  min-width: 0;
+}
+
+.headerCellEnd {
+  text-align: right;
+}
+
+.headerCellEnd .headerCellRow {
+  justify-content: flex-end;
+}
+
+.headerCellRow {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  min-width: 0;
+}
+
+.headerLabel {
+  font-size: 0.6875rem;
   font-weight: 600;
-  letter-spacing: 0.04em;
+  letter-spacing: 0.05em;
   text-transform: uppercase;
-  color: var(--text-muted);
+  color: var(--text-subtle);
 }
 
 .body {
-  height: 480px;
+  height: 520px;
   overflow: auto;
+}
+
+.bodyMessage {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+  margin: 0;
+  padding: 2rem 1rem;
+  color: var(--text-muted);
+  font-size: 0.9375rem;
+  text-align: center;
 }
 
 .virtualRows {
   position: relative;
   width: 100%;
+}
+
+@media (max-width: 960px) {
+  .shell {
+    overflow-x: auto;
+  }
+
+  .header,
+  .virtualRows {
+    min-width: 52rem;
+  }
 }
