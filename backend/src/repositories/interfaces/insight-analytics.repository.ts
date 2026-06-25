@@ -1,18 +1,20 @@
+import type { ExchangeRatesToUsd } from "@acme/shared";
+
+import type { EmployeeScopeParams } from "../../domain/analytics-employee-scope.js";
 import type {
   CompensationTimelineRecord,
   DepartmentSalaryStatisticsRecord,
   ScopedSalaryStatisticsRecord,
   TopEarnerRecord,
 } from "../../domain/analytics.types.js";
-import type { ExchangeRatesToUsd } from "@acme/shared";
+import type { InsightTimelineWindow } from "../../domain/insight-query-timeline-window.js";
 
 export interface IInsightAnalyticsRepository {
-  countEmployeesWithLatestCompensation(country?: string, department?: string): Promise<number>;
+  countEmployeesWithLatestCompensation(scope?: EmployeeScopeParams): Promise<number>;
   sumLatestCompensationSalariesInDisplayCurrency(
     displayCurrency: string,
     ratesToUsd: ExchangeRatesToUsd,
-    country?: string,
-    department?: string,
+    scope?: EmployeeScopeParams,
   ): Promise<number>;
   findDepartmentSalaryStatisticsInDisplayCurrency(
     displayCurrency: string,
@@ -21,28 +23,36 @@ export interface IInsightAnalyticsRepository {
   findSalaryStatisticsInDisplayCurrency(
     displayCurrency: string,
     ratesToUsd: ExchangeRatesToUsd,
-    country?: string,
-    department?: string,
+    scope?: EmployeeScopeParams,
   ): Promise<ScopedSalaryStatisticsRecord>;
   findTopEarnersInDisplayCurrency(
     displayCurrency: string,
     ratesToUsd: ExchangeRatesToUsd,
     limit: number,
-    country?: string,
-    department?: string,
+    scope?: EmployeeScopeParams,
   ): Promise<TopEarnerRecord[]>;
+  findBottomEarnersInDisplayCurrency(
+    displayCurrency: string,
+    ratesToUsd: ExchangeRatesToUsd,
+    limit: number,
+    scope?: EmployeeScopeParams,
+  ): Promise<TopEarnerRecord[]>;
+  findNearMedianEarnersInDisplayCurrency(
+    displayCurrency: string,
+    ratesToUsd: ExchangeRatesToUsd,
+    tolerancePercent: number,
+    scope?: EmployeeScopeParams,
+  ): Promise<{ medianSalary: number; earners: TopEarnerRecord[] }>;
   findRecentCompensationEvents(
     asOfDate: string,
-    withinMonths: number,
+    window: InsightTimelineWindow,
     reasons: readonly string[],
-    country?: string,
-    department?: string,
+    scope?: EmployeeScopeParams,
   ): Promise<CompensationTimelineRecord[]>;
   findRecentPromotions(
     asOfDate: string,
-    withinMonths: number,
-    country?: string,
-    department?: string,
+    window: InsightTimelineWindow,
+    scope?: EmployeeScopeParams,
   ): Promise<CompensationTimelineRecord[]>;
 }
 

@@ -1,7 +1,11 @@
-import { sql, type SQL } from "drizzle-orm";
+import { sql } from "drizzle-orm";
 
 import type { ExchangeRatesToUsd } from "@acme/shared";
 
+import {
+  buildEmployeeScopeFilter,
+  type EmployeeScopeParams,
+} from "../../domain/analytics-employee-scope.js";
 import type {
   CompensationTimelineRecord,
   DepartmentSalaryStatisticsRecord,
@@ -12,6 +16,10 @@ import { buildConvertedSalarySql } from "../../domain/analytics-currency-convers
 import {
   latestCompensationRows,
 } from "../../domain/analytics-latest-compensation.js";
+import {
+  buildTimelineStartExpression,
+  type InsightTimelineWindow,
+} from "../../domain/insight-query-timeline-window.js";
 import type { Database } from "../../db/index.js";
 import type { IAnalyticsRepository } from "../interfaces/analytics.repository.js";
 
@@ -43,7 +51,7 @@ function mapTopEarnerRow(row: {
   };
 }
 
-function buildCompensationReasonFilter(reasons: readonly string[]): SQL {
+function buildCompensationReasonFilter(reasons: readonly string[]) {
   if (reasons.length === 1) {
     return sql`ch.reason = ${reasons[0]}`;
   }
@@ -74,38 +82,21 @@ function mapCompensationTimelineRow(row: {
   };
 }
 
-function buildEmployeeScopeFilter(country?: string, department?: string): SQL {
-  const filters: SQL[] = [];
-
-  if (country !== undefined) {
-    filters.push(sql`e.country = ${country}`);
-  }
-
-  if (department !== undefined) {
-    filters.push(sql`e.department = ${department}`);
-  }
-
-  if (filters.length === 0) {
-    return sql`TRUE`;
-  }
-
-  return sql.join(filters, sql` AND `);
+function scope(params: EmployeeScopeParams = {}) {
+  return buildEmployeeScopeFilter(params);
 }
 
 export class DrizzleAnalyticsRepository implements IAnalyticsRepository {
   constructor(private readonly database: Database) {}
 
   async countEmployeesWithLatestCompensation(
-    country?: string,
-    department?: string,
+    scopeParams: EmployeeScopeParams = {},
   ): Promise<number> {
-    const scopeFilter = buildEmployeeScopeFilter(country, department);
-
     const result = await this.database.execute<{ headcount: number }>(sql`
       SELECT COUNT(*)::int AS headcount
       FROM (${latestCompensationRows}) lc
       INNER JOIN employees e ON e.id = lc.employee_id
-      WHERE ${scopeFilter}
+      WHERE ${scope(scopeParams)}
     `);
 
     return result.rows[0].headcount;
@@ -114,18 +105,16 @@ export class DrizzleAnalyticsRepository implements IAnalyticsRepository {
   async sumLatestCompensationSalariesInDisplayCurrency(
     displayCurrency: string,
     ratesToUsd: ExchangeRatesToUsd,
-    country?: string,
-    department?: string,
+    scopeParams: EmployeeScopeParams = {},
   ): Promise<number> {
     const convertedSalary = buildConvertedSalarySql(displayCurrency, ratesToUsd);
-    const scopeFilter = buildEmployeeScopeFilter(country, department);
 
     const result = await this.database.execute<{ total_payroll: number }>(sql`
       WITH latest_compensation AS (${latestCompensationRows})
       SELECT COALESCE(SUM(${convertedSalary}), 0)::float8 AS total_payroll
       FROM latest_compensation lc
       INNER JOIN employees e ON e.id = lc.employee_id
-      WHERE ${scopeFilter}
+      WHERE ${scope(scopeParams)}
     `);
 
     return result.rows[0].total_payroll;
@@ -161,11 +150,9 @@ export class DrizzleAnalyticsRepository implements IAnalyticsRepository {
   async findSalaryStatisticsInDisplayCurrency(
     displayCurrency: string,
     ratesToUsd: ExchangeRatesToUsd,
-    country?: string,
-    department?: string,
+    scopeParams: EmployeeScopeParams = {},
   ): Promise<ScopedSalaryStatisticsRecord> {
     const convertedSalary = buildConvertedSalarySql(displayCurrency, ratesToUsd);
-    const scopeFilter = buildEmployeeScopeFilter(country, department);
 
     const result = await this.database.execute<{
       employee_count: number;
@@ -179,7 +166,7 @@ export class DrizzleAnalyticsRepository implements IAnalyticsRepository {
         COALESCE(PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY ${convertedSalary}), 0)::float8 AS median_salary
       FROM latest_compensation lc
       INNER JOIN employees e ON e.id = lc.employee_id
-      WHERE ${scopeFilter}
+      WHERE ${scope(scopeParams)}
     `);
 
     return {
@@ -193,11 +180,9 @@ export class DrizzleAnalyticsRepository implements IAnalyticsRepository {
     displayCurrency: string,
     ratesToUsd: ExchangeRatesToUsd,
     limit: number,
-    country?: string,
-    department?: string,
+    scopeParams: EmployeeScopeParams = {},
   ): Promise<TopEarnerRecord[]> {
     const convertedSalary = buildConvertedSalarySql(displayCurrency, ratesToUsd);
-    const scopeFilter = buildEmployeeScopeFilter(country, department);
 
     const result = await this.database.execute<{
       employee_id: string;
@@ -213,7 +198,7 @@ export class DrizzleAnalyticsRepository implements IAnalyticsRepository {
         ${convertedSalary} AS base_salary
       FROM latest_compensation lc
       INNER JOIN employees e ON e.id = lc.employee_id
-      WHERE ${scopeFilter}
+      WHERE ${scope(scopeParams)}
       ORDER BY base_salary DESC, lc.employee_id ASC
       LIMIT ${limit}
     `);
@@ -221,15 +206,101 @@ export class DrizzleAnalyticsRepository implements IAnalyticsRepository {
     return result.rows.map(mapTopEarnerRow);
   }
 
+  async findBottomEarnersInDisplayCurrency(
+    displayCurrency: string,
+    ratesToUsd: ExchangeRatesToUsd,
+    limit: number,
+    scopeParams: EmployeeScopeParams = {},
+  ): Promise<TopEarnerRecord[]> {
+    const convertedSalary = buildConvertedSalarySql(displayCurrency, ratesToUsd);
+
+    const result = await this.database.execute<{
+      employee_id: string;
+      full_name: string;
+      department: string;
+      base_salary: number;
+    }>(sql`
+      WITH latest_compensation AS (${latestCompensationRows})
+      SELECT
+        lc.employee_id,
+        e.full_name,
+        e.department,
+        ${convertedSalary} AS base_salary
+      FROM latest_compensation lc
+      INNER JOIN employees e ON e.id = lc.employee_id
+      WHERE ${scope(scopeParams)}
+      ORDER BY base_salary ASC, lc.employee_id ASC
+      LIMIT ${limit}
+    `);
+
+    return result.rows.map(mapTopEarnerRow);
+  }
+
+  async findNearMedianEarnersInDisplayCurrency(
+    displayCurrency: string,
+    ratesToUsd: ExchangeRatesToUsd,
+    tolerancePercent: number,
+    scopeParams: EmployeeScopeParams = {},
+  ): Promise<{ medianSalary: number; earners: TopEarnerRecord[] }> {
+    const convertedSalary = buildConvertedSalarySql(displayCurrency, ratesToUsd);
+    const lowerMultiplier = 1 - tolerancePercent / 100;
+    const upperMultiplier = 1 + tolerancePercent / 100;
+
+    const result = await this.database.execute<{
+      employee_id: string;
+      full_name: string;
+      department: string;
+      base_salary: number;
+      median_salary: number;
+    }>(sql`
+      WITH latest_compensation AS (${latestCompensationRows}),
+      scoped AS (
+        SELECT
+          lc.employee_id,
+          e.full_name,
+          e.department,
+          ${convertedSalary} AS base_salary
+        FROM latest_compensation lc
+        INNER JOIN employees e ON e.id = lc.employee_id
+        WHERE ${scope(scopeParams)}
+      ),
+      median_val AS (
+        SELECT COALESCE(
+          PERCENTILE_CONT(0.5) WITHIN GROUP (ORDER BY base_salary),
+          0
+        )::float8 AS median_salary
+        FROM scoped
+      )
+      SELECT
+        s.employee_id,
+        s.full_name,
+        s.department,
+        s.base_salary,
+        m.median_salary
+      FROM scoped s
+      CROSS JOIN median_val m
+      WHERE m.median_salary > 0
+        AND s.base_salary >= m.median_salary * ${lowerMultiplier}
+        AND s.base_salary <= m.median_salary * ${upperMultiplier}
+      ORDER BY s.base_salary DESC, s.employee_id ASC
+    `);
+
+    const medianSalary = result.rows[0]?.median_salary ?? 0;
+
+    return {
+      medianSalary,
+      earners: result.rows.map(mapTopEarnerRow),
+    };
+  }
+
   async findRecentCompensationEvents(
     asOfDate: string,
-    withinMonths: number,
+    window: InsightTimelineWindow,
     reasons: readonly string[],
-    country?: string,
-    department?: string,
+    scopeParams: EmployeeScopeParams = {},
   ): Promise<CompensationTimelineRecord[]> {
-    const scopeFilter = buildEmployeeScopeFilter(country, department);
     const reasonFilter = buildCompensationReasonFilter(reasons);
+    const timelineStart = buildTimelineStartExpression(asOfDate, window);
 
     const result = await this.database.execute<{
       employee_id: string;
@@ -251,9 +322,9 @@ export class DrizzleAnalyticsRepository implements IAnalyticsRepository {
       FROM compensation_history ch
       INNER JOIN employees e ON e.id = ch.employee_id
       WHERE ${reasonFilter}
-        AND ch.effective_date >= (${asOfDate}::date - (${withinMonths} * INTERVAL '1 month'))::date
-        AND ch.effective_date <= ${asOfDate}::date
-        AND ${scopeFilter}
+        AND ch.effective_date >= ${timelineStart}
+        AND ch.effective_date <= CAST(${asOfDate} AS date)
+        AND ${scope(scopeParams)}
       ORDER BY ch.effective_date DESC, e.id ASC
     `);
 
@@ -262,16 +333,14 @@ export class DrizzleAnalyticsRepository implements IAnalyticsRepository {
 
   async findRecentPromotions(
     asOfDate: string,
-    withinMonths: number,
-    country?: string,
-    department?: string,
+    window: InsightTimelineWindow,
+    scopeParams: EmployeeScopeParams = {},
   ): Promise<CompensationTimelineRecord[]> {
     return this.findRecentCompensationEvents(
       asOfDate,
-      withinMonths,
+      window,
       ["Promotion"],
-      country,
-      department,
+      scopeParams,
     );
   }
 }

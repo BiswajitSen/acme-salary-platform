@@ -84,7 +84,7 @@ describe("DrizzleAnalyticsRepository", () => {
     });
 
     await expect(
-      repository.findSalaryStatisticsInDisplayCurrency("USD", testRates, "IN"),
+      repository.findSalaryStatisticsInDisplayCurrency("USD", testRates, { country: "IN" }),
     ).resolves.toEqual({
       employeeCount: 1,
       averageSalary: convertCurrencyAmount(3_000_000, "INR", "USD", testRates),
@@ -117,20 +117,16 @@ describe("DrizzleAnalyticsRepository", () => {
     });
 
     await expect(
-      repository.sumLatestCompensationSalariesInDisplayCurrency(
-        "USD",
-        testRates,
-        "IN",
-        "Engineering",
-      ),
+      repository.sumLatestCompensationSalariesInDisplayCurrency("USD", testRates, {
+        country: "IN",
+        department: "Engineering",
+      }),
     ).resolves.toBe(convertCurrencyAmount(3_000_000, "INR", "USD", testRates));
     await expect(
-      repository.sumLatestCompensationSalariesInDisplayCurrency(
-        "USD",
-        testRates,
-        "IN",
-        "HR",
-      ),
+      repository.sumLatestCompensationSalariesInDisplayCurrency("USD", testRates, {
+        country: "IN",
+        department: "HR",
+      }),
     ).resolves.toBe(0);
   });
 
@@ -138,13 +134,13 @@ describe("DrizzleAnalyticsRepository", () => {
     await runSeed(db);
 
     await expect(
-      repository.sumLatestCompensationSalariesInDisplayCurrency("USD", testRates, "UK"),
+      repository.sumLatestCompensationSalariesInDisplayCurrency("USD", testRates, { country: "UK" }),
     ).resolves.toBe(106_250);
     await expect(
-      repository.sumLatestCompensationSalariesInDisplayCurrency("USD", testRates, "US"),
+      repository.sumLatestCompensationSalariesInDisplayCurrency("USD", testRates, { country: "US" }),
     ).resolves.toBe(132_000);
-    await expect(repository.countEmployeesWithLatestCompensation("UK")).resolves.toBe(1);
-    await expect(repository.countEmployeesWithLatestCompensation("US")).resolves.toBe(1);
+    await expect(repository.countEmployeesWithLatestCompensation({ country: "UK" })).resolves.toBe(1);
+    await expect(repository.countEmployeesWithLatestCompensation({ country: "US" })).resolves.toBe(1);
   });
 
   it("returns top earners filtered by country when requested", async () => {
@@ -172,7 +168,7 @@ describe("DrizzleAnalyticsRepository", () => {
     });
 
     await expect(
-      repository.findTopEarnersInDisplayCurrency("USD", testRates, 10, "IN"),
+      repository.findTopEarnersInDisplayCurrency("USD", testRates, 10, { country: "IN" }),
     ).resolves.toEqual([
       {
         employeeId: "E010",
@@ -183,7 +179,10 @@ describe("DrizzleAnalyticsRepository", () => {
     ]);
 
     await expect(
-      repository.findTopEarnersInDisplayCurrency("USD", testRates, 10, "IN", "Engineering"),
+      repository.findTopEarnersInDisplayCurrency("USD", testRates, 10, {
+        country: "IN",
+        department: "Engineering",
+      }),
     ).resolves.toEqual([
       {
         employeeId: "E010",
@@ -267,6 +266,49 @@ describe("DrizzleAnalyticsRepository", () => {
     ).resolves.toBe(convertCurrencyAmount(140_000, "EUR", "USD", testRates) + 106_250);
   });
 
+  it("returns bottom earners ordered by converted salary ascending", async () => {
+    await runSeed(db);
+
+    await expect(repository.findBottomEarnersInDisplayCurrency("USD", testRates, 10)).resolves.toEqual([
+      {
+        employeeId: "E002",
+        fullName: "Bob Smith",
+        department: "HR",
+        baseSalary: 106_250,
+      },
+      {
+        employeeId: "E001",
+        fullName: "Jane Doe",
+        department: "Engineering",
+        baseSalary: 132_000,
+      },
+    ]);
+  });
+
+  it("returns employees within the near-median salary band", async () => {
+    await runSeed(db);
+
+    await expect(
+      repository.findNearMedianEarnersInDisplayCurrency("USD", testRates, 15),
+    ).resolves.toEqual({
+      medianSalary: 119_125,
+      earners: [
+        {
+          employeeId: "E001",
+          fullName: "Jane Doe",
+          department: "Engineering",
+          baseSalary: 132_000,
+        },
+        {
+          employeeId: "E002",
+          fullName: "Bob Smith",
+          department: "HR",
+          baseSalary: 106_250,
+        },
+      ],
+    });
+  });
+
   it("returns promotion records within the requested lookback window", async () => {
     await runSeed(db);
 
@@ -289,7 +331,9 @@ describe("DrizzleAnalyticsRepository", () => {
       notes: null,
     });
 
-    await expect(repository.findRecentPromotions("2026-01-01", 3)).resolves.toEqual([
+    await expect(
+      repository.findRecentPromotions("2026-01-01", { months: 3, sinceDate: null }),
+    ).resolves.toEqual([
       {
         employeeId: "E001",
         fullName: "Jane Doe",
@@ -316,7 +360,11 @@ describe("DrizzleAnalyticsRepository", () => {
     });
 
     await expect(
-      repository.findRecentCompensationEvents("2026-01-01", 3, ["New Hire"]),
+      repository.findRecentCompensationEvents(
+        "2026-01-01",
+        { months: 3, sinceDate: null },
+        ["New Hire"],
+      ),
     ).resolves.toEqual([
       {
         employeeId: "E003",
