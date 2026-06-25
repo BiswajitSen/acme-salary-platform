@@ -47,4 +47,19 @@ describe("buildRatesToUsdFromFrankfurterResponse", () => {
       }),
     ).toThrow("Missing Frankfurter exchange rate for SGD");
   });
+
+  it("rejects zero or negative currency rates", () => {
+    expect(() =>
+      buildRatesToUsdFromFrankfurterResponse({
+        base: "USD",
+        date: "2026-06-24",
+        rates: {
+          GBP: 0,
+          EUR: 0.5,
+          INR: 80,
+          SGD: 1.25,
+        },
+      }),
+    ).toThrow("Missing Frankfurter exchange rate for GBP");
+  });
 });

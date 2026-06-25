@@ -9,5 +9,6 @@ describe("buildEmploymentStatusFilterClause", () => {
     expect(buildEmploymentStatusFilterClause(["ACTIVE"])).toBeDefined();
     expect(buildEmploymentStatusFilterClause(["NO_COMPENSATION"])).toBeDefined();
     expect(buildEmploymentStatusFilterClause(["ACTIVE", "NO_COMPENSATION"])).toBeDefined();
+    expect(buildEmploymentStatusFilterClause(["UNKNOWN" as "ACTIVE"])).toBeDefined();
   });
 });

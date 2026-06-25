@@ -56,6 +56,15 @@ describe("sortCompensationHistoryOldestFirst", () => {
       1, 2,
     ]);
   });
+
+  it("uses record id as the final tiebreaker", () => {
+    expect(
+      sortCompensationHistoryOldestFirst([
+        { ...sampleRecords[0]!, id: 2, effectiveDate: "2025-06-01", createdAt: "2025-06-01T10:00:00.000Z" },
+        { ...sampleRecords[1]!, id: 1, effectiveDate: "2025-06-01", createdAt: "2025-06-01T10:00:00.000Z" },
+      ]).map((record) => record.id),
+    ).toEqual([1, 2]);
+  });
 });
 
 describe("selectCurrentCompensation", () => {

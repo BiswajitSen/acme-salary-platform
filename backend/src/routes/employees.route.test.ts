@@ -289,6 +289,30 @@ describe("createEmployeesRouter", () => {
     expect(response.body.fullName).toBe("Jane Smith");
   });
 
+  it("forwards update errors to the error handler", async () => {
+    const employeeService = {
+      listEmployeeFilterOptions: vi.fn(),
+      listEmployees: vi.fn(),
+      getEmployeeProfile: vi.fn(),
+      listEmployeeCompensationHistory: vi.fn(),
+      createEmployee: vi.fn(),
+      updateEmployee: vi.fn().mockRejectedValue(new Error("Database unavailable")),
+      deleteEmployee: vi.fn(),
+    } as unknown as EmployeeService;
+
+    const response = await request(createTestApp(employeeService, compensationService))
+      .patch("/employees/E001")
+      .send({
+        fullName: "Jane Smith",
+        department: "Engineering",
+        jobTitle: "Senior Engineer",
+        country: "US",
+      });
+
+    expect(response.status).toBe(500);
+    expect(response.body.error).toBe("Internal Server Error");
+  });
+
   it("deletes an employee through the employee service", async () => {
     const employeeService = {
       listEmployeeFilterOptions: vi.fn(),

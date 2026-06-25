@@ -311,4 +311,35 @@ describe("collectSalaryIncreaseReasonErrorsFromHistory", () => {
       },
     ]);
   });
+
+  it("sorts rows with the same effective date by spreadsheet row number", () => {
+    const existingHistoryByEmployee = new Map<string, CompensationHistoryRecord[]>();
+
+    const records: ParsedCompensationSpreadsheetRow[] = [
+      {
+        rowNumber: 3,
+        employeeId: "E001",
+        baseSalary: 130_000,
+        currency: "USD",
+        effectiveDate: "2025-01-01",
+        reason: "Annual Increment",
+        changedBy: "HR Admin",
+        notes: null,
+      },
+      {
+        rowNumber: 2,
+        employeeId: "E001",
+        baseSalary: 120_000,
+        currency: "USD",
+        effectiveDate: "2025-01-01",
+        reason: "New Hire",
+        changedBy: "HR Admin",
+        notes: null,
+      },
+    ];
+
+    expect(
+      collectSalaryIncreaseReasonErrorsFromHistory(existingHistoryByEmployee, records),
+    ).toEqual([]);
+  });
 });

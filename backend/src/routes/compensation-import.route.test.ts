@@ -122,4 +122,18 @@ describe("createCompensationImportRouter", () => {
     expect(response.status).toBe(500);
     expect(response.body.message).toBe("Parser unavailable");
   });
+
+  it("rejects non-spreadsheet uploads", async () => {
+    const compensationImportService = {
+      previewCompensationSpreadsheet: vi.fn(),
+      importCompensationSpreadsheet: vi.fn(),
+    } as unknown as CompensationImportService;
+
+    const response = await request(createTestApp(compensationImportService))
+      .post("/import/compensation/preview")
+      .attach("file", Buffer.from("employee_id\nE001"), "compensation.csv");
+
+    expect(response.status).toBe(400);
+    expect(response.body.message).toBe("Only .xlsx spreadsheets are supported");
+  });
 });
