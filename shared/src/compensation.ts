@@ -21,6 +21,7 @@ export const recordCompensationChangeSchema = z.object({
   effectiveDate: z
     .string()
     .trim()
+    .min(1, "Effective date is required")
     .regex(/^\d{4}-\d{2}-\d{2}$/, "Effective date must use YYYY-MM-DD format"),
   reason: z.enum(COMPENSATION_REASONS, {
     errorMap: () => ({ message: "Reason must be a valid compensation reason" }),
