@@ -54,7 +54,11 @@ describe("validateInsightExecutionSafety", () => {
         originalQuery: "average salary in Engineering",
         department: "Engineering",
         country: null,
+        jobTitle: null,
         currency: "USD",
+        months: null,
+        sinceDate: null,
+        limit: null,
       }),
     ).toBeNull();
   });
