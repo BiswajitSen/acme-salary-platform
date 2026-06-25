@@ -106,6 +106,7 @@ export {
   type InsightBottomEarnersResult,
   type InsightNearMedianEarnersResult,
   type InsightMedianSplitCountsResult,
+  type InsightMedianSplitFocus,
   type InsightTotalPayrollResult,
   type ParseInsightQueryResponse,
   type ParsedInsightQuery,
