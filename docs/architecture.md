@@ -4,7 +4,7 @@
 
 ```
 acme-salary-platform/
-├── backend/    → Express API, domain logic, Drizzle + SQLite
+├── backend/    → Express API, domain logic, Drizzle + PostgreSQL
 ├── frontend/   → Next.js App Router (HR UI)
 ├── shared/     → API contracts, Zod schemas, currency helpers
 ├── docs/       → PRD, roadmap, standards, ADRs
@@ -39,7 +39,7 @@ flowchart LR
   subgraph Platform["ACME Salary Platform"]
     UI["Next.js frontend\n:3000"]
     API["Express API\n:8000"]
-    DB[("SQLite\nacme.db")]
+    DB[("PostgreSQL\nacme_salary")]
     UI <-->|"/api/backend/*"| API
     API --> DB
   end
@@ -95,7 +95,7 @@ flowchart TB
   end
 
   subgraph Data["Persistence"]
-    SQLite[("SQLite — acme.db")]
+    Postgres[("PostgreSQL — acme_salary")]
   end
 
   subgraph Contracts["shared/ (@acme/shared)"]
@@ -113,7 +113,7 @@ flowchart TB
   Services --> Domain
   Services --> Repos
   Services --> FxCache
-  Repos --> SQLite
+  Repos --> Postgres
   Routes -.-> Types
   ApiClient -.-> Types
 ```
@@ -128,7 +128,7 @@ Server Components may call the backend directly. Client components use the Next.
 |----------|---------------------------------|
 | Frontend | Next.js 16, TypeScript, Recharts |
 | Backend  | Express, TypeScript             |
-| Database | SQLite, Drizzle ORM             |
+| Database | PostgreSQL 16, Drizzle ORM        |
 | Shared   | npm workspaces (`@acme/shared`) |
 | FX rates | Frankfurter API (cached 24h)    |
 | Testing  | Vitest + Supertest              |
@@ -299,10 +299,10 @@ flowchart LR
 
 ## Database
 
-- File: `backend/data/acme.db`
-- Migrations: `backend/drizzle/` (version-controlled, run on startup)
-- Tables: `employees`, `compensation_history` (append-only)
-- PRAGMAs: WAL mode, foreign keys ON
+- **Local:** Docker Postgres via `docker-compose.yml` (`localhost:5433`, database `acme_salary`)
+- **Tests:** separate database `acme_salary_test`
+- **Migrations:** `backend/drizzle/` (version-controlled, run on startup)
+- **Tables:** `employees`, `compensation_history` (append-only, range-partitioned by month)
 
 ---
 
@@ -321,8 +321,8 @@ flowchart LR
 
 ```bash
 npm install
-cp backend/.env.example backend/.env
-cp frontend/.env.example frontend/.env.local
+docker-compose up -d
+npm run db:reset -w backend
 
 npm run dev:backend   # :8000
 npm run dev:frontend  # :3000

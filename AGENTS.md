@@ -23,12 +23,14 @@ Instructions for AI coding agents working on **ACME Salary Platform**.
 
 ## Stack
 
-Monorepo: `backend` (Express + Drizzle + SQLite), `frontend` (Next.js App Router), `shared`.
+Monorepo: `backend` (Express + Drizzle + PostgreSQL), `frontend` (Next.js App Router), `shared`.
 
 ## Commands (from repo root)
 
 ```bash
 npm install
+docker-compose up -d
+npm run db:reset -w backend
 npm test
 npm run lint
 npm run typecheck

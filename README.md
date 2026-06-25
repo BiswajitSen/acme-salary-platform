@@ -2,19 +2,22 @@
 
 HR compensation management MVP: employee directory, employee CRUD, compensation profiles, executive analytics, natural-language insights, and spreadsheet import. Built as a TypeScript monorepo with TDD and layered backend architecture.
 
+> **For reviewers:** see [SUBMISSION.md](./SUBMISSION.md) for a quick evaluation guide, architecture summary, and known MVP limits.
+
 ## Stack
 
 | Layer | Technology |
 |-------|------------|
 | Frontend | Next.js 16 (App Router), TypeScript, Recharts |
 | Backend | Express, layered architecture (routes → services → domain → repositories) |
-| Database | SQLite with Drizzle ORM + versioned migrations |
+| Database | PostgreSQL 16 with Drizzle ORM + versioned migrations |
 | Shared | `@acme/shared` — API contracts, Zod schemas, currency conversion |
 | FX | Frankfurter daily rates (cached; see [ADR 001](./docs/adr/001-daily-frankfurter-exchange-rates-and-display-currency.md)) |
 
 ## Prerequisites
 
-- Node.js 20+
+- Node.js 20+ (see `.nvmrc`)
+- Docker with `docker-compose` (local Postgres)
 
 ## Quick start
 
@@ -22,7 +25,9 @@ From the project root:
 
 ```bash
 npm install
-cp backend/.env.example backend/.env
+docker-compose up -d
+npm run db:reset -w backend   # migrate + seed sample data
+cp backend/.env.example backend/.env          # optional overrides
 cp frontend/.env.example frontend/.env.local
 npm run dev:backend   # terminal 1 → http://localhost:8000
 npm run dev:frontend  # terminal 2 → http://localhost:3000
@@ -30,14 +35,16 @@ npm run dev:frontend  # terminal 2 → http://localhost:3000
 
 Open **http://localhost:3000** — use the header to navigate between Directory, Analytics, AI Insights, and Import flows.
 
+**Note:** If `backend/.env` is not present, the API uses the default local Postgres URL (`postgresql://acme:acme@localhost:5433/acme_salary`). Copy `.env.example` only when you need to override settings (e.g. a hosted Neon database).
+
 Architecture diagrams (Mermaid): [docs/architecture.md](./docs/architecture.md)
 
 ## Application features
 
 | Route | Feature |
 |-------|---------|
-| `/` | Employee directory — search, column filters, KPIs, avatars, display-currency salaries |
-| `/employees/new` | Add employee — form with validation (ID, name, department, job title, country) |
+| `/` | Employee directory — search, column filters, KPIs, avatars, display-currency salaries (click any row to open profile) |
+| `/employees/new` | Add employee — form with validation and dropdowns for department, job title, country |
 | `/employees/:id` | Compensation profile — summary, edit/delete employee, timeline, record change form |
 | `/analytics` | Executive dashboard — KPIs, charts, heatmap, filters, session-cached data |
 | `/insights` | AI Insights — plain-English compensation questions (rule-based parser, no raw SQL) |
@@ -68,6 +75,7 @@ Global **display currency** (header selector) converts salaries for analytics, d
 │       ├── hooks/                 # client data hooks
 │       └── analytics/             # dashboard view model + session cache
 ├── shared/                      # shared types & Zod schemas
+├── docker-compose.yml           # local Postgres (port 5433)
 └── docs/                        # roadmap, standards, architecture, ADRs
 ```
 
@@ -80,8 +88,9 @@ Global **display currency** (header selector) converts salaries for analytics, d
 | `npm test` | Run shared + backend + frontend tests |
 | `npm run lint` | Lint all packages |
 | `npm run db:migrate` | Apply pending migrations |
+| `npm run db:seed` | Seed sample employees + compensation |
+| `npm run db:reset` | Reset local Docker DB, migrate, and seed |
 | `npm run db:generate` | Generate migration from schema changes |
-| `npm run db:seed` | Seed sample employees (backend workspace) |
 | `npm run db:generate-spreadsheet -w backend` | Generate 10k-row employee `.xlsx` fixture |
 | `npm run db:generate-compensation-spreadsheet -w backend` | Generate matching 10k-row compensation `.xlsx` fixture |
 | `npm run db:generate-fixtures -w backend` | Generate both employee and compensation fixtures |
@@ -94,12 +103,20 @@ Global **display currency** (header selector) converts salaries for analytics, d
 
 **Next.js lockfile warnings in monorepo** — already suppressed via `NEXT_IGNORE_INCORRECT_LOCKFILE=1` in frontend scripts. Run `npm install` only from the **project root**, not inside `backend/` or `frontend/`.
 
-**Backend fails on startup with `table employees already exists`** — your SQLite file predates Drizzle migration tracking. Either restart (auto-baseline is applied) or reset cleanly:
+**`unknown shorthand flag: 'T' in -T`** — use `docker-compose` (this project’s scripts already do). The Docker Compose V2 plugin (`docker compose`) is not required.
+
+**`relation "employees" does not exist` after reset** — run the full reset (not just seed). `db:reset` drops both `public` and `drizzle` schemas so migrations re-apply:
 
 ```bash
+docker-compose up -d
 npm run db:reset -w backend
-npm run db:seed -w backend
-npm run dev:backend
+```
+
+**Seed/migrate against a remote database (Neon, etc.):**
+
+```bash
+DATABASE_URL="postgresql://user:pass@host/db?sslmode=require" npm run db:migrate -w backend
+DATABASE_URL="postgresql://user:pass@host/db?sslmode=require" npm run db:seed -w backend
 ```
 
 ## API
@@ -122,14 +139,18 @@ Frontend proxy: `/api/backend/*` → backend `/api/*`
 
 ## Database
 
-SQLite file: `backend/data/acme.db`
+**Local:** Docker Postgres 16 via `docker-compose.yml` — host `localhost`, port `5433`, database `acme_salary`, user/password `acme`.
+
+**Hosted:** Set `DATABASE_URL` on the API service (see [render.yaml](./render.yaml) for Render + Neon).
 
 Schema (PRD-aligned):
 
 - `employees` — id, full_name, department, job_title, country
-- `compensation_history` — append-only salary events with FK to employees
+- `compensation_history` — append-only salary events with FK to employees (range-partitioned by effective month)
 
-Migrations run automatically on backend startup. WAL mode and foreign keys are enabled.
+Migrations run automatically on backend startup and are version-controlled in `backend/drizzle/`.
+
+Integration tests use a separate database: `acme_salary_test` (created by `docker/postgres/init-test-db.sql`).
 
 ### Bulk import from Excel
 
@@ -176,12 +197,21 @@ curl -X POST http://localhost:8000/api/employees/E001/compensation \
   -d '{"baseSalary":140000,"currency":"USD","effectiveDate":"2026-06-01","reason":"Promotion","changedBy":"HR Admin"}'
 ```
 
+## Deployment (optional)
+
+A [Render blueprint](./render.yaml) deploys the API and frontend. Provide a hosted `DATABASE_URL` (e.g. Neon), then seed once from your machine:
+
+```bash
+DATABASE_URL="postgresql://..." npm run db:seed -w backend
+```
+
 ## Documentation
 
 | Doc | Purpose |
 |-----|---------|
+| [SUBMISSION.md](./SUBMISSION.md) | **Reviewer guide** — scope, quick start, trade-offs |
 | [docs/architecture.md](./docs/architecture.md) | **Mermaid architecture diagrams** — context, layers, features, data flows |
-| [docs/roadmap.md](./docs/roadmap.md) | Feature-wise build plan (phases 0–7) |
+| [docs/roadmap.md](./docs/roadmap.md) | Feature-wise build plan (phases 0–8) |
 | [docs/engineering-standards.md](./docs/engineering-standards.md) | TDD, SOLID, DI, repository pattern |
 | [docs/adr/README.md](./docs/adr/README.md) | Architecture decision records (FX, analytics cache) |
 | [AGENTS.md](./AGENTS.md) | Instructions for AI coding agents |
@@ -190,4 +220,4 @@ curl -X POST http://localhost:8000/api/employees/E001/compensation \
 
 **Frontend:** App Router, typed API client, feature hooks, analytics session cache ([ADR 002](./docs/adr/002-analytics-dashboard-client-session-cache.md)), shared contracts.
 
-**Database:** Drizzle ORM schema-as-code, versioned migrations, indexed filter columns, append-only compensation history with FK constraints.
+**Database:** PostgreSQL, Drizzle ORM schema-as-code, versioned migrations, indexed filter columns, append-only compensation history with FK constraints.

@@ -140,7 +140,7 @@ Every feature in [roadmap.md](./roadmap.md) follows **Red → Green → Refactor
    `domain/compensation.test.ts`
 2. **Service** — mock repositories  
    `services/compensation.service.test.ts`
-3. **Repository** — in-memory SQLite  
+3. **Repository** — PostgreSQL test database (`acme_salary_test`)  
    `repositories/drizzle/employee.repository.test.ts`
 4. **HTTP integration** — Supertest + test DB  
    `tests/employees.integration.test.ts`
@@ -175,7 +175,7 @@ describe("CompensationService.recordChange", () => {
 
 - Skip tests and "add them later"
 - Test implementation details (internal private methods)
-- Hit production DB in tests — use `:memory:` SQLite
+- Hit production DB in tests — use the isolated `acme_salary_test` database
 - Put business rules in route handlers or React components
 
 ---
