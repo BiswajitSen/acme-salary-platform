@@ -14,11 +14,15 @@ export const AI_INSIGHT_INTENTS = [
   "HEADCOUNT",
   "TOTAL_PAYROLL",
   "TOP_EARNERS",
+  "BOTTOM_EARNERS",
+  "NEAR_MEDIAN_EARNERS",
   "RECENT_PROMOTIONS",
   "RECENT_NEW_HIRES",
   "RECENT_SALARY_INCREASES",
   "UNKNOWN",
 ] as const;
+
+export const DEFAULT_INSIGHT_NEAR_MEDIAN_TOLERANCE_PERCENT = 10;
 
 export const DEFAULT_INSIGHT_TIMELINE_MONTHS = 3;
 
@@ -50,10 +54,15 @@ export const insightQueryRequestSchema = z.object({
   displayCurrency: analyticsDisplayCurrencySchema.optional(),
 });
 
-export const insightAnalyticsQuerySchema = z.object({
-  currency: analyticsDisplayCurrencySchema,
+export const insightScopeQuerySchema = z.object({
   country: z.enum(INSIGHT_QUERY_COUNTRIES).optional(),
   department: z.enum(INSIGHT_QUERY_DEPARTMENTS).optional(),
+  jobTitle: z.string().trim().min(1).max(100).optional(),
+  limit: z.number().int().positive().max(25).optional(),
+});
+
+export const insightAnalyticsQuerySchema = insightScopeQuerySchema.extend({
+  currency: analyticsDisplayCurrencySchema,
 });
 
 export type InsightAnalyticsQuery = z.infer<typeof insightAnalyticsQuerySchema>;
@@ -70,8 +79,17 @@ export type ParsedInsightQuery = {
   originalQuery: string;
   department: string | null;
   country: string | null;
+  jobTitle: string | null;
   currency: string | null;
   months: number | null;
+  sinceDate: string | null;
+  limit: number | null;
+};
+
+export type InsightScopedResultFields = {
+  country: string | null;
+  department: string | null;
+  jobTitle: string | null;
 };
 
 export type InsightTimelineEvent = {
@@ -112,69 +130,71 @@ export type InsightExecutionError = {
   message: string;
 };
 
-export type InsightAvgDeptSalaryResult = {
+export type InsightAvgDeptSalaryResult = InsightScopedResultFields & {
   intent: "AVG_DEPT_SALARY";
   currency: string;
-  country: string | null;
-  department: string | null;
   averageSalary: number;
   employeeCount: number;
 };
 
-export type InsightMedianDeptSalaryResult = {
+export type InsightMedianDeptSalaryResult = InsightScopedResultFields & {
   intent: "MEDIAN_DEPT_SALARY";
   currency: string;
-  country: string | null;
-  department: string | null;
   medianSalary: number;
   employeeCount: number;
 };
 
-export type InsightHeadcountResult = {
+export type InsightHeadcountResult = InsightScopedResultFields & {
   intent: "HEADCOUNT";
   currency: string;
-  country: string | null;
-  department: string | null;
   headcount: number;
 };
 
-export type InsightTotalPayrollResult = {
+export type InsightTotalPayrollResult = InsightScopedResultFields & {
   intent: "TOTAL_PAYROLL";
   currency: string;
-  country: string | null;
-  department: string | null;
   totalPayroll: number;
 };
 
-export type InsightTopEarnersResult = {
+export type InsightTopEarnersResult = InsightScopedResultFields & {
   intent: "TOP_EARNERS";
   currency: string;
-  country: string | null;
-  department: string | null;
+  limit: number;
   earners: TopEarner[];
 };
 
-export type InsightRecentPromotionsResult = {
+export type InsightBottomEarnersResult = InsightScopedResultFields & {
+  intent: "BOTTOM_EARNERS";
+  currency: string;
+  limit: number;
+  earners: TopEarner[];
+};
+
+export type InsightNearMedianEarnersResult = InsightScopedResultFields & {
+  intent: "NEAR_MEDIAN_EARNERS";
+  currency: string;
+  medianSalary: number;
+  tolerancePercent: number;
+  earners: TopEarner[];
+};
+
+export type InsightTimelineResultScope = InsightScopedResultFields & {
+  months: number | null;
+  sinceDate: string | null;
+};
+
+export type InsightRecentPromotionsResult = InsightTimelineResultScope & {
   intent: "RECENT_PROMOTIONS";
-  months: number;
-  country: string | null;
-  department: string | null;
   promotions: InsightTimelineEvent[];
 };
 
-export type InsightRecentNewHiresResult = {
+export type InsightRecentNewHiresResult = InsightTimelineResultScope & {
   intent: "RECENT_NEW_HIRES";
-  months: number;
-  country: string | null;
-  department: string | null;
   hires: InsightTimelineEvent[];
 };
 
-export type InsightRecentSalaryIncreasesResult = {
+export type InsightRecentSalaryIncreasesResult = InsightTimelineResultScope & {
   intent: "RECENT_SALARY_INCREASES";
-  months: number;
-  country: string | null;
-  department: string | null;
   increases: InsightTimelineEvent[];
 };
 
@@ -184,6 +204,8 @@ export type InsightExecutionResult =
   | InsightHeadcountResult
   | InsightTotalPayrollResult
   | InsightTopEarnersResult
+  | InsightBottomEarnersResult
+  | InsightNearMedianEarnersResult
   | InsightRecentPromotionsResult
   | InsightRecentNewHiresResult
   | InsightRecentSalaryIncreasesResult;
