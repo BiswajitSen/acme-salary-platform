@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 
 import {
   COMPENSATION_REASONS,
+  isSalaryIncreaseReason,
   recordCompensationChangeSchema,
   type EmployeeProfileResponse,
 } from "./compensation";
@@ -108,5 +109,18 @@ describe("recordCompensationChangeSchema", () => {
   it("exports the PRD compensation reason enum", () => {
     expect(COMPENSATION_REASONS).toHaveLength(5);
     expect(COMPENSATION_REASONS).toContain("Annual Increment");
+  });
+});
+
+describe("isSalaryIncreaseReason", () => {
+  it("returns true for salary-increase reasons", () => {
+    expect(isSalaryIncreaseReason("Annual Increment")).toBe(true);
+    expect(isSalaryIncreaseReason("Promotion")).toBe(true);
+  });
+
+  it("returns false for other compensation reasons", () => {
+    expect(isSalaryIncreaseReason("Market Adjustment")).toBe(false);
+    expect(isSalaryIncreaseReason("Correction")).toBe(false);
+    expect(isSalaryIncreaseReason("New Hire")).toBe(false);
   });
 });
