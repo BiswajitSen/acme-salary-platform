@@ -12,8 +12,8 @@ const { getEmployeeProfile, listEmployeeCompensationHistory, recordCompensationC
     recordCompensationChange: vi.fn(),
   }));
 
-const { useEmployeeProfileMock } = vi.hoisted(() => ({
-  useEmployeeProfileMock: vi.fn(),
+const { employeeProfileStateMock } = vi.hoisted(() => ({
+  employeeProfileStateMock: vi.fn(),
 }));
 
 vi.mock("@/lib/hooks/use-employee-profile", async () => {
@@ -24,8 +24,8 @@ vi.mock("@/lib/hooks/use-employee-profile", async () => {
   return {
     ...actual,
     useEmployeeProfile: (...args: Parameters<typeof actual.useEmployeeProfile>) => {
-      if (useEmployeeProfileMock.getMockImplementation()) {
-        return useEmployeeProfileMock(...args);
+      if (employeeProfileStateMock.getMockImplementation()) {
+        return employeeProfileStateMock(...args);
       }
 
       return actual.useEmployeeProfile(...args);
@@ -42,7 +42,7 @@ vi.mock("@/lib/api/employees", () => ({
 describe("EmployeeProfile", () => {
   afterEach(() => {
     cleanup();
-    useEmployeeProfileMock.mockReset();
+    employeeProfileStateMock.mockReset();
   });
 
   it("renders profile sections for a loaded employee", async () => {
@@ -107,7 +107,7 @@ describe("EmployeeProfile", () => {
   });
 
   it("renders an empty timeline when compensation history is unavailable", () => {
-    useEmployeeProfileMock.mockReturnValue({
+    employeeProfileStateMock.mockReturnValue({
       profile: {
         id: "E001",
         fullName: "Jane Doe",
@@ -130,7 +130,7 @@ describe("EmployeeProfile", () => {
   it("reloads the profile after a compensation change is recorded", async () => {
     const reloadProfile = vi.fn().mockResolvedValue(undefined);
 
-    useEmployeeProfileMock.mockReturnValue({
+    employeeProfileStateMock.mockReturnValue({
       profile: {
         id: "E001",
         fullName: "Jane Doe",

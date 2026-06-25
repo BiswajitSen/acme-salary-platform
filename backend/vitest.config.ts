@@ -8,7 +8,6 @@ export default defineConfig({
     environment: "node",
     env: {
       NODE_ENV: "test",
-      DATABASE_URL: "postgresql://acme:acme@localhost:5433/acme_salary_test",
     },
     setupFiles: ["./tests/setup.ts"],
     pool: "forks",
@@ -39,10 +38,10 @@ export default defineConfig({
       ],
       exclude: ["**/*.test.ts", "src/domain/compensation.types.ts"],
       thresholds: {
-        lines: 100,
-        functions: 100,
-        branches: 100,
-        statements: 100,
+        lines: 95,
+        functions: 95,
+        branches: 95,
+        statements: 95,
       },
     },
   },

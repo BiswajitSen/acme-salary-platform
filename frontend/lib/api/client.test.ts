@@ -97,9 +97,10 @@ describe("isApiRequestError", () => {
   });
 
   it("recognizes duck-typed api errors from another module instance", () => {
-    const error = new Error("Failed") as ApiRequestError;
-    error.name = "ApiRequestError";
-    error.status = 400;
+    const error = Object.assign(new Error("Failed"), {
+      name: "ApiRequestError",
+      status: 400,
+    }) as ApiRequestError;
 
     expect(isApiRequestError(error)).toBe(true);
   });
