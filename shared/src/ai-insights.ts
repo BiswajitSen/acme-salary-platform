@@ -27,6 +27,10 @@ export const DEFAULT_INSIGHT_NEAR_MEDIAN_TOLERANCE_PERCENT = 10;
 
 export const DEFAULT_INSIGHT_TIMELINE_MONTHS = 3;
 
+export const INSIGHT_MEDIAN_SPLIT_FOCUSES = ["below", "above", "both"] as const;
+
+export type InsightMedianSplitFocus = (typeof INSIGHT_MEDIAN_SPLIT_FOCUSES)[number];
+
 /** @deprecated Use DEFAULT_INSIGHT_TIMELINE_MONTHS */
 export const DEFAULT_RECENT_PROMOTIONS_MONTHS = DEFAULT_INSIGHT_TIMELINE_MONTHS;
 
@@ -85,6 +89,7 @@ export type ParsedInsightQuery = {
   months: number | null;
   sinceDate: string | null;
   limit: number | null;
+  medianSplitFocus: InsightMedianSplitFocus | null;
 };
 
 export type InsightScopedResultFields = {
@@ -183,6 +188,7 @@ export type InsightMedianSplitCountsResult = InsightScopedResultFields & {
   intent: "MEDIAN_SPLIT_COUNTS";
   currency: string;
   medianSalary: number;
+  medianSplitFocus: InsightMedianSplitFocus;
   belowMedianCount: number;
   aboveMedianCount: number;
   employeeCount: number;
