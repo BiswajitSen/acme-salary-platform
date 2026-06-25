@@ -35,6 +35,24 @@ describe("listEmployees", () => {
     global.fetch = originalFetch;
   });
 
+  it("includes employment status in the query string when provided", async () => {
+    const originalFetch = global.fetch;
+    global.fetch = async (input) => {
+      expect(String(input)).toContain("employmentStatus=ACTIVE");
+      return new Response(
+        JSON.stringify({
+          data: [],
+          meta: { page: 1, limit: 50, total: 0, totalPages: 0 },
+          stats: { total: 0, active: 0, noCompensation: 0, departments: 0 },
+        }),
+        { status: 200, headers: { "Content-Type": "application/json" } },
+      );
+    };
+
+    await listEmployees({ employmentStatus: "ACTIVE" });
+    global.fetch = originalFetch;
+  });
+
   it("requests employees without query params by default", async () => {
     const originalFetch = global.fetch;
     global.fetch = async (input) => {

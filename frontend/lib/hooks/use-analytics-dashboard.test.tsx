@@ -304,4 +304,37 @@ describe("useAnalyticsDashboard", () => {
       expect(result.current.availableCurrencies).toEqual([]);
     });
   });
+
+  it("updates and resets dashboard filters", async () => {
+    fetchAnalyticsCurrencies.mockResolvedValue(currenciesResponse(["USD"]));
+    fetchAnalyticsDashboardMetrics.mockResolvedValue(metricsResponse("USD"));
+    fetchCompensatedEmployees.mockResolvedValue(compensatedEmployees);
+    listEmployeeFilterOptions.mockResolvedValue({
+      countries: [],
+      departments: ["Engineering"],
+      jobTitles: [],
+    });
+
+    const { result } = renderHook(() => useAnalyticsDashboard(), { wrapper: createWrapper() });
+
+    await waitFor(() => {
+      expect(result.current.view?.kpis.headcount).toBe(3);
+    });
+
+    act(() => {
+      result.current.setFilter("department", "Engineering");
+    });
+
+    expect(result.current.filters.department).toBe("Engineering");
+
+    act(() => {
+      result.current.resetFilters();
+    });
+
+    expect(result.current.filters).toEqual({
+      country: "",
+      department: "",
+      jobTitle: "",
+    });
+  });
 });

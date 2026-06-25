@@ -121,6 +121,53 @@ describe("useInsightQueryParser", () => {
     expect(result.current.response).toBeNull();
   });
 
+  it("does not rerun when display currency changes before any query was submitted", async () => {
+    const { rerender } = renderHook(
+      ({ displayCurrency }) => useInsightQueryParser(displayCurrency),
+      { initialProps: { displayCurrency: "USD" } },
+    );
+
+    rerender({ displayCurrency: "GBP" });
+
+    expect(executeInsightQueryMock).not.toHaveBeenCalled();
+  });
+
+  it("surfaces an error when currency rerun fails", async () => {
+    executeInsightQueryMock.mockResolvedValueOnce({
+      parsedQuery: {
+        intent: "HEADCOUNT",
+        originalQuery: "headcount",
+        department: null,
+        currency: null,
+      },
+      result: {
+        intent: "HEADCOUNT",
+        currency: "USD",
+        headcount: 42,
+      },
+      error: null,
+    });
+    executeInsightQueryMock.mockRejectedValueOnce(new Error("Network error"));
+
+    const { result, rerender } = renderHook(
+      ({ displayCurrency }) => useInsightQueryParser(displayCurrency),
+      { initialProps: { displayCurrency: "USD" } },
+    );
+
+    act(() => {
+      result.current.updateQuery("headcount");
+    });
+    await act(async () => {
+      await result.current.submitQuery();
+    });
+
+    rerender({ displayCurrency: "GBP" });
+
+    await waitFor(() => {
+      expect(result.current.errorMessage).toContain("Unable to run");
+    });
+  });
+
   it("re-runs the previous query when display currency changes", async () => {
     executeInsightQueryMock.mockResolvedValueOnce({
       parsedQuery: {

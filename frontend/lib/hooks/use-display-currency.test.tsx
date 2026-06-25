@@ -68,6 +68,59 @@ describe("useDisplayCurrency", () => {
     );
   });
 
+  it("falls back to USD when stored currency is invalid", async () => {
+    window.localStorage.setItem("acme.displayCurrency", "INVALID");
+
+    const { result } = renderHook(() => useDisplayCurrency(), {
+      wrapper: createWrapper(),
+    });
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    expect(result.current.currency).toBe("USD");
+  });
+
+  it("ignores invalid currency selections", async () => {
+    const { result } = renderHook(() => useDisplayCurrency(), {
+      wrapper: createWrapper(),
+    });
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    act(() => {
+      result.current.selectCurrency("INVALID");
+    });
+
+    expect(result.current.currency).toBe("USD");
+    expect(window.localStorage.getItem("acme.displayCurrency")).toBeNull();
+  });
+
+  it("syncs currency when localStorage changes in another tab", async () => {
+    const { result } = renderHook(() => useDisplayCurrency(), {
+      wrapper: createWrapper(),
+    });
+
+    await act(async () => {
+      await Promise.resolve();
+    });
+
+    act(() => {
+      window.localStorage.setItem("acme.displayCurrency", "EUR");
+      window.dispatchEvent(
+        new StorageEvent("storage", {
+          key: "acme.displayCurrency",
+          newValue: "EUR",
+        }),
+      );
+    });
+
+    expect(result.current.currency).toBe("EUR");
+  });
+
   it("updates every consumer when the header changes display currency", async () => {
     function useHeaderAndPageCurrency() {
       const header = useDisplayCurrency();

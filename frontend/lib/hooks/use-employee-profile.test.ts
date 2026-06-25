@@ -77,6 +77,63 @@ describe("useEmployeeProfile", () => {
     rejectProfile?.(new Error("Network error"));
   });
 
+  it("ignores late profile data after the hook unmounts", async () => {
+    let resolveProfile: ((value: unknown) => void) | undefined;
+
+    getEmployeeProfile.mockImplementation(
+      () =>
+        new Promise((resolve) => {
+          resolveProfile = resolve;
+        }),
+    );
+    listEmployeeCompensationHistory.mockResolvedValue({
+      employeeId: "E001",
+      entries: [],
+    });
+
+    const { unmount } = renderHook(() => useEmployeeProfile("E001"));
+    unmount();
+    resolveProfile?.({
+      id: "E001",
+      fullName: "Jane Doe",
+      department: "Engineering",
+      jobTitle: "Senior Engineer",
+      country: "US",
+      currentCompensation: null,
+    });
+  });
+
+  it("marks missing employees as not found when reloadProfile fails with 404", async () => {
+    getEmployeeProfile.mockResolvedValueOnce({
+      id: "E001",
+      fullName: "Jane Doe",
+      department: "Engineering",
+      jobTitle: "Senior Engineer",
+      country: "US",
+      currentCompensation: null,
+    });
+    listEmployeeCompensationHistory.mockResolvedValueOnce({
+      employeeId: "E001",
+      entries: [],
+    });
+
+    const { result } = renderHook(() => useEmployeeProfile("E001"));
+
+    await waitFor(() => {
+      expect(result.current.profile?.fullName).toBe("Jane Doe");
+    });
+
+    getEmployeeProfile.mockRejectedValue(new ApiRequestError("Not found", 404));
+    listEmployeeCompensationHistory.mockRejectedValue(new ApiRequestError("Not found", 404));
+
+    await result.current.reloadProfile();
+
+    await waitFor(() => {
+      expect(result.current.notFound).toBe(true);
+      expect(result.current.profile).toBeNull();
+    });
+  });
+
   it("reloads profile data when reloadProfile is called", async () => {
     getEmployeeProfile.mockResolvedValue({
       id: "E001",
