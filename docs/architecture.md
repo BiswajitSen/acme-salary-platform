@@ -75,6 +75,7 @@ Server Components fetch the backend directly. Client-side calls use `/api/backen
 
 - **Append-only:** compensation history is insert-only
 - **Display currency:** analytics convert all employees to a selected ISO currency using daily FX rates (see [ADR 001](./adr/001-daily-frankfurter-exchange-rates-and-display-currency.md)); native currencies are never blended without conversion
+- **Analytics dashboard cache:** the frontend keeps a session-scoped in-memory cache of dashboard data to avoid refetching on every navigation (see [ADR 002](./adr/002-analytics-dashboard-client-session-cache.md))
 - **Import:** all-or-nothing transactional dry-run
 - **AI:** intent → whitelisted analytics functions only (no dynamic SQL)
 
