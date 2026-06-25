@@ -1,5 +1,4 @@
-import { cleanup, render, screen, waitFor } from "@testing-library/react";
-import userEvent from "@testing-library/user-event";
+import { cleanup, render, screen } from "@testing-library/react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
 import { AnalyticsDashboard } from "./analytics-dashboard";
@@ -22,7 +21,12 @@ describe("AnalyticsDashboard", () => {
     useAnalyticsDashboardMock.mockReturnValue({
       currency: "INR",
       availableCurrencies: ["INR", "USD"],
-      summary: { currency: "INR", headcount: 3, totalPayroll: 396_000 },
+      summary: {
+        currency: "INR",
+        headcount: 3,
+        totalPayroll: 396_000,
+        exchangeRatesAsOf: "2026-01-01",
+      },
       departmentStatistics: {
         currency: "INR",
         departments: [
@@ -58,7 +62,8 @@ describe("AnalyticsDashboard", () => {
     expect(screen.getByText("Salary by department")).toBeTruthy();
     expect(screen.getByText("Top earners")).toBeTruthy();
     expect(screen.getByText("Employee 5")).toBeTruthy();
-    expect(screen.getByText("INR")).toBeTruthy();
+    expect(screen.getByText("₹396,000")).toBeTruthy();
+    expect(screen.getByText("FX rates as of 2026-01-01")).toBeTruthy();
   });
 
   it("shows a loading state while analytics data is fetched", () => {
@@ -112,27 +117,5 @@ describe("AnalyticsDashboard", () => {
     render(<AnalyticsDashboard />);
 
     expect(screen.getByText("Unable to load analytics dashboard data.")).toBeTruthy();
-  });
-
-  it("changes currency when the selector value changes", async () => {
-    const selectCurrency = vi.fn();
-    useAnalyticsDashboardMock.mockReturnValue({
-      currency: "USD",
-      availableCurrencies: ["GBP", "USD"],
-      summary: { currency: "USD", headcount: 1, totalPayroll: 100_000 },
-      departmentStatistics: { currency: "USD", departments: [] },
-      topEarners: { currency: "USD", earners: [] },
-      isLoading: false,
-      errorMessage: null,
-      selectCurrency,
-    });
-
-    render(<AnalyticsDashboard />);
-
-    await userEvent.selectOptions(screen.getByLabelText("Display currency"), "GBP");
-
-    await waitFor(() => {
-      expect(selectCurrency).toHaveBeenCalledWith("GBP");
-    });
   });
 });

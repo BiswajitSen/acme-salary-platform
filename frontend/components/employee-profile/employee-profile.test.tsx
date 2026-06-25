@@ -1,6 +1,8 @@
 import { render, screen } from "@testing-library/react";
 import { describe, expect, it } from "vitest";
 
+import { TEST_EXCHANGE_RATES_TO_USD } from "@acme/shared";
+
 import { CompensationTimeline } from "./compensation-timeline";
 import { EmployeeCurrentCompensation } from "./employee-current-compensation";
 import { EmployeeProfileSummary } from "./employee-profile-summary";
@@ -37,6 +39,8 @@ describe("EmployeeCurrentCompensation", () => {
           changedBy: "HR Admin",
           lastUpdated: "2025-01-02T10:00:00.000Z",
         }}
+        displayCurrency="USD"
+        ratesToUsd={TEST_EXCHANGE_RATES_TO_USD}
       />,
     );
 
@@ -44,8 +48,52 @@ describe("EmployeeCurrentCompensation", () => {
     expect(screen.getByText("$132,000")).toBeInTheDocument();
   });
 
+  it("converts current compensation into the selected display currency", () => {
+    render(
+      <EmployeeCurrentCompensation
+        currentCompensation={{
+          baseSalary: 86_300,
+          currency: "SGD",
+          effectiveDate: "2025-01-01",
+          reason: "Annual Increment",
+          changedBy: "HR Admin",
+          lastUpdated: "2025-01-02T10:00:00.000Z",
+        }}
+        displayCurrency="INR"
+        ratesToUsd={TEST_EXCHANGE_RATES_TO_USD}
+      />,
+    );
+
+    expect(screen.getByText("₹5,393,750")).toBeInTheDocument();
+  });
+
+  it("falls back to the recorded currency when exchange rates are unavailable", () => {
+    render(
+      <EmployeeCurrentCompensation
+        currentCompensation={{
+          baseSalary: 86_300,
+          currency: "SGD",
+          effectiveDate: "2025-01-01",
+          reason: "Annual Increment",
+          changedBy: "HR Admin",
+          lastUpdated: "2025-01-02T10:00:00.000Z",
+        }}
+        displayCurrency="INR"
+        ratesToUsd={null}
+      />,
+    );
+
+    expect(screen.getByText("SGD 86,300")).toBeInTheDocument();
+  });
+
   it("shows an empty state when compensation is missing", () => {
-    render(<EmployeeCurrentCompensation currentCompensation={null} />);
+    render(
+      <EmployeeCurrentCompensation
+        currentCompensation={null}
+        displayCurrency="USD"
+        ratesToUsd={TEST_EXCHANGE_RATES_TO_USD}
+      />,
+    );
 
     expect(screen.getByText(/No compensation history recorded yet/i)).toBeInTheDocument();
   });
@@ -68,6 +116,8 @@ describe("CompensationTimeline", () => {
             createdAt: "2025-01-02T10:00:00.000Z",
           },
         ]}
+        displayCurrency="USD"
+        ratesToUsd={TEST_EXCHANGE_RATES_TO_USD}
       />,
     );
 
@@ -75,8 +125,64 @@ describe("CompensationTimeline", () => {
     expect(screen.getByText("$120,000")).toBeInTheDocument();
   });
 
+  it("converts timeline salaries into the selected display currency", () => {
+    render(
+      <CompensationTimeline
+        entries={[
+          {
+            id: 1,
+            previousSalary: 50_487,
+            baseSalary: 86_300,
+            currency: "SGD",
+            effectiveDate: "2025-01-01",
+            reason: "Annual Increment",
+            changedBy: "HR Admin",
+            notes: null,
+            createdAt: "2025-01-02T10:00:00.000Z",
+          },
+        ]}
+        displayCurrency="INR"
+        ratesToUsd={TEST_EXCHANGE_RATES_TO_USD}
+      />,
+    );
+
+    expect(screen.getByText("₹3,155,438")).toBeInTheDocument();
+    expect(screen.getByText("₹5,393,750")).toBeInTheDocument();
+  });
+
+  it("falls back to the recorded currency when exchange rates are unavailable", () => {
+    render(
+      <CompensationTimeline
+        entries={[
+          {
+            id: 1,
+            previousSalary: 50_487,
+            baseSalary: 86_300,
+            currency: "SGD",
+            effectiveDate: "2025-01-01",
+            reason: "Annual Increment",
+            changedBy: "HR Admin",
+            notes: null,
+            createdAt: "2025-01-02T10:00:00.000Z",
+          },
+        ]}
+        displayCurrency="INR"
+        ratesToUsd={null}
+      />,
+    );
+
+    expect(screen.getByText("SGD 50,487")).toBeInTheDocument();
+    expect(screen.getByText("SGD 86,300")).toBeInTheDocument();
+  });
+
   it("shows an empty state when there are no entries", () => {
-    render(<CompensationTimeline entries={[]} />);
+    render(
+      <CompensationTimeline
+        entries={[]}
+        displayCurrency="USD"
+        ratesToUsd={TEST_EXCHANGE_RATES_TO_USD}
+      />,
+    );
 
     expect(screen.getByText(/No compensation changes recorded yet/i)).toBeInTheDocument();
   });
@@ -97,6 +203,8 @@ describe("CompensationTimeline", () => {
             createdAt: "2024-01-02T10:00:00.000Z",
           },
         ]}
+        displayCurrency="USD"
+        ratesToUsd={TEST_EXCHANGE_RATES_TO_USD}
       />,
     );
 

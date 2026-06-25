@@ -4,6 +4,12 @@
   gap: 1.25rem;
 }
 
+.fxNote {
+  color: var(--muted-foreground);
+  font-size: 0.875rem;
+  margin: 0;
+}
+
 .grid {
   display: grid;
   grid-template-columns: minmax(0, 1.4fr) minmax(0, 1fr);

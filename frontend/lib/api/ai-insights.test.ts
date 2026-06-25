@@ -40,7 +40,7 @@ describe("executeInsightQuery", () => {
       expect(String(input)).toBe("/api/backend/insights/execute");
       expect(init?.method).toBe("POST");
       expect(init?.body).toBe(
-        JSON.stringify({ query: "headcount in USD" }),
+        JSON.stringify({ query: "headcount in USD", displayCurrency: "GBP" }),
       );
 
       return new Response(
@@ -56,13 +56,14 @@ describe("executeInsightQuery", () => {
             currency: "USD",
             headcount: 42,
           },
+          exchangeRatesAsOf: "2026-06-24",
           error: null,
         }),
         { status: 200, headers: { "Content-Type": "application/json" } },
       );
     };
 
-    await expect(executeInsightQuery("headcount in USD")).resolves.toEqual({
+    await expect(executeInsightQuery("headcount in USD", "GBP")).resolves.toEqual({
       parsedQuery: {
         intent: "HEADCOUNT",
         originalQuery: "headcount in USD",
@@ -74,6 +75,7 @@ describe("executeInsightQuery", () => {
         currency: "USD",
         headcount: 42,
       },
+      exchangeRatesAsOf: "2026-06-24",
       error: null,
     });
     global.fetch = originalFetch;

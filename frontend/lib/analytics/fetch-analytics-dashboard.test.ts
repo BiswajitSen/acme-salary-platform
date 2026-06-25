@@ -1,5 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 
+import { TEST_EXCHANGE_RATES_TO_USD } from "@acme/shared";
+
 import {
   fetchAnalyticsCurrencies,
   fetchAnalyticsDashboardMetrics,
@@ -25,10 +27,18 @@ vi.mock("@/lib/api/analytics", () => ({
 }));
 
 describe("fetchAnalyticsCurrencies", () => {
-  it("returns currency codes from the analytics API", async () => {
-    getAnalyticsCurrencies.mockResolvedValue({ currencies: ["GBP", "INR", "USD"] });
+  it("returns currencies and exchange rate metadata from the analytics API", async () => {
+    getAnalyticsCurrencies.mockResolvedValue({
+      currencies: ["GBP", "INR", "USD"],
+      exchangeRatesAsOf: "2026-06-24",
+      ratesToUsd: TEST_EXCHANGE_RATES_TO_USD,
+    });
 
-    await expect(fetchAnalyticsCurrencies()).resolves.toEqual(["GBP", "INR", "USD"]);
+    await expect(fetchAnalyticsCurrencies()).resolves.toEqual({
+      currencies: ["GBP", "INR", "USD"],
+      exchangeRatesAsOf: "2026-06-24",
+      ratesToUsd: TEST_EXCHANGE_RATES_TO_USD,
+    });
   });
 });
 

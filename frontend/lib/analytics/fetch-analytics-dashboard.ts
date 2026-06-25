@@ -1,4 +1,5 @@
 import type {
+  AnalyticsCurrenciesResponse,
   AnalyticsDepartmentStatisticsResponse,
   AnalyticsSummaryResponse,
   AnalyticsTopEarnersResponse,
@@ -17,9 +18,8 @@ export type AnalyticsDashboardMetrics = {
   topEarners: AnalyticsTopEarnersResponse;
 };
 
-export async function fetchAnalyticsCurrencies(): Promise<string[]> {
-  const response = await getAnalyticsCurrencies();
-  return response.currencies;
+export async function fetchAnalyticsCurrencies(): Promise<AnalyticsCurrenciesResponse> {
+  return getAnalyticsCurrencies();
 }
 
 export async function fetchAnalyticsDashboardMetrics(
