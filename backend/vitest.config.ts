@@ -8,7 +8,6 @@ export default defineConfig({
     environment: "node",
     env: {
       NODE_ENV: "test",
-      DATABASE_URL: "postgresql://acme:acme@localhost:5433/acme_salary_test",
     },
     setupFiles: ["./tests/setup.ts"],
     pool: "forks",

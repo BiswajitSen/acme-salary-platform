@@ -46,6 +46,19 @@ function createMockCompensationRepository(
 
   return {
     findCompensationHistoryByEmployeeId: vi.fn().mockImplementation(async () => [...records]),
+    findCompensationHistoryByEmployeeIds: vi.fn().mockImplementation(async (employeeIds: string[]) => {
+      const historyByEmployee = new Map<string, CompensationHistoryRecord[]>();
+
+      for (const employeeId of employeeIds) {
+        historyByEmployee.set(
+          employeeId,
+          records.filter((record) => record.employeeId === employeeId),
+        );
+      }
+
+      return historyByEmployee;
+    }),
+    findEmployeeIdsWithCompensationHistory: vi.fn().mockResolvedValue(new Set()),
     insertCompensationHistoryRecord: vi.fn().mockImplementation(async (record) => {
       const insertedRecord: CompensationHistoryRecord = {
         id: records.length + 1,
@@ -55,6 +68,7 @@ function createMockCompensationRepository(
       records.push(insertedRecord);
       return insertedRecord;
     }),
+    insertManyCompensationHistoryRecords: vi.fn(),
   };
 }
 
@@ -281,6 +295,9 @@ describe("CompensationService.recordCompensationChange", () => {
   it("fails when the recorded change cannot be loaded into the timeline", async () => {
     const compensationRepository: ICompensationRepository = {
       findCompensationHistoryByEmployeeId: vi.fn().mockResolvedValue([]),
+      findCompensationHistoryByEmployeeIds: vi.fn().mockResolvedValue(new Map()),
+      findEmployeeIdsWithCompensationHistory: vi.fn().mockResolvedValue(new Set()),
+      insertManyCompensationHistoryRecords: vi.fn(),
       insertCompensationHistoryRecord: vi.fn().mockResolvedValue({
         id: 99,
         employeeId: "E001",
