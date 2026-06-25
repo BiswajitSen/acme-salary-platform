@@ -37,6 +37,7 @@ export function useInsightQueryParser(displayCurrency: string): InsightQueryPars
       return;
     }
 
+    const queryToRun = trimmedQuery;
     let isCancelled = false;
 
     async function rerunQuery() {
@@ -44,7 +45,7 @@ export function useInsightQueryParser(displayCurrency: string): InsightQueryPars
       setErrorMessage(null);
 
       try {
-        const nextResponse = await executeInsightQuery(trimmedQuery, displayCurrency);
+        const nextResponse = await executeInsightQuery(queryToRun, displayCurrency);
 
         if (!isCancelled) {
           setResponse(nextResponse);
