@@ -13,12 +13,12 @@ import {
   parseInsightAnalyticsQuery,
   parseInsightTimelineQuery,
   toEmployeeScopeFromQuery,
-} from "../domain/insight-top-earners-query.js";
-import type { InsightTimelineWindow } from "../domain/insight-query-timeline-window.js";
+} from "../domain/insights/analytics-query.js";
+import type { InsightTimelineWindow } from "../domain/insights/timeline/window.js";
 import {
   INSIGHT_TIMELINE_INTENT_REASONS,
   type InsightTimelineIntent,
-} from "../domain/insight-query-timeline.js";
+} from "../domain/insights/timeline/timeline.js";
 import type { IInsightAnalyticsRepository } from "../repositories/interfaces/insight-analytics.repository.js";
 import type { IExchangeRateProvider } from "./exchange-rate.provider.js";
 

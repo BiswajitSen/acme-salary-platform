@@ -5,7 +5,7 @@ import type { ExchangeRatesToUsd } from "@acme/shared";
 import {
   buildEmployeeScopeFilter,
   type EmployeeScopeParams,
-} from "../../domain/analytics-employee-scope.js";
+} from "../../domain/insights/employee-scope.js";
 import type {
   CompensationTimelineRecord,
   DepartmentSalaryStatisticsRecord,
@@ -19,7 +19,7 @@ import {
 import {
   buildTimelineStartExpression,
   type InsightTimelineWindow,
-} from "../../domain/insight-query-timeline-window.js";
+} from "../../domain/insights/timeline/window.js";
 import type { Database } from "../../db/index.js";
 import type { IAnalyticsRepository } from "../interfaces/analytics.repository.js";
 
@@ -78,7 +78,7 @@ function mapCompensationTimelineRow(row: {
     baseSalary: row.base_salary,
     currency: row.currency,
     effectiveDate: row.effective_date,
-    reason: row.reason,
+    reason: row.reason as CompensationTimelineRecord["reason"],
   };
 }
 
@@ -99,7 +99,7 @@ export class DrizzleAnalyticsRepository implements IAnalyticsRepository {
       WHERE ${scope(scopeParams)}
     `);
 
-    return result.rows[0].headcount;
+    return result.rows[0]?.headcount ?? 0;
   }
 
   async sumLatestCompensationSalariesInDisplayCurrency(
@@ -117,7 +117,7 @@ export class DrizzleAnalyticsRepository implements IAnalyticsRepository {
       WHERE ${scope(scopeParams)}
     `);
 
-    return result.rows[0].total_payroll;
+    return result.rows[0]?.total_payroll ?? 0;
   }
 
   async findDepartmentSalaryStatisticsInDisplayCurrency(
@@ -170,9 +170,9 @@ export class DrizzleAnalyticsRepository implements IAnalyticsRepository {
     `);
 
     return {
-      employeeCount: result.rows[0].employee_count,
-      averageSalary: result.rows[0].average_salary,
-      medianSalary: result.rows[0].median_salary,
+      employeeCount: result.rows[0]?.employee_count ?? 0,
+      averageSalary: result.rows[0]?.average_salary ?? 0,
+      medianSalary: result.rows[0]?.median_salary ?? 0,
     };
   }
 

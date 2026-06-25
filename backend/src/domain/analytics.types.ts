@@ -11,6 +11,8 @@ export type DepartmentSalaryStatisticsRecord = {
   medianSalary: number;
 };
 
+import type { CompensationReason } from "@acme/shared";
+
 export type CompensationTimelineRecord = {
   employeeId: string;
   fullName: string;
@@ -18,7 +20,7 @@ export type CompensationTimelineRecord = {
   baseSalary: number;
   currency: string;
   effectiveDate: string;
-  reason: string;
+  reason: CompensationReason;
 };
 
 /** @deprecated Use CompensationTimelineRecord */

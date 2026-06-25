@@ -1,13 +1,13 @@
 import type { ExchangeRatesToUsd } from "@acme/shared";
 
-import type { EmployeeScopeParams } from "../../domain/analytics-employee-scope.js";
+import type { EmployeeScopeParams } from "../../domain/insights/employee-scope.js";
 import type {
   CompensationTimelineRecord,
   DepartmentSalaryStatisticsRecord,
   ScopedSalaryStatisticsRecord,
   TopEarnerRecord,
 } from "../../domain/analytics.types.js";
-import type { InsightTimelineWindow } from "../../domain/insight-query-timeline-window.js";
+import type { InsightTimelineWindow } from "../../domain/insights/timeline/window.js";
 
 export interface IAnalyticsRepository {
   countEmployeesWithLatestCompensation(scope?: EmployeeScopeParams): Promise<number>;
