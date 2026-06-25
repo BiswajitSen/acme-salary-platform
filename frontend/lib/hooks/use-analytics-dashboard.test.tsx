@@ -2,17 +2,38 @@ import { act, renderHook, waitFor } from "@testing-library/react";
 import type { ReactNode } from "react";
 import { afterEach, describe, expect, it, vi } from "vitest";
 
+import { clearAnalyticsDashboardCache } from "@/lib/analytics/analytics-dashboard-cache";
+
 import { DisplayCurrencyProvider } from "./display-currency-provider";
 import { useAnalyticsDashboard } from "./use-analytics-dashboard";
 
-const { fetchAnalyticsCurrencies, fetchAnalyticsDashboardMetrics } = vi.hoisted(() => ({
+const {
+  fetchAnalyticsCurrencies,
+  fetchAnalyticsDashboardMetrics,
+  fetchCompensatedEmployees,
+  listEmployeeFilterOptions,
+} = vi.hoisted(() => ({
   fetchAnalyticsCurrencies: vi.fn(),
   fetchAnalyticsDashboardMetrics: vi.fn(),
+  fetchCompensatedEmployees: vi.fn(),
+  listEmployeeFilterOptions: vi.fn(),
 }));
 
 vi.mock("@/lib/analytics/fetch-analytics-dashboard", () => ({
   fetchAnalyticsCurrencies,
   fetchAnalyticsDashboardMetrics,
+}));
+
+vi.mock("@/lib/analytics/fetch-compensated-employees", async (importOriginal) => {
+  const actual = await importOriginal<typeof import("@/lib/analytics/fetch-compensated-employees")>();
+  return {
+    ...actual,
+    fetchCompensatedEmployees,
+  };
+});
+
+vi.mock("@/lib/api/employees", () => ({
+  listEmployeeFilterOptions,
 }));
 
 import { TEST_EXCHANGE_RATES_TO_USD } from "@acme/shared";
@@ -40,36 +61,96 @@ const metricsResponse = (currency: string) => ({
   topEarners: { currency, earners: [], exchangeRatesAsOf: "2026-01-01" },
 });
 
+const compensatedEmployees = [
+  {
+    id: "E001",
+    fullName: "Jane Doe",
+    department: "Engineering",
+    jobTitle: "Engineer",
+    country: "US",
+    baseSalary: 120_000,
+    currency: "USD",
+    employmentStatus: "ACTIVE" as const,
+  },
+];
+
 describe("useAnalyticsDashboard", () => {
   afterEach(() => {
     window.localStorage.clear();
+    clearAnalyticsDashboardCache();
+    vi.clearAllMocks();
   });
 
   it("loads analytics data for the selected currency", async () => {
     fetchAnalyticsCurrencies.mockResolvedValue(currenciesResponse(["USD", "GBP"]));
     fetchAnalyticsDashboardMetrics.mockResolvedValue(metricsResponse("USD"));
+    fetchCompensatedEmployees.mockResolvedValue(compensatedEmployees);
+    listEmployeeFilterOptions.mockResolvedValue({
+      countries: ["US"],
+      departments: ["Engineering"],
+      jobTitles: ["Engineer"],
+    });
 
     const { result } = renderHook(() => useAnalyticsDashboard(), { wrapper: createWrapper() });
 
     await waitFor(() => {
-      expect(result.current.summary?.headcount).toBe(3);
+      expect(result.current.view?.kpis.headcount).toBe(3);
     });
     expect(fetchAnalyticsCurrencies).toHaveBeenCalled();
     expect(fetchAnalyticsDashboardMetrics).toHaveBeenCalledWith("USD");
+    expect(fetchCompensatedEmployees).toHaveBeenCalled();
     expect(result.current.availableCurrencies).toEqual(["USD", "GBP"]);
     expect(result.current.exchangeRatesAsOf).toBe("2026-01-01");
   });
 
-  it("reloads analytics when display currency changes", async () => {
-    fetchAnalyticsCurrencies.mockResolvedValue(currenciesResponse(["GBP", "USD"]));
+  it("reuses cached analytics data on remount without refetching", async () => {
+    fetchAnalyticsCurrencies.mockResolvedValue(currenciesResponse(["USD"]));
+    fetchAnalyticsDashboardMetrics.mockResolvedValue(metricsResponse("USD"));
+    fetchCompensatedEmployees.mockResolvedValue(compensatedEmployees);
+    listEmployeeFilterOptions.mockResolvedValue({
+      countries: [],
+      departments: [],
+      jobTitles: [],
+    });
+
+    const wrapper = createWrapper();
+    const { unmount } = renderHook(() => useAnalyticsDashboard(), { wrapper });
+
+    await waitFor(() => {
+      expect(fetchAnalyticsDashboardMetrics).toHaveBeenCalledTimes(1);
+    });
+
+    unmount();
+
+    const { result } = renderHook(() => useAnalyticsDashboard(), { wrapper });
+
+    await waitFor(() => {
+      expect(result.current.view?.kpis.headcount).toBe(3);
+    });
+
+    expect(fetchAnalyticsCurrencies).toHaveBeenCalledTimes(1);
+    expect(fetchAnalyticsDashboardMetrics).toHaveBeenCalledTimes(1);
+    expect(fetchCompensatedEmployees).toHaveBeenCalledTimes(1);
+    expect(result.current.isLoading).toBe(false);
+  });
+
+  it("fetches only metrics when employees are cached and currency changes", async () => {
+    fetchAnalyticsCurrencies.mockResolvedValue(currenciesResponse(["USD", "GBP"]));
     fetchAnalyticsDashboardMetrics.mockImplementation(async (currency: string) =>
       metricsResponse(currency),
     );
+    fetchCompensatedEmployees.mockResolvedValue(compensatedEmployees);
+    listEmployeeFilterOptions.mockResolvedValue({
+      countries: [],
+      departments: [],
+      jobTitles: [],
+    });
 
-    const { result } = renderHook(() => useAnalyticsDashboard(), { wrapper: createWrapper() });
+    const wrapper = createWrapper();
+    const { result } = renderHook(() => useAnalyticsDashboard(), { wrapper });
 
     await waitFor(() => {
-      expect(result.current.summary?.headcount).toBe(3);
+      expect(result.current.view?.kpis.headcount).toBe(3);
     });
 
     act(() => {
@@ -77,15 +158,23 @@ describe("useAnalyticsDashboard", () => {
     });
 
     await waitFor(() => {
-      expect(fetchAnalyticsDashboardMetrics).toHaveBeenCalledWith("GBP");
-      expect(result.current.summary?.headcount).toBe(1);
+      expect(result.current.view?.kpis.headcount).toBe(1);
     });
+
+    expect(fetchAnalyticsDashboardMetrics).toHaveBeenCalledTimes(2);
+    expect(fetchCompensatedEmployees).toHaveBeenCalledTimes(1);
   });
 
   it("uses the persisted display currency preference", async () => {
     window.localStorage.setItem("acme.displayCurrency", "INR");
     fetchAnalyticsCurrencies.mockResolvedValue(currenciesResponse(["INR", "USD"]));
     fetchAnalyticsDashboardMetrics.mockResolvedValue(metricsResponse("INR"));
+    fetchCompensatedEmployees.mockResolvedValue(compensatedEmployees);
+    listEmployeeFilterOptions.mockResolvedValue({
+      countries: [],
+      departments: [],
+      jobTitles: [],
+    });
 
     renderHook(() => useAnalyticsDashboard(), { wrapper: createWrapper() });
 
@@ -97,6 +186,12 @@ describe("useAnalyticsDashboard", () => {
   it("surfaces an error message when loading fails", async () => {
     fetchAnalyticsCurrencies.mockResolvedValue(currenciesResponse(["USD"]));
     fetchAnalyticsDashboardMetrics.mockRejectedValue(new Error("Network error"));
+    fetchCompensatedEmployees.mockResolvedValue([]);
+    listEmployeeFilterOptions.mockResolvedValue({
+      countries: [],
+      departments: [],
+      jobTitles: [],
+    });
 
     const { result } = renderHook(() => useAnalyticsDashboard(), { wrapper: createWrapper() });
 
@@ -115,6 +210,12 @@ describe("useAnalyticsDashboard", () => {
           resolveMetrics = resolve;
         }),
     );
+    fetchCompensatedEmployees.mockResolvedValue([]);
+    listEmployeeFilterOptions.mockResolvedValue({
+      countries: [],
+      departments: [],
+      jobTitles: [],
+    });
 
     const { unmount } = renderHook(() => useAnalyticsDashboard(), { wrapper: createWrapper() });
     unmount();
@@ -131,6 +232,12 @@ describe("useAnalyticsDashboard", () => {
           rejectMetrics = reject;
         }),
     );
+    fetchCompensatedEmployees.mockResolvedValue([]);
+    listEmployeeFilterOptions.mockResolvedValue({
+      countries: [],
+      departments: [],
+      jobTitles: [],
+    });
 
     const { unmount } = renderHook(() => useAnalyticsDashboard(), { wrapper: createWrapper() });
     unmount();
@@ -147,6 +254,12 @@ describe("useAnalyticsDashboard", () => {
         }),
     );
     fetchAnalyticsDashboardMetrics.mockResolvedValue(metricsResponse("USD"));
+    fetchCompensatedEmployees.mockResolvedValue([]);
+    listEmployeeFilterOptions.mockResolvedValue({
+      countries: [],
+      departments: [],
+      jobTitles: [],
+    });
 
     const { unmount } = renderHook(() => useAnalyticsDashboard(), { wrapper: createWrapper() });
     unmount();
@@ -163,6 +276,12 @@ describe("useAnalyticsDashboard", () => {
         }),
     );
     fetchAnalyticsDashboardMetrics.mockResolvedValue(metricsResponse("USD"));
+    fetchCompensatedEmployees.mockResolvedValue([]);
+    listEmployeeFilterOptions.mockResolvedValue({
+      countries: [],
+      departments: [],
+      jobTitles: [],
+    });
 
     const { unmount } = renderHook(() => useAnalyticsDashboard(), { wrapper: createWrapper() });
     unmount();
@@ -172,6 +291,12 @@ describe("useAnalyticsDashboard", () => {
   it("continues when available currencies cannot be loaded", async () => {
     fetchAnalyticsCurrencies.mockRejectedValue(new Error("Network error"));
     fetchAnalyticsDashboardMetrics.mockResolvedValue(metricsResponse("USD"));
+    fetchCompensatedEmployees.mockResolvedValue([]);
+    listEmployeeFilterOptions.mockResolvedValue({
+      countries: [],
+      departments: [],
+      jobTitles: [],
+    });
 
     const { result } = renderHook(() => useAnalyticsDashboard(), { wrapper: createWrapper() });
 
