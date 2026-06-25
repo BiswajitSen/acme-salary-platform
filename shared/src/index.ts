@@ -26,8 +26,11 @@ export type ApiError = {
 export {
   DEFAULT_EMPLOYEE_LIMIT,
   DEFAULT_EMPLOYEE_PAGE,
+  EMPLOYEE_EMPLOYMENT_STATUSES,
   listEmployeesQuerySchema,
   MAX_EMPLOYEE_LIMIT,
+  type EmployeeDirectoryStats,
+  type EmployeeEmploymentStatus,
   type EmployeeSummary,
   type EmployeeFilterOptions,
   type ListEmployeesQuery,
