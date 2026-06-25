@@ -37,7 +37,7 @@ npm run dev:frontend  # :3000
 
 ## Current status
 
-Phase 0 complete (scaffold). **Next:** Phase 1 in roadmap — DI container, repositories, seed, then employee list API.
+Phases **0–7** of the MVP roadmap are implemented (directory, profiles, compensation management, analytics dashboard, spreadsheet import, AI insights). See [docs/roadmap.md](./docs/roadmap.md).
 
 ## When implementing a feature
 

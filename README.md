@@ -1,15 +1,16 @@
 # ACME Salary Platform
 
-Production-ready monorepo scaffold for the ACME Salary Management MVP.
+HR compensation management MVP: employee directory, compensation profiles, executive analytics, natural-language insights, and spreadsheet import. Built as a TypeScript monorepo with TDD and layered backend architecture.
 
 ## Stack
 
 | Layer | Technology |
 |-------|------------|
-| Frontend | Next.js 16 (App Router), TypeScript |
-| Backend | Express, TypeScript, layered architecture |
+| Frontend | Next.js 16 (App Router), TypeScript, Recharts |
+| Backend | Express, layered architecture (routes → services → domain → repositories) |
 | Database | SQLite with Drizzle ORM + versioned migrations |
-| Shared | `@acme/shared` workspace for API contracts |
+| Shared | `@acme/shared` — API contracts, Zod schemas, currency conversion |
+| FX | Frankfurter daily rates (cached; see [ADR 001](./docs/adr/001-daily-frankfurter-exchange-rates-and-display-currency.md)) |
 
 ## Prerequisites
 
@@ -27,25 +28,46 @@ npm run dev:backend   # terminal 1 → http://localhost:8000
 npm run dev:frontend  # terminal 2 → http://localhost:3000
 ```
 
+Open **http://localhost:3000** — use the header to navigate between Directory, Analytics, AI Insights, and Import flows.
+
+Architecture diagrams (Mermaid): [docs/architecture.md](./docs/architecture.md)
+
+## Application features
+
+| Route | Feature |
+|-------|---------|
+| `/` | Employee directory — search, column filters, KPIs, avatars, display-currency salaries |
+| `/employees/:id` | Compensation profile — current salary, timeline, record change form |
+| `/analytics` | Executive dashboard — KPIs, charts, heatmap, filters, session-cached data |
+| `/insights` | AI Insights — plain-English compensation questions (rule-based parser, no raw SQL) |
+| `/import` | Employee `.xlsx` import with dry-run preview |
+| `/import/compensation` | Compensation history `.xlsx` import |
+
+Global **display currency** (header selector) converts salaries for analytics, directory, and insights.
+
 ## Project structure
 
 ```
 ├── backend/
-│   ├── drizzle/              # SQL migrations (version controlled)
+│   ├── drizzle/                 # SQL migrations
 │   ├── src/
-│   │   ├── config/           # env validation, logging
-│   │   ├── db/               # Drizzle schema + connection
-│   │   ├── middleware/       # error handling
-│   │   ├── routes/           # HTTP route definitions
-│   │   ├── services/         # business logic
-│   │   ├── app.ts            # Express app factory
-│   │   └── server.ts         # entry point
-│   └── tests/
+│   │   ├── container/           # DI composition root
+│   │   ├── domain/              # business rules + insights parser/executors
+│   │   ├── repositories/        # interfaces + Drizzle implementations
+│   │   ├── services/            # use cases (employees, analytics, insights, import)
+│   │   ├── routes/              # Express routers
+│   │   ├── config/              # env validation, logging
+│   │   └── db/                  # schema, seed, migrations
+│   └── tests/                   # integration tests (Supertest)
 ├── frontend/
-│   ├── app/                  # Next.js routes
-│   ├── components/           # UI components
-│   └── lib/                  # API client, env config
-└── shared/                   # shared TypeScript types
+│   ├── app/                     # Next.js routes
+│   ├── components/              # UI by feature (directory, analytics, insights, …)
+│   └── lib/
+│       ├── api/                   # typed HTTP client
+│       ├── hooks/                 # client data hooks
+│       └── analytics/             # dashboard view model + session cache
+├── shared/                      # shared types & Zod schemas
+└── docs/                        # roadmap, standards, architecture, ADRs
 ```
 
 ## Scripts
@@ -54,7 +76,7 @@ npm run dev:frontend  # terminal 2 → http://localhost:3000
 |---------|-------------|
 | `npm run dev:backend` | Start API with hot reload |
 | `npm run dev:frontend` | Start Next.js dev server |
-| `npm test` | Run backend + frontend tests |
+| `npm test` | Run shared + backend + frontend tests |
 | `npm run lint` | Lint all packages |
 | `npm run db:migrate` | Apply pending migrations |
 | `npm run db:generate` | Generate migration from schema changes |
@@ -81,8 +103,18 @@ npm run dev:backend
 
 ## API
 
-- Health check: `GET /api/health`
-- Frontend proxy: `/api/backend/*` → backend `/api/*`
+| Endpoint | Purpose |
+|----------|---------|
+| `GET /api/health` | Health check |
+| `GET /api/employees` | Paginated directory (search & filters) |
+| `GET /api/employees/:id` | Employee profile |
+| `GET/POST /api/employees/:id/compensation` | Timeline / record change |
+| `POST /api/import/preview`, `/confirm` | Employee import |
+| `POST /api/import/compensation/preview`, `/confirm` | Compensation import |
+| `GET /api/analytics/*` | Summary, departments, top earners, currencies |
+| `POST /api/insights/parse`, `/execute` | AI Insights |
+
+Frontend proxy: `/api/backend/*` → backend `/api/*`
 
 ## Database
 
@@ -104,13 +136,9 @@ npm run db:generate-fixtures -w backend
 npm run db:import -w backend -- fixtures/employees-10000.xlsx
 ```
 
-Import employees first, then upload `fixtures/compensation-10000.xlsx` from **Import Compensation** in the UI.
+Import employees first, then upload `fixtures/compensation-10000.xlsx` from **Import Compensation** in the header.
 
-Expected columns (header aliases supported): `employee_id`, `full_name`, `department`, `job_title`, `country`. Import validates all rows before writing; duplicate employee IDs are rejected. Re-importing the same file upserts by employee ID.
-
-### Import in the HR UI
-
-Open **Import** in the header (`/import`), upload an `.xlsx` file, preview validation results, then confirm to write employees to the database.
+Expected employee columns (header aliases supported): `employee_id`, `full_name`, `department`, `job_title`, `country`. Import validates all rows before writing; duplicate employee IDs are rejected. Re-importing the same file upserts by employee ID.
 
 ### Employee compensation profile
 
@@ -128,13 +156,14 @@ curl -X POST http://localhost:8000/api/employees/E001/compensation \
 
 | Doc | Purpose |
 |-----|---------|
+| [docs/architecture.md](./docs/architecture.md) | **Mermaid architecture diagrams** — context, layers, features, data flows |
 | [docs/roadmap.md](./docs/roadmap.md) | Feature-wise build plan (phases 0–7) |
 | [docs/engineering-standards.md](./docs/engineering-standards.md) | TDD, SOLID, DI, repository pattern |
-| [docs/architecture.md](./docs/architecture.md) | Stack & layer diagram |
+| [docs/adr/README.md](./docs/adr/README.md) | Architecture decision records (FX, analytics cache) |
 | [AGENTS.md](./AGENTS.md) | Instructions for AI coding agents |
 
-**Backend:** layered routes → services → DB, Zod env validation, structured logging (Pino), Helmet security headers, centralized error handling, integration tests with Supertest.
+**Backend:** layered routes → services → domain → repositories, Zod validation, structured logging (Pino), Helmet, centralized error handling, integration tests with Supertest.
 
-**Frontend:** server components for data fetching, typed API client, shared contracts, route-level error boundary, env validation.
+**Frontend:** App Router, typed API client, feature hooks, analytics session cache ([ADR 002](./docs/adr/002-analytics-dashboard-client-session-cache.md)), shared contracts.
 
 **Database:** Drizzle ORM schema-as-code, versioned migrations, indexed filter columns, append-only compensation history with FK constraints.
