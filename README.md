@@ -33,7 +33,7 @@ npm run dev:backend   # terminal 1 → http://localhost:8000
 npm run dev:frontend  # terminal 2 → http://localhost:3000
 ```
 
-Open **http://localhost:3000** — use the header to navigate between Directory, Analytics, AI Insights, and Import flows.
+Open **http://localhost:3000** — use the header to navigate between Directory, Analytics, Insights, and Import flows.
 
 **Note:** If `backend/.env` is not present, the API uses the default local Postgres URL (`postgresql://acme:acme@localhost:5433/acme_salary`). Copy `.env.example` only when you need to override settings (e.g. a hosted Neon database).
 
@@ -47,7 +47,7 @@ Architecture diagrams (Mermaid): [docs/architecture.md](./docs/architecture.md)
 | `/employees/new` | Add employee — form with validation and dropdowns for department, job title, country |
 | `/employees/:id` | Compensation profile — summary, edit/delete employee, timeline, record change form |
 | `/analytics` | Executive dashboard — KPIs, charts, heatmap, filters, session-cached data |
-| `/insights` | AI Insights — plain-English compensation questions (rule-based parser, no raw SQL) |
+| `/insights` | Insights — plain-English compensation questions (rule-based parser, no raw SQL) |
 | `/import` | Employee `.xlsx` import with dry-run preview |
 | `/import/compensation` | Compensation history `.xlsx` import |
 
@@ -133,7 +133,7 @@ DATABASE_URL="postgresql://user:pass@host/db?sslmode=require" npm run db:seed -w
 | `POST /api/import/preview`, `/confirm` | Employee import |
 | `POST /api/import/compensation/preview`, `/confirm` | Compensation import |
 | `GET /api/analytics/*` | Summary, departments, top earners, currencies |
-| `POST /api/insights/parse`, `/execute` | AI Insights |
+| `POST /api/insights/parse`, `/execute` | Insights (natural-language queries) |
 
 Frontend proxy: `/api/backend/*` → backend `/api/*`
 

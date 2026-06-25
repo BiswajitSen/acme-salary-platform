@@ -110,9 +110,9 @@ Each feature follows **TDD**: failing test → minimal implementation → refact
 
 ---
 
-## Phase 7 — AI Insights (PRD §4.6) ✅
+## Phase 7 — Insights (PRD §4.6) ✅
 
-**Goal:** Natural language → safe, whitelisted analytics. **No raw SQL from AI.**
+**Goal:** Natural language → safe, whitelisted analytics. **No LLM and no raw SQL.**
 
 | # | Feature | API | UI | Tests (write first) | Status |
 |---|---------|-----|----|---------------------|--------|

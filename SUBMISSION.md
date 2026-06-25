@@ -13,7 +13,7 @@ An HR compensation management MVP covering:
 | **Compensation profiles** | Timeline, record changes with server-side validation (effective date, increase reasons) |
 | **Imports** | Employee and compensation `.xlsx` upload with dry-run preview |
 | **Analytics** | Executive dashboard with FX conversion and session cache |
-| **AI Insights** | Plain-English questions via rule-based parser (no dynamic SQL) |
+| **Insights** | Plain-English questions via rule-based parser (no LLM, no dynamic SQL) |
 
 ## Architecture highlights
 

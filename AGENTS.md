@@ -40,7 +40,7 @@ npm run dev:frontend  # :3000
 
 ## Current status
 
-Phases **0–8** of the MVP roadmap are implemented (directory, profiles, employee CRUD, compensation management, analytics dashboard, spreadsheet import, AI insights). See [docs/roadmap.md](./docs/roadmap.md).
+Phases **0–8** of the MVP roadmap are implemented (directory, profiles, employee CRUD, compensation management, analytics dashboard, spreadsheet import, insights). See [docs/roadmap.md](./docs/roadmap.md).
 
 ## When implementing a feature
 

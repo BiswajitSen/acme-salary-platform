@@ -17,7 +17,7 @@ describe("SiteHeader", () => {
 
     expect(screen.getByText("ACME Salary")).toBeTruthy();
     expect(screen.getByRole("link", { name: "Analytics" })).toBeTruthy();
-    expect(screen.getByRole("link", { name: "AI Insights" })).toBeTruthy();
+    expect(screen.getByRole("link", { name: "Insights" })).toBeTruthy();
     expect(screen.getByTestId("display-currency-selector")).toBeTruthy();
   });
 });

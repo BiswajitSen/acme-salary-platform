@@ -10,7 +10,7 @@ const NAV_ITEMS = [
   { href: "/import", label: "Import Employees" },
   { href: "/import/compensation", label: "Import Compensation" },
   { href: "/analytics", label: "Analytics" },
-  { href: "/insights", label: "AI Insights" },
+  { href: "/insights", label: "Insights" },
 ] as const;
 
 function isNavActive(href: string, pathname: string): boolean {

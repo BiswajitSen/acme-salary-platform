@@ -176,7 +176,7 @@ API prefix: `/api/*`
 | Employees | `GET /api/employees`, `POST /api/employees`, `GET /api/employees/:id`, `PATCH /api/employees/:id`, `DELETE /api/employees/:id`, compensation timeline & `POST` history |
 | Import | `POST /api/import/preview`, `confirm`; `POST /api/import/compensation/*` |
 | Analytics | `GET /api/analytics/currencies`, `summary`, `departments`, `top-earners` |
-| AI Insights | `POST /api/insights/parse`, `POST /api/insights/execute` |
+| Insights | `POST /api/insights/parse`, `POST /api/insights/execute` |
 
 ---
 
@@ -203,7 +203,7 @@ lib/env.ts             validated config
 | `/import` | Employee spreadsheet import |
 | `/import/compensation` | Compensation spreadsheet import |
 
-Display currency is a global preference (persisted in `localStorage`) used by Analytics, directory salary display, and AI Insights.
+Display currency is a global preference (persisted in `localStorage`) used by Analytics, directory salary display, and Insights.
 
 ---
 
@@ -267,7 +267,7 @@ flowchart LR
     Employees["GET /employees (paginated)"]
   end
 
-  subgraph InsightsUI["AI Insights"]
+  subgraph InsightsUI["Insights"]
     Parser["parse query"]
     Execute["execute intent"]
   end
@@ -293,7 +293,7 @@ flowchart LR
 ```
 
 - **Analytics:** server aggregates (summary, departments, top earners) plus client-derived charts from the employee list. FX conversion uses daily rates ([ADR 001](./adr/001-daily-frankfurter-exchange-rates-and-display-currency.md)). Repeat visits reuse a **5-minute session cache** ([ADR 002](./adr/002-analytics-dashboard-client-session-cache.md)).
-- **AI Insights:** rule-based intent parser (no LLM SQL). Each intent maps to a whitelisted executor that calls the same analytics repositories — no dynamic SQL.
+- **Insights:** rule-based intent parser (no LLM, no dynamic SQL). Each intent maps to a whitelisted executor that calls the same analytics repositories.
 
 ---
 
@@ -313,7 +313,7 @@ flowchart LR
 - **Display currency:** analytics convert all employees to a selected ISO currency using daily FX rates (see [ADR 001](./adr/001-daily-frankfurter-exchange-rates-and-display-currency.md)); native currencies are never blended without conversion
 - **Analytics dashboard cache:** the frontend keeps a session-scoped in-memory cache of dashboard data to avoid refetching on every navigation (see [ADR 002](./adr/002-analytics-dashboard-client-session-cache.md))
 - **Import:** all-or-nothing transactional dry-run
-- **AI:** intent → whitelisted analytics functions only (no dynamic SQL)
+- **Insights:** intent → whitelisted analytics functions only (no dynamic SQL)
 
 ---
 

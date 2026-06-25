@@ -29,8 +29,8 @@ export function InsightQueryPanel() {
   return (
     <section className={styles.page}>
       <PageHeader
-        title="AI Insights"
-        subtitle="Ask salary analytics questions in plain English. Combine metrics with country, department, and timeline filters such as last 3 months."
+        title="Insights"
+        subtitle="Ask compensation questions in plain English. A rule-based parser maps your query to whitelisted analytics — no AI or dynamic SQL."
       />
 
       <Card title="Ask a question">

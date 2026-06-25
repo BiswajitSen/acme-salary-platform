@@ -219,7 +219,7 @@ From the PRD — enforce in **domain/** or **services/**, always covered by test
 | ISO 4217 currency | Domain validator (3-letter) |
 | Currency isolation | Analytics never sums across currencies |
 | Import all-or-nothing | Single transaction; rollback on any invalid row |
-| AI safety | Intent → whitelisted function only; no dynamic SQL |
+| Insights safety | Intent → whitelisted function only; no dynamic SQL |
 
 ---
 

@@ -1,93 +1,113 @@
-# ADR 001: Daily Frankfurter exchange rates and display currency
+# ADR 001: Dynamic Currency Conversion for Compensation Analytics
 
-| | |
-|---|---|
-| **Status** | Accepted |
-| **Date** | 2026-06-24 |
+|              |             |
+| ------------ | ----------- |
+| **Status**   | Accepted    |
+| **Date**     | 2026-06-24  |
 | **Deciders** | Engineering |
 
 ## Context
 
-Analytics and AI Insights compare compensation across employees who are paid in different native currencies (USD, GBP, EUR, INR, SGD). Leadership needs org-wide metrics—total payroll, department averages, top earners—in a **single selected display currency**, not siloed per native currency.
+The Salary Management System supports employees whose compensation is stored in different native currencies (USD, GBP, EUR, INR and SGD).
 
-Early implementation used hard-coded exchange rates in `@acme/shared`. That was acceptable for tests but unsuitable for production: rates drift daily, and hard-coded values would become stale and misleading.
+Business users require organization-wide insights such as:
 
-Requirements:
+* Total payroll
+* Department payroll
+* Average compensation
+* Highest-paid employees
+* Natural-language compensation insights
 
-- Convert all employee salaries to the user-selected display currency before aggregating.
-- Use realistic, maintainable exchange rates in production.
-- Keep tests deterministic (no network calls in CI).
-- Degrade gracefully when the rate provider is unavailable.
-- Surface the rate date (`exchangeRatesAsOf`) so users know how fresh conversions are.
+These metrics must be calculated in a **single user-selected display currency** regardless of each employee's native currency.
+
+Using hard-coded exchange rates would quickly become inaccurate as foreign exchange rates fluctuate daily. The solution must also remain deterministic during automated testing and continue operating when the external exchange-rate provider is temporarily unavailable.
 
 ## Decision
 
-### 1. Display currency (not native-currency filtering)
+### Use dynamic exchange rates from Frankfurter
 
-`?currency=USD` and the UI display-currency selector mean **“show all employees, converted to USD”**, not “only include employees paid in USD.” Conversion happens in SQL via `buildConvertedSalarySql()` using a shared `ratesToUsd` map.
+The application retrieves daily exchange rates from the Frankfurter API and converts all compensation values into the selected display currency before performing analytics or insights calculations.
 
-Supported display currencies are fixed in code: `USD`, `GBP`, `EUR`, `INR`, `SGD`.
+Exchange rates are internally represented as **rates-to-USD**, allowing conversions between any supported currencies through a consistent calculation model.
 
-### 2. Frankfurter as the production rate source
+### Treat currency as a display preference
 
-Production and development fetch daily USD-base rates from the [Frankfurter API](https://www.frankfurter.app/) (`FRANKFURTER_API_URL`, default `https://api.frankfurter.app`).
+The selected currency represents the **display currency**, not a filter on employee records.
 
-`FrankfurterExchangeRateProvider` calls `/latest?from=USD&to=GBP,EUR,INR,SGD` and converts Frankfurter’s “units per USD” into our internal **rate-to-USD** multipliers via `buildRatesToUsdFromFrankfurterResponse()`.
+For example:
 
-### 3. 24-hour in-memory cache with stale fallback
+* Display Currency = USD
 
-`CachedExchangeRateProvider` wraps the Frankfurter provider:
+means:
 
-- **TTL:** 24 hours (one refresh per day per process).
-- **On refresh failure:** return the last successfully cached snapshot.
-- **On first fetch failure:** propagate the error (no snapshot yet).
+> Convert every employee's compensation to USD before aggregation.
 
-This avoids hammering Frankfurter, keeps analytics fast, and keeps the app usable during brief API outages.
+It does **not** mean:
 
-### 4. Fixed rates in test mode
+> Only include employees who are paid in USD.
 
-When `NODE_ENV=test`, `createExchangeRateProvider()` returns `FixedExchangeRateProvider` with `TEST_EXCHANGE_RATES_TO_USD` and a fixed `asOf` date (`2026-01-01`). Integration and unit tests never hit the network.
+This ensures organization-wide metrics remain accurate regardless of employees' native currencies.
 
-### 5. API contract: `exchangeRatesAsOf`
+### Cache exchange rates
 
-All analytics and insight execute responses include `exchangeRatesAsOf` (ISO date string from the rate snapshot). The frontend shows “FX rates as of {date}” on the Analytics dashboard and AI Insights result panel.
+Exchange rates are cached in memory for **24 hours**.
 
-### 6. Global display-currency selector
+If refreshing rates fails, the application continues using the most recently successful snapshot. This minimizes external API calls while allowing analytics to remain available during temporary outages.
 
-A **Display currency** dropdown in the site header sets the org-wide comparison currency on every page. State lives in a shared React context (`DisplayCurrencyProvider`) so changing the selector immediately refreshes Analytics, employee profiles, and AI Insights without a full page reload. The choice also persists in `localStorage`.
+### Use fixed exchange rates during testing
+
+Automated tests use a predefined exchange-rate snapshot instead of calling the Frankfurter API.
+
+This keeps tests:
+
+* deterministic
+* repeatable
+* independent of network availability
+
+### Expose exchange rate freshness
+
+Every analytics response includes an `exchangeRatesAsOf` timestamp indicating when the exchange-rate snapshot was obtained.
+
+The frontend displays this information so users understand the freshness of converted values.
+
+### Provide a global display-currency selector
+
+A shared **Display Currency** selector allows users to switch the comparison currency across the application.
+
+Changing the selection immediately refreshes Analytics, Employee Profiles, and Insights using the newly selected currency without requiring a page reload. The user's preference is persisted locally for future sessions.
 
 ## Consequences
 
 ### Positive
 
-- Production rates stay current without manual updates.
-- Tests remain fast, deterministic, and offline.
-- Stale-cache fallback improves resilience.
-- Users see the rate date alongside converted figures.
-- One display-currency control drives consistent conversion across analytics screens.
+* Compensation analytics remain accurate using current exchange rates.
+* Users can compare employees paid in different currencies using a single monetary unit.
+* Exchange-rate caching improves performance and reduces dependency on external services.
+* Tests remain reliable without internet connectivity.
+* Displaying the exchange-rate date improves transparency and user trust.
 
-### Negative / trade-offs
+### Negative / Trade-offs
 
-- **In-memory cache** is per backend process; multiple instances each maintain their own cache (acceptable at current scale; can move to Redis later if needed).
-- **Frankfurter dependency:** extended outage on first boot (no cache) blocks conversion until rates are available.
-- **Fixed currency list:** adding a display currency requires code changes in shared constants, Frankfurter symbol list, and tests.
-- **Daily granularity:** intraday FX moves are ignored by design (leadership reporting, not trading).
+* The application depends on Frankfurter for production exchange rates.
+* In-memory caching is maintained independently by each application instance.
+* Adding support for new currencies requires application changes.
+* Daily exchange rates are sufficient for compensation reporting but do not reflect intraday market fluctuations.
 
-## Alternatives considered
+## Alternatives Considered
 
-| Alternative | Why not chosen |
-|-------------|----------------|
-| Hard-coded rates in production | Becomes stale; operational burden to update |
-| npm FX math library only (no API) | Still needs a live rate feed; Frankfurter is free and simple |
-| Real-time rates (sub-hourly) | Unnecessary for salary analytics; adds cost and complexity |
-| Filter by native currency instead of converting | Does not answer “total payroll across the org” in one number |
-| Persist cache in Redis/DB | Over-engineering for MVP; in-memory TTL is sufficient |
+| Alternative                          | Reason Rejected                                                                   |
+| ------------------------------------ | --------------------------------------------------------------------------------- |
+| Hard-coded exchange rates            | Become stale and require manual maintenance.                                      |
+| Currency conversion library only     | Libraries perform calculations but still require an external rate source.         |
+| Real-time exchange rates             | Unnecessary complexity for payroll analytics where daily rates are sufficient.    |
+| Filter employees by native currency  | Prevents organization-wide payroll comparisons across currencies.                 |
+| Shared cache using Redis or database | Added infrastructure complexity without sufficient benefit for the current scale. |
 
 ## References
 
-- `shared/src/currency-conversion.ts` — display currencies, conversion helpers, test snapshot
-- `backend/src/services/frankfurter-exchange-rate.provider.ts`
-- `backend/src/services/cached-exchange-rate.provider.ts`
-- `backend/src/services/create-exchange-rate-provider.ts`
-- `backend/src/domain/analytics-currency-conversion.ts` — SQL conversion
-- `backend/src/domain/frankfurter-exchange-rates.ts` — response mapping
+* `shared/src/currency-conversion.ts`
+* `backend/src/services/frankfurter-exchange-rate.provider.ts`
+* `backend/src/services/cached-exchange-rate.provider.ts`
+* `backend/src/services/create-exchange-rate-provider.ts`
+* `backend/src/domain/analytics-currency-conversion.ts`
+* `backend/src/domain/frankfurter-exchange-rates.ts`
