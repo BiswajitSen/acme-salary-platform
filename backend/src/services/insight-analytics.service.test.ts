@@ -127,15 +127,13 @@ describe("InsightAnalyticsService", () => {
       totalPayroll: 106_250,
       exchangeRatesAsOf: "2026-01-01",
     });
-    expect(analyticsRepository.countEmployeesWithLatestCompensation).toHaveBeenCalledWith(
-      "UK",
-      undefined,
-    );
+    expect(analyticsRepository.countEmployeesWithLatestCompensation).toHaveBeenCalledWith({
+      country: "UK",
+    });
     expect(analyticsRepository.sumLatestCompensationSalariesInDisplayCurrency).toHaveBeenCalledWith(
       "USD",
       expect.any(Object),
-      "UK",
-      undefined,
+      { country: "UK" },
     );
   });
 
@@ -162,10 +160,10 @@ describe("InsightAnalyticsService", () => {
       totalPayroll: 36_000,
       exchangeRatesAsOf: "2026-01-01",
     });
-    expect(analyticsRepository.countEmployeesWithLatestCompensation).toHaveBeenCalledWith(
-      "IN",
-      "Engineering",
-    );
+    expect(analyticsRepository.countEmployeesWithLatestCompensation).toHaveBeenCalledWith({
+      country: "IN",
+      department: "Engineering",
+    });
   });
 
   it("returns scoped salary statistics from the read-only repository", async () => {
@@ -216,8 +214,7 @@ describe("InsightAnalyticsService", () => {
       "USD",
       expect.any(Object),
       expect.any(Number),
-      "IN",
-      undefined,
+      { country: "IN" },
     );
   });
 });

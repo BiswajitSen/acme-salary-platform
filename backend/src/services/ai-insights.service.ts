@@ -9,6 +9,20 @@ import { parseInsightQuery } from "../domain/parse-insight-query.js";
 import { resolveInsightExecutionCurrency } from "../domain/resolve-insight-execution-currency.js";
 import type { InsightAnalyticsService } from "./insight-analytics.service.js";
 
+function buildScopeQuery(
+  scope: {
+    country?: string;
+    department?: string;
+    jobTitle?: string;
+  },
+) {
+  return {
+    ...(scope.country === undefined ? {} : { country: scope.country }),
+    ...(scope.department === undefined ? {} : { department: scope.department }),
+    ...(scope.jobTitle === undefined ? {} : { jobTitle: scope.jobTitle }),
+  };
+}
+
 export class AiInsightsService {
   constructor(private readonly insightAnalyticsService: InsightAnalyticsService) {}
 
@@ -24,29 +38,42 @@ export class AiInsightsService {
     const executionQuery = { ...parsedQuery, currency: executionCurrency };
     const exchangeRatesAsOf = await this.insightAnalyticsService.getExchangeRatesAsOf();
     const execution = await executeParsedInsightQuery(executionQuery, {
-      getAnalyticsSummary: (currency, country, department) =>
+      getAnalyticsSummary: (currency, scope) =>
         this.insightAnalyticsService.getAnalyticsSummary({
           currency,
-          ...(country === null ? {} : { country }),
-          ...(department === null ? {} : { department }),
+          ...buildScopeQuery(scope),
         }),
-      getScopedSalaryStatistics: (currency, country, department) =>
+      getScopedSalaryStatistics: (currency, scope) =>
         this.insightAnalyticsService.getScopedSalaryStatistics({
           currency,
-          ...(country === null ? {} : { country }),
-          ...(department === null ? {} : { department }),
+          ...buildScopeQuery(scope),
         }),
-      getTopEarners: (currency, country, department) =>
+      getTopEarners: (currency, scope, limit) =>
         this.insightAnalyticsService.getTopEarners({
           currency,
-          ...(country === null ? {} : { country }),
-          ...(department === null ? {} : { department }),
+          ...buildScopeQuery(scope),
+          limit,
         }),
-      getRecentTimelineEvents: (intent, months, country, department) =>
+      getBottomEarners: (currency, scope, limit) =>
+        this.insightAnalyticsService.getBottomEarners({
+          currency,
+          ...buildScopeQuery(scope),
+          limit,
+        }),
+      getNearMedianEarners: (currency, scope, tolerancePercent) =>
+        this.insightAnalyticsService.getNearMedianEarners({
+          currency,
+          ...buildScopeQuery(scope),
+          tolerancePercent,
+        }),
+      getRecentTimelineEvents: (intent, query) =>
         this.insightAnalyticsService.getRecentTimelineEvents(intent, {
-          months,
-          ...(country === null ? {} : { country }),
-          ...(department === null ? {} : { department }),
+          ...(query.months === null ? {} : { months: query.months }),
+          ...(query.sinceDate === null ? {} : { sinceDate: query.sinceDate }),
+          ...(query.country === null ? {} : { country: query.country }),
+          ...(query.department === null ? {} : { department: query.department }),
+          ...(query.jobTitle === null ? {} : { jobTitle: query.jobTitle }),
+          reasons: query.reasons,
         }),
     });
 

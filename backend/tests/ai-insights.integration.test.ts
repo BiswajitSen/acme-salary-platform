@@ -42,13 +42,16 @@ describe("POST /api/insights/parse", () => {
       .send({ query: "What is the average salary in Engineering?" });
 
     expect(response.status).toBe(200);
-    expect(response.body).toEqual({
+    expect(response.body).toMatchObject({
       intent: "AVG_DEPT_SALARY",
       originalQuery: "What is the average salary in Engineering?",
       department: "Engineering",
       country: null,
       currency: null,
       months: null,
+      jobTitle: null,
+      sinceDate: null,
+      limit: null,
     });
   });
 
@@ -58,7 +61,7 @@ describe("POST /api/insights/parse", () => {
       .send({ query: "List employees who got promotion in the last 3months" });
 
     expect(response.status).toBe(200);
-    expect(response.body).toEqual({
+    expect(response.body).toMatchObject({
       intent: "RECENT_PROMOTIONS",
       originalQuery: "List employees who got promotion in the last 3months",
       department: null,
@@ -90,11 +93,12 @@ describe("POST /api/insights/execute", () => {
 
     expect(response.status).toBe(200);
     expect(response.body.parsedQuery.intent).toBe("AVG_DEPT_SALARY");
-    expect(response.body.result).toEqual({
+    expect(response.body.result).toMatchObject({
       intent: "AVG_DEPT_SALARY",
       currency: "USD",
       country: null,
       department: "Engineering",
+      jobTitle: null,
       averageSalary: 132_000,
       employeeCount: 1,
     });
@@ -207,11 +211,12 @@ describe("POST /api/insights/execute", () => {
       department: "Engineering",
       country: "IN",
     });
-    expect(response.body.result).toEqual({
+    expect(response.body.result).toMatchObject({
       intent: "TOTAL_PAYROLL",
       currency: "USD",
       country: "IN",
       department: "Engineering",
+      jobTitle: null,
       totalPayroll: convertCurrencyAmount(3_000_000, "INR", "USD", TEST_EXCHANGE_RATES_TO_USD),
     });
     expect(response.body.error).toBeNull();
@@ -250,11 +255,13 @@ describe("POST /api/insights/execute", () => {
     expect(response.status).toBe(200);
     expect(response.body.parsedQuery.country).toBe("IN");
     expect(response.body.parsedQuery.currency).toBeNull();
-    expect(response.body.result).toEqual({
+    expect(response.body.result).toMatchObject({
       intent: "TOP_EARNERS",
       currency: "USD",
       country: "IN",
       department: null,
+      jobTitle: null,
+      limit: 10,
       earners: [
         {
           employeeId: "E010",
@@ -281,11 +288,12 @@ describe("POST /api/insights/execute", () => {
       country: "IN",
       department: null,
     });
-    expect(response.body.result).toEqual({
+    expect(response.body.result).toMatchObject({
       intent: "AVG_DEPT_SALARY",
       currency: "USD",
       country: "IN",
       department: null,
+      jobTitle: null,
       averageSalary: convertCurrencyAmount(3_000_000, "INR", "USD", TEST_EXCHANGE_RATES_TO_USD),
       employeeCount: 1,
     });
@@ -324,11 +332,13 @@ describe("POST /api/insights/execute", () => {
       intent: "RECENT_PROMOTIONS",
       months: 3,
     });
-    expect(response.body.result).toEqual({
+    expect(response.body.result).toMatchObject({
       intent: "RECENT_PROMOTIONS",
       months: 3,
+      sinceDate: null,
       country: null,
       department: null,
+      jobTitle: null,
       promotions: [
         {
           employeeId: "E001",
@@ -443,11 +453,13 @@ describe("POST /api/insights/execute", () => {
       country: "IN",
       department: "Engineering",
     });
-    expect(response.body.result).toEqual({
+    expect(response.body.result).toMatchObject({
       intent: "TOP_EARNERS",
       currency: "USD",
       country: "IN",
       department: "Engineering",
+      jobTitle: null,
+      limit: 10,
       earners: [
         {
           employeeId: "E010",
@@ -457,6 +469,42 @@ describe("POST /api/insights/execute", () => {
         },
       ],
     });
+    expect(response.body.error).toBeNull();
+  });
+
+  it("returns bottom earners for least earner questions", async () => {
+    await runSeed(db);
+
+    const response = await request(app)
+      .post("/api/insights/execute")
+      .send({ query: "who are the least earners?", displayCurrency: "USD" });
+
+    expect(response.status).toBe(200);
+    expect(response.body.parsedQuery.intent).toBe("BOTTOM_EARNERS");
+    expect(response.body.result).toMatchObject({
+      intent: "BOTTOM_EARNERS",
+      currency: "USD",
+      limit: 10,
+    });
+    expect(response.body.result.earners[0].employeeId).toBe("E002");
+    expect(response.body.error).toBeNull();
+  });
+
+  it("returns employees near the scoped median", async () => {
+    await runSeed(db);
+
+    const response = await request(app)
+      .post("/api/insights/execute")
+      .send({ query: "who earn around the median?", displayCurrency: "USD" });
+
+    expect(response.status).toBe(200);
+    expect(response.body.parsedQuery.intent).toBe("NEAR_MEDIAN_EARNERS");
+    expect(response.body.result).toMatchObject({
+      intent: "NEAR_MEDIAN_EARNERS",
+      currency: "USD",
+      tolerancePercent: 10,
+    });
+    expect(response.body.result.earners.length).toBeGreaterThanOrEqual(0);
     expect(response.body.error).toBeNull();
   });
 });

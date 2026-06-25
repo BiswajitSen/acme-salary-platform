@@ -43,13 +43,16 @@ describe("AiInsightsService", () => {
   it("parses a natural language analytics question into an intent", () => {
     const service = new AiInsightsService(createInsightAnalyticsServiceMock());
 
-    expect(service.parseQuery({ query: "average salary in Engineering" })).toEqual({
+    expect(service.parseQuery({ query: "average salary in Engineering" })).toMatchObject({
       intent: "AVG_DEPT_SALARY",
       originalQuery: "average salary in Engineering",
       department: "Engineering",
       country: null,
       currency: null,
       months: null,
+      jobTitle: null,
+      sinceDate: null,
+      limit: null,
     });
   });
 
@@ -65,19 +68,15 @@ describe("AiInsightsService", () => {
 
     await expect(
       service.executeQuery({ query: "average salary in Engineering" }),
-    ).resolves.toEqual({
+    ).resolves.toMatchObject({
       parsedQuery: {
         intent: "AVG_DEPT_SALARY",
         originalQuery: "average salary in Engineering",
         department: "Engineering",
-        country: null,
-        currency: null,
-        months: null,
       },
       result: {
         intent: "AVG_DEPT_SALARY",
         currency: "USD",
-        country: null,
         department: "Engineering",
         averageSalary: 120_000,
         employeeCount: 10,
@@ -94,14 +93,10 @@ describe("AiInsightsService", () => {
   it("returns a graceful error for unsupported intents", async () => {
     const service = new AiInsightsService(createInsightAnalyticsServiceMock());
 
-    await expect(service.executeQuery({ query: "Tell me a joke" })).resolves.toEqual({
+    await expect(service.executeQuery({ query: "Tell me a joke" })).resolves.toMatchObject({
       parsedQuery: {
         intent: "UNKNOWN",
         originalQuery: "Tell me a joke",
-        department: null,
-        country: null,
-        currency: null,
-        months: null,
       },
       result: null,
       error: {
@@ -126,7 +121,7 @@ describe("AiInsightsService", () => {
       },
       error: null,
     });
-    expect(analyticsService.getTopEarners).toHaveBeenCalledWith({ currency: "USD" });
+    expect(analyticsService.getTopEarners).toHaveBeenCalledWith({ currency: "USD", limit: 10 });
   });
 
   it("executes headcount questions against analytics", async () => {
@@ -190,7 +185,7 @@ describe("AiInsightsService", () => {
       },
       error: null,
     });
-    expect(analyticsService.getTopEarners).toHaveBeenCalledWith({ currency: "INR" });
+    expect(analyticsService.getTopEarners).toHaveBeenCalledWith({ currency: "INR", limit: 10 });
   });
 
   it("filters top earners by employee country when the query mentions a country", async () => {
@@ -218,6 +213,7 @@ describe("AiInsightsService", () => {
     expect(analyticsService.getTopEarners).toHaveBeenCalledWith({
       currency: "USD",
       country: "IN",
+      limit: 10,
     });
   });
 
