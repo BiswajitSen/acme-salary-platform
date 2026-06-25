@@ -1,3 +1,5 @@
+import type { ExchangeRatesToUsd } from "./currency-conversion";
+
 export {
   ANALYTICS_DISPLAY_CURRENCIES,
   analyticsSummaryQuerySchema,
