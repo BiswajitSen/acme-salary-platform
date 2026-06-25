@@ -5,16 +5,24 @@ import { beforeEach, describe, expect, it, vi } from "vitest";
 vi.mock("@/lib/api/employees", () => ({
   createEmployee: vi.fn(),
   updateEmployee: vi.fn(),
+  listEmployeeFilterOptions: vi.fn(),
 }));
 
-import { createEmployee } from "@/lib/api/employees";
+import { createEmployee, listEmployeeFilterOptions } from "@/lib/api/employees";
 import { EmployeeForm } from "./employee-form";
 
 const mockedCreateEmployee = vi.mocked(createEmployee);
+const mockedListEmployeeFilterOptions = vi.mocked(listEmployeeFilterOptions);
 
 describe("EmployeeForm", () => {
   beforeEach(() => {
     mockedCreateEmployee.mockReset();
+    mockedListEmployeeFilterOptions.mockReset();
+    mockedListEmployeeFilterOptions.mockResolvedValue({
+      countries: ["US"],
+      departments: ["Engineering"],
+      jobTitles: ["Engineer"],
+    });
   });
 
   it("shows validation errors when required fields are missing", async () => {
@@ -28,6 +36,10 @@ describe("EmployeeForm", () => {
         onSuccess={vi.fn()}
       />,
     );
+
+    await waitFor(() => {
+      expect(mockedListEmployeeFilterOptions).toHaveBeenCalled();
+    });
 
     await user.click(screen.getByRole("button", { name: "Create employee" }));
 
@@ -60,11 +72,15 @@ describe("EmployeeForm", () => {
       />,
     );
 
+    await waitFor(() => {
+      expect(screen.getByLabelText("Department")).not.toBeDisabled();
+    });
+
     await user.type(screen.getByLabelText("Employee ID"), "E010");
     await user.type(screen.getByLabelText("Full name"), "Jane Doe");
-    await user.type(screen.getByLabelText("Department"), "Engineering");
-    await user.type(screen.getByLabelText("Job title"), "Engineer");
-    await user.type(screen.getByLabelText("Country"), "US");
+    await user.selectOptions(screen.getByLabelText("Department"), "Engineering");
+    await user.selectOptions(screen.getByLabelText("Job title"), "Engineer");
+    await user.selectOptions(screen.getByLabelText("Country"), "US");
     fireEvent.submit(document.querySelector("form")!);
 
     await waitFor(() => {

@@ -4,6 +4,7 @@ import {
   createEmployeeSchema,
   DEFAULT_EMPLOYEE_LIMIT,
   DEFAULT_EMPLOYEE_PAGE,
+  EMPLOYEE_JOB_TITLES,
   listEmployeesQuerySchema,
   MAX_EMPLOYEE_LIMIT,
   updateEmployeeSchema,
@@ -110,5 +111,13 @@ describe("updateEmployeeSchema", () => {
         country: "US",
       }),
     ).toThrow();
+  });
+});
+
+describe("EMPLOYEE_JOB_TITLES", () => {
+  it("includes common role labels used across the app", () => {
+    expect(EMPLOYEE_JOB_TITLES).toEqual(
+      expect.arrayContaining(["Engineer", "Senior Engineer", "HR Manager"]),
+    );
   });
 });

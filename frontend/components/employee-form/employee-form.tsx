@@ -11,9 +11,14 @@ import { Alert } from "@/components/ui/alert";
 import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { Input } from "@/components/ui/input";
+import { Select } from "@/components/ui/select";
 import { createEmployee, updateEmployee } from "@/lib/api/employees";
-import { collectFieldErrorsFromValidationIssues } from "@/lib/forms/zod-field-errors";
+import { countryLabel } from "@/lib/country-label";
 import { getRequestErrorMessage } from "@/lib/errors";
+import { collectFieldErrorsFromValidationIssues } from "@/lib/forms/zod-field-errors";
+import { useEmployeeFieldOptions } from "@/lib/hooks/use-employee-field-options";
+
+import styles from "./employee-form.module.css";
 
 type EmployeeFormValues = {
   id: string;
@@ -41,8 +46,6 @@ const emptyValues: EmployeeFormValues = {
   country: "",
 };
 
-import styles from "./employee-form.module.css";
-
 export function EmployeeForm({
   mode,
   employeeId,
@@ -56,6 +59,11 @@ export function EmployeeForm({
   const [fieldErrors, setFieldErrors] = useState<Record<string, string>>({});
   const [submitError, setSubmitError] = useState<string | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const { departments, jobTitles, countries, isLoading } = useEmployeeFieldOptions({
+    department: formState.department,
+    jobTitle: formState.jobTitle,
+    country: formState.country,
+  });
 
   function updateField<K extends keyof EmployeeFormValues>(
     fieldName: K,
@@ -156,31 +164,54 @@ export function EmployeeForm({
             error={fieldErrors.fullName}
             required
           />
-          <Input
+          <Select
             id="employee-department"
             label="Department"
             value={formState.department}
             onChange={(event) => updateField("department", event.target.value)}
             error={fieldErrors.department}
             required
-          />
-          <Input
+            disabled={isLoading}
+          >
+            <option value="">Select department</option>
+            {departments.map((department) => (
+              <option key={department} value={department}>
+                {department}
+              </option>
+            ))}
+          </Select>
+          <Select
             id="employee-job-title"
             label="Job title"
             value={formState.jobTitle}
             onChange={(event) => updateField("jobTitle", event.target.value)}
             error={fieldErrors.jobTitle}
             required
-          />
-          <Input
+            disabled={isLoading}
+          >
+            <option value="">Select job title</option>
+            {jobTitles.map((jobTitle) => (
+              <option key={jobTitle} value={jobTitle}>
+                {jobTitle}
+              </option>
+            ))}
+          </Select>
+          <Select
             id="employee-country"
             label="Country"
             value={formState.country}
             onChange={(event) => updateField("country", event.target.value)}
             error={fieldErrors.country}
             required
-            maxLength={3}
-          />
+            disabled={isLoading}
+          >
+            <option value="">Select country</option>
+            {countries.map((country) => (
+              <option key={country} value={country}>
+                {countryLabel(country)}
+              </option>
+            ))}
+          </Select>
         </div>
 
         {submitError && <Alert variant="error">{submitError}</Alert>}
@@ -191,7 +222,7 @@ export function EmployeeForm({
               Cancel
             </Button>
           )}
-          <Button type="submit" variant="primary" disabled={isSubmitting}>
+          <Button type="submit" variant="primary" disabled={isSubmitting || isLoading}>
             {isSubmitting ? "Saving…" : submitLabel}
           </Button>
         </div>

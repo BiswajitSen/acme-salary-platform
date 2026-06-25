@@ -62,6 +62,21 @@ export type EmployeeFilterOptions = {
   jobTitles: string[];
 };
 
+export const EMPLOYEE_JOB_TITLES = [
+  "Analyst",
+  "Coordinator",
+  "Director",
+  "Engineer",
+  "Financial Analyst",
+  "HR Manager",
+  "Lead Coordinator",
+  "Manager",
+  "Senior Engineer",
+  "Staff Engineer",
+] as const;
+
+export type EmployeeJobTitle = (typeof EMPLOYEE_JOB_TITLES)[number];
+
 export const employeeCoreFieldsSchema = z.object({
   fullName: z.string().trim().min(1, "Full name is required"),
   department: z.string().trim().min(1, "Department is required"),
