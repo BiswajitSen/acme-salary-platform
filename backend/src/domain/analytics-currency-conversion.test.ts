@@ -2,7 +2,6 @@ import { describe, expect, it } from "vitest";
 
 import {
   convertCurrencyAmount,
-  createTestExchangeRateSnapshot,
   TEST_EXCHANGE_RATES_TO_USD,
 } from "@acme/shared";
 
