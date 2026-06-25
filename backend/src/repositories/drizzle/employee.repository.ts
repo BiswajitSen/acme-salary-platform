@@ -1,5 +1,9 @@
-import { count, eq, inArray, sql } from "drizzle-orm";
+import { eq, inArray, sql, type SQL } from "drizzle-orm";
+import { alias } from "drizzle-orm/pg-core";
 
+import { latestCompensationRows } from "../../domain/analytics-latest-compensation.js";
+import { toBasicEmployeeSummary, toEmployeeSummary } from "../../domain/employee-summary.js";
+import { buildEmploymentStatusFilterClause } from "../../domain/employment-status-filter.js";
 import type { EmployeeSpreadsheetRow } from "../../domain/employee-import.types.js";
 import type { Database } from "../../db/index.js";
 import { employees } from "../../db/schema.js";
@@ -17,37 +21,90 @@ export function readAggregateCount(rows: { value: number }[]): number {
   return rows[0]?.value ?? 0;
 }
 
+function employeeFilterClause(whereClause: SQL | undefined): SQL {
+  return whereClause ?? sql`TRUE`;
+}
+
 export class DrizzleEmployeeRepository implements IEmployeeRepository {
   constructor(private readonly database: Database) {}
 
   async findPaginated(
     query: PaginatedEmployeesQuery,
   ): Promise<PaginatedEmployeesResult> {
-    const whereClause = buildEmployeeMatchConditions(query.filters);
+    const employeeAlias = alias(employees, "e");
+    const aliasedWhereClause = buildEmployeeMatchConditions(
+      query.filters,
+      employeeAlias,
+    );
+    const filterClause = employeeFilterClause(aliasedWhereClause);
+    const employmentClause = buildEmploymentStatusFilterClause(
+      query.filters.employmentStatuses,
+    );
+    const directoryFilterClause = sql`${filterClause} AND ${employmentClause}`;
 
-    const totalQuery = this.database.select({ value: count() }).from(employees);
-    const totalRows = whereClause
-      ? await totalQuery.where(whereClause)
-      : await totalQuery;
+    const [statsRows, directoryRows] = await Promise.all([
+      this.database.execute<{
+        total: number;
+        active: number;
+        departments: number;
+      }>(sql`
+        SELECT
+          COUNT(*)::int AS total,
+          COUNT(lc.employee_id)::int AS active,
+          COUNT(DISTINCT e.department)::int AS departments
+        FROM employees e
+        LEFT JOIN (${latestCompensationRows}) lc ON lc.employee_id = e.id
+        WHERE ${directoryFilterClause}
+      `),
+      this.database.execute<{
+        id: string;
+        full_name: string;
+        department: string;
+        job_title: string;
+        country: string;
+        base_salary: number | null;
+        currency: string | null;
+      }>(sql`
+        SELECT
+          e.id,
+          e.full_name,
+          e.department,
+          e.job_title,
+          e.country,
+          lc.base_salary,
+          lc.currency
+        FROM employees e
+        LEFT JOIN (${latestCompensationRows}) lc ON lc.employee_id = e.id
+        WHERE ${directoryFilterClause}
+        ORDER BY e.id
+        LIMIT ${query.limit}
+        OFFSET ${query.offset}
+      `),
+    ]);
 
-    const rowsQuery = this.database
-      .select({
-        id: employees.id,
-        fullName: employees.fullName,
-        department: employees.department,
-        jobTitle: employees.jobTitle,
-        country: employees.country,
-      })
-      .from(employees)
-      .orderBy(employees.id)
-      .limit(query.limit)
-      .offset(query.offset);
-
-    const rows = whereClause ? await rowsQuery.where(whereClause) : await rowsQuery;
+    const statsRow = statsRows.rows[0];
+    const total = statsRow?.total ?? 0;
+    const active = statsRow?.active ?? 0;
 
     return {
-      data: rows,
-      total: readAggregateCount(totalRows),
+      data: directoryRows.rows.map((row) =>
+        toEmployeeSummary({
+          id: row.id,
+          fullName: row.full_name,
+          department: row.department,
+          jobTitle: row.job_title,
+          country: row.country,
+          baseSalary: row.base_salary,
+          currency: row.currency,
+        }),
+      ),
+      total,
+      stats: {
+        total,
+        active,
+        noCompensation: Math.max(total - active, 0),
+        departments: statsRow?.departments ?? 0,
+      },
     };
   }
 
@@ -64,7 +121,7 @@ export class DrizzleEmployeeRepository implements IEmployeeRepository {
       .where(eq(employees.id, id))
       .limit(1);
 
-    return employee ?? null;
+    return employee ? toBasicEmployeeSummary(employee) : null;
   }
 
   async findExistingEmployeeIds(employeeIds: string[]): Promise<Set<string>> {

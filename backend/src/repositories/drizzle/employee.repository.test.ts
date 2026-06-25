@@ -12,6 +12,9 @@ const engineeringEmployee: EmployeeSummary = {
   department: "Engineering",
   jobTitle: "Senior Engineer",
   country: "US",
+  baseSalary: null,
+  currency: null,
+  employmentStatus: "NO_COMPENSATION",
 };
 
 const hrEmployee: EmployeeSummary = {
@@ -20,6 +23,16 @@ const hrEmployee: EmployeeSummary = {
   department: "HR",
   jobTitle: "HR Manager",
   country: "UK",
+  baseSalary: null,
+  currency: null,
+  employmentStatus: "NO_COMPENSATION",
+};
+
+const emptyStats = {
+  total: 0,
+  active: 0,
+  noCompensation: 0,
+  departments: 0,
 };
 
 describe("readAggregateCount", () => {
@@ -62,10 +75,10 @@ describe("DrizzleEmployeeRepository", () => {
       page: 1,
       limit: 50,
       offset: 0,
-      filters: { country: "SG" },
+      filters: { countries: ["SG"] },
     });
 
-    expect(result).toEqual({ data: [], total: 0 });
+    expect(result).toEqual({ data: [], total: 0, stats: emptyStats });
   });
 
   it("returns a page of employees ordered by id", async () => {
@@ -118,11 +131,27 @@ describe("DrizzleEmployeeRepository", () => {
       page: 1,
       limit: 50,
       offset: 0,
-      filters: { department: "HR" },
+      filters: { departments: ["HR"] },
     });
 
     expect(result.total).toBeGreaterThanOrEqual(1);
     expect(result.data.every((employee) => employee.department === "HR")).toBe(true);
+  });
+
+  it("filters employees missing compensation", async () => {
+    await seedDirectoryFixtures();
+
+    const result = await repository.findPaginated({
+      page: 1,
+      limit: 50,
+      offset: 0,
+      filters: { employmentStatuses: ["NO_COMPENSATION"] },
+    });
+
+    expect(result.total).toBeGreaterThanOrEqual(2);
+    expect(
+      result.data.every((employee) => employee.employmentStatus === "NO_COMPENSATION"),
+    ).toBe(true);
   });
 
   it("applies country, department, and job title filters together", async () => {
@@ -133,9 +162,9 @@ describe("DrizzleEmployeeRepository", () => {
       limit: 50,
       offset: 0,
       filters: {
-        country: "US",
-        department: "Engineering",
-        jobTitle: "Senior Engineer",
+        countries: ["US"],
+        departments: ["Engineering"],
+        jobTitles: ["Senior Engineer"],
       },
     });
 
@@ -159,7 +188,9 @@ describe("DrizzleEmployeeRepository", () => {
   it("returns an employee by id", async () => {
     await seedDirectoryFixtures();
 
-    await expect(repository.findEmployeeById("E001")).resolves.toEqual(engineeringEmployee);
+    await expect(repository.findEmployeeById("E001")).resolves.toMatchObject(
+      engineeringEmployee,
+    );
   });
 
   it("returns null when an employee id is unknown", async () => {

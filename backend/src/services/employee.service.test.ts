@@ -20,7 +20,11 @@ function createMockCompensationRepository(
 }
 
 function createMockRepository(
-  result: PaginatedEmployeesResult = { data: [], total: 0 },
+  result: PaginatedEmployeesResult = {
+    data: [],
+    total: 0,
+    stats: { total: 0, active: 0, noCompensation: 0, departments: 0 },
+  },
 ): IEmployeeRepository {
   return {
     findPaginated: vi.fn().mockResolvedValue(result),
@@ -40,6 +44,16 @@ const sampleEmployee: EmployeeSummary = {
   department: "Engineering",
   jobTitle: "Senior Engineer",
   country: "US",
+  baseSalary: 132_000,
+  currency: "USD",
+  employmentStatus: "ACTIVE",
+};
+
+const sampleStats = {
+  total: 1,
+  active: 1,
+  noCompensation: 0,
+  departments: 1,
 };
 
 const sampleHistory: CompensationHistoryRecord[] = [
@@ -79,6 +93,7 @@ describe("EmployeeService.listEmployees", () => {
     const repository = createMockRepository({
       data: [sampleEmployee],
       total: 1,
+      stats: sampleStats,
     });
     const service = createService(repository);
 
@@ -92,6 +107,7 @@ describe("EmployeeService.listEmployees", () => {
         total: 1,
         totalPages: 1,
       },
+      stats: sampleStats,
     });
     expect(repository.findPaginated).toHaveBeenCalledWith({
       page: 1,
@@ -120,6 +136,7 @@ describe("EmployeeService.listEmployees", () => {
       country: "US",
       department: "Engineering",
       jobTitle: "Senior Engineer",
+      employmentStatus: "NO_COMPENSATION",
     });
 
     expect(repository.findPaginated).toHaveBeenCalledWith({
@@ -128,9 +145,10 @@ describe("EmployeeService.listEmployees", () => {
       offset: 10,
       filters: {
         search: "Jane",
-        country: "US",
-        department: "Engineering",
-        jobTitle: "Senior Engineer",
+        countries: ["US"],
+        departments: ["Engineering"],
+        jobTitles: ["Senior Engineer"],
+        employmentStatuses: ["NO_COMPENSATION"],
       },
     });
   });

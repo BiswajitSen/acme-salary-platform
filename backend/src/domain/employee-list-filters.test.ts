@@ -1,34 +1,56 @@
 import { describe, expect, it } from "vitest";
 
-import { extractEmployeeListFilters } from "./employee-list-filters.js";
+import {
+  extractEmployeeListFilters,
+  parseEmploymentStatusFilter,
+  parseMultiValueFilter,
+} from "./employee-list-filters.js";
+
+describe("parseMultiValueFilter", () => {
+  it("returns undefined for empty values", () => {
+    expect(parseMultiValueFilter(undefined)).toBeUndefined();
+    expect(parseMultiValueFilter("")).toBeUndefined();
+    expect(parseMultiValueFilter("  ,  ")).toBeUndefined();
+  });
+
+  it("splits comma-separated values", () => {
+    expect(parseMultiValueFilter("US,UK, SG")).toEqual(["US", "UK", "SG"]);
+  });
+});
 
 describe("extractEmployeeListFilters", () => {
   it("returns undefined for empty filter strings", () => {
     expect(
       extractEmployeeListFilters({
-        page: 1,
-        limit: 50,
         search: "   ",
         country: "",
       }),
     ).toEqual({});
   });
 
+  it("parses employment status filters", () => {
+    expect(parseEmploymentStatusFilter("NO_COMPENSATION,ACTIVE")).toEqual([
+      "NO_COMPENSATION",
+      "ACTIVE",
+    ]);
+    expect(parseEmploymentStatusFilter("INVALID")).toBeUndefined();
+  });
+
   it("returns trimmed filter values", () => {
     expect(
       extractEmployeeListFilters({
-        page: 1,
-        limit: 50,
         search: "  Jane  ",
-        country: "US",
+        country: "US,UK",
         department: "Engineering",
         jobTitle: "Senior Engineer",
+        employmentStatus: "NO_COMPENSATION",
       }),
     ).toEqual({
       search: "Jane",
-      country: "US",
-      department: "Engineering",
-      jobTitle: "Senior Engineer",
+      countries: ["US", "UK"],
+      departments: ["Engineering"],
+      jobTitles: ["Senior Engineer"],
+      employmentStatuses: ["NO_COMPENSATION"],
     });
   });
 });

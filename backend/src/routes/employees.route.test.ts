@@ -55,6 +55,7 @@ describe("createEmployeesRouter", () => {
       listEmployees: vi.fn().mockResolvedValue({
         data: [],
         meta: { page: 1, limit: 50, total: 0, totalPages: 0 },
+        stats: { total: 0, active: 0, noCompensation: 0, departments: 0 },
       }),
     } as unknown as EmployeeService;
 

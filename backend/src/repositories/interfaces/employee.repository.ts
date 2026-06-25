@@ -1,4 +1,4 @@
-import type { EmployeeSummary } from "@acme/shared";
+import type { EmployeeDirectoryStats, EmployeeSummary } from "@acme/shared";
 
 import type { EmployeeListFilters } from "../../domain/employee-list-filters.js";
 import type { EmployeeSpreadsheetRow, EmployeeImportResult } from "../../domain/employee-import.types.js";
@@ -13,6 +13,7 @@ export type PaginatedEmployeesQuery = {
 export type PaginatedEmployeesResult = {
   data: EmployeeSummary[];
   total: number;
+  stats: EmployeeDirectoryStats;
 };
 
 export interface IEmployeeRepository {

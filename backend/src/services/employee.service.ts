@@ -26,7 +26,7 @@ export class EmployeeService {
     const parsed = listEmployeesQuerySchema.parse(query);
     const pagination = normalizePagination(parsed);
     const filters = extractEmployeeListFilters(parsed);
-    const { data, total } = await this.employees.findPaginated({
+    const { data, total, stats } = await this.employees.findPaginated({
       ...pagination,
       filters,
     });
@@ -39,6 +39,7 @@ export class EmployeeService {
         total,
         totalPages: total === 0 ? 0 : Math.ceil(total / pagination.limit),
       },
+      stats,
     };
   }
 

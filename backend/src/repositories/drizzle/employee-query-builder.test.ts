@@ -8,16 +8,16 @@ describe("buildEmployeeMatchConditions", () => {
   });
 
   it("returns a single condition for one filter", () => {
-    expect(buildEmployeeMatchConditions({ country: "US" })).toBeDefined();
+    expect(buildEmployeeMatchConditions({ countries: ["US"] })).toBeDefined();
   });
 
   it("combines multiple filters with logical and", () => {
     expect(
       buildEmployeeMatchConditions({
         search: "Jane",
-        country: "US",
-        department: "Engineering",
-        jobTitle: "Senior Engineer",
+        countries: ["US"],
+        departments: ["Engineering"],
+        jobTitles: ["Senior Engineer"],
       }),
     ).toBeDefined();
   });
