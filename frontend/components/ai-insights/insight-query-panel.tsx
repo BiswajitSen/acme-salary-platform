@@ -7,6 +7,7 @@ import { Button } from "@/components/ui/button";
 import { Card } from "@/components/ui/card";
 import { PageHeader } from "@/components/ui/page-header";
 import { StatusMessage } from "@/components/ui/status-message";
+import { useDisplayCurrency } from "@/lib/hooks/use-display-currency";
 import { useInsightQueryParser } from "@/lib/hooks/use-insight-query-parser";
 
 import styles from "./insight-query-panel.module.css";
@@ -18,6 +19,7 @@ const EXAMPLE_QUERIES = [
 ] as const;
 
 export function InsightQueryPanel() {
+  const { currency } = useDisplayCurrency();
   const {
     query,
     response,
@@ -26,7 +28,7 @@ export function InsightQueryPanel() {
     updateQuery,
     submitQuery,
     resetQuery,
-  } = useInsightQueryParser();
+  } = useInsightQueryParser(currency);
 
   return (
     <section className={styles.page}>
@@ -93,7 +95,10 @@ export function InsightQueryPanel() {
       )}
 
       {!isSubmitting && response?.result && (
-        <InsightExecutionResult result={response.result} />
+        <>
+          <p className={styles.fxNote}>FX rates as of {response.exchangeRatesAsOf}</p>
+          <InsightExecutionResult result={response.result} />
+        </>
       )}
     </section>
   );

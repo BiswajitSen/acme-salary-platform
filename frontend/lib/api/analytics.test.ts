@@ -1,5 +1,7 @@
 import { describe, expect, it } from "vitest";
 
+import { TEST_EXCHANGE_RATES_TO_USD } from "@acme/shared";
+
 import {
   getAnalyticsCurrencies,
   getAnalyticsSummary,
@@ -13,14 +15,20 @@ describe("getAnalyticsCurrencies", () => {
     global.fetch = async (input) => {
       expect(String(input)).toBe("/api/backend/analytics/currencies");
 
-      return new Response(JSON.stringify({ currencies: ["GBP", "INR", "USD"] }), {
-        status: 200,
-        headers: { "Content-Type": "application/json" },
-      });
+      return new Response(
+        JSON.stringify({
+          currencies: ["GBP", "INR", "USD"],
+          exchangeRatesAsOf: "2026-06-24",
+          ratesToUsd: TEST_EXCHANGE_RATES_TO_USD,
+        }),
+        { status: 200, headers: { "Content-Type": "application/json" } },
+      );
     };
 
     await expect(getAnalyticsCurrencies()).resolves.toEqual({
       currencies: ["GBP", "INR", "USD"],
+      exchangeRatesAsOf: "2026-06-24",
+      ratesToUsd: TEST_EXCHANGE_RATES_TO_USD,
     });
     global.fetch = originalFetch;
   });
@@ -33,7 +41,12 @@ describe("getAnalyticsSummary", () => {
       expect(String(input)).toBe("/api/backend/analytics/summary?currency=USD");
 
       return new Response(
-        JSON.stringify({ currency: "USD", headcount: 3, totalPayroll: 396_000 }),
+        JSON.stringify({
+          currency: "USD",
+          headcount: 3,
+          totalPayroll: 396_000,
+          exchangeRatesAsOf: "2026-06-24",
+        }),
         { status: 200, headers: { "Content-Type": "application/json" } },
       );
     };
@@ -42,6 +55,7 @@ describe("getAnalyticsSummary", () => {
       currency: "USD",
       headcount: 3,
       totalPayroll: 396_000,
+      exchangeRatesAsOf: "2026-06-24",
     });
     global.fetch = originalFetch;
   });
@@ -64,6 +78,7 @@ describe("getDepartmentSalaryStatistics", () => {
               medianSalary: 120_000,
             },
           ],
+          exchangeRatesAsOf: "2026-06-24",
         }),
         { status: 200, headers: { "Content-Type": "application/json" } },
       );
@@ -79,6 +94,7 @@ describe("getDepartmentSalaryStatistics", () => {
           medianSalary: 120_000,
         },
       ],
+      exchangeRatesAsOf: "2026-06-24",
     });
     global.fetch = originalFetch;
   });
@@ -101,6 +117,7 @@ describe("getTopEarners", () => {
               baseSalary: 132_000,
             },
           ],
+          exchangeRatesAsOf: "2026-06-24",
         }),
         { status: 200, headers: { "Content-Type": "application/json" } },
       );
@@ -116,6 +133,7 @@ describe("getTopEarners", () => {
           baseSalary: 132_000,
         },
       ],
+      exchangeRatesAsOf: "2026-06-24",
     });
     global.fetch = originalFetch;
   });

@@ -12,6 +12,10 @@ export async function parseInsightQuery(
 
 export async function executeInsightQuery(
   query: string,
+  displayCurrency: string,
 ): Promise<ExecuteInsightQueryResponse> {
-  return apiPostJson<ExecuteInsightQueryResponse>("/api/backend/insights/execute", { query });
+  return apiPostJson<ExecuteInsightQueryResponse>("/api/backend/insights/execute", {
+    query,
+    displayCurrency,
+  });
 }

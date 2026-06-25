@@ -11,10 +11,12 @@ import {
   fetchAnalyticsCurrencies,
   fetchAnalyticsDashboardMetrics,
 } from "@/lib/analytics/fetch-analytics-dashboard";
+import { useDisplayCurrency } from "@/lib/hooks/use-display-currency";
 
 type AnalyticsDashboardState = {
   currency: string;
   availableCurrencies: string[];
+  exchangeRatesAsOf: string | null;
   summary: AnalyticsSummaryResponse | null;
   departmentStatistics: AnalyticsDepartmentStatisticsResponse | null;
   topEarners: AnalyticsTopEarnersResponse | null;
@@ -25,11 +27,10 @@ type AnalyticsDashboardState = {
 
 const ANALYTICS_LOAD_ERROR_MESSAGE = "Unable to load analytics dashboard data.";
 
-export function useAnalyticsDashboard(
-  initialCurrency = "USD",
-): AnalyticsDashboardState {
-  const [currency, setCurrency] = useState(initialCurrency);
+export function useAnalyticsDashboard(): AnalyticsDashboardState {
+  const { currency, selectCurrency, isReady: isCurrencyReady } = useDisplayCurrency();
   const [availableCurrencies, setAvailableCurrencies] = useState<string[]>([]);
+  const [exchangeRatesAsOf, setExchangeRatesAsOf] = useState<string | null>(null);
   const [summary, setSummary] = useState<AnalyticsSummaryResponse | null>(null);
   const [departmentStatistics, setDepartmentStatistics] =
     useState<AnalyticsDepartmentStatisticsResponse | null>(null);
@@ -42,17 +43,14 @@ export function useAnalyticsDashboard(
 
     async function loadAvailableCurrencies() {
       try {
-        const currencies = await fetchAnalyticsCurrencies();
+        const response = await fetchAnalyticsCurrencies();
 
         if (isCancelled) {
           return;
         }
 
-        setAvailableCurrencies(currencies);
-
-        if (currencies.length > 0 && !currencies.includes(currency)) {
-          setCurrency(currencies[0]!);
-        }
+        setAvailableCurrencies(response.currencies);
+        setExchangeRatesAsOf(response.exchangeRatesAsOf);
       } catch {
         if (!isCancelled) {
           setAvailableCurrencies([]);
@@ -68,6 +66,10 @@ export function useAnalyticsDashboard(
   }, []);
 
   useEffect(() => {
+    if (!isCurrencyReady) {
+      return;
+    }
+
     let isCancelled = false;
 
     async function loadDashboardMetrics() {
@@ -105,15 +107,12 @@ export function useAnalyticsDashboard(
     return () => {
       isCancelled = true;
     };
-  }, [currency]);
-
-  function selectCurrency(nextCurrency: string) {
-    setCurrency(nextCurrency.toUpperCase());
-  }
+  }, [currency, isCurrencyReady]);
 
   return {
     currency,
     availableCurrencies,
+    exchangeRatesAsOf,
     summary,
     departmentStatistics,
     topEarners,

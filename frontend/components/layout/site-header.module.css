@@ -24,6 +24,14 @@
   gap: 1rem;
 }
 
+.end {
+  display: flex;
+  align-items: flex-end;
+  gap: 1rem;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
 .navLink {
   color: var(--text-muted);
   font-size: 0.875rem;

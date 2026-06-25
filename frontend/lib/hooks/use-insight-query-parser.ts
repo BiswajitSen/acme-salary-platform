@@ -1,7 +1,7 @@
 "use client";
 
 import type { ExecuteInsightQueryResponse } from "@acme/shared";
-import { useState } from "react";
+import { useEffect, useState } from "react";
 
 import { executeInsightQuery } from "@/lib/api/ai-insights";
 
@@ -17,11 +17,15 @@ type InsightQueryParserState = {
 
 const EXECUTE_ERROR_MESSAGE = "Unable to run the insight query.";
 
-export function useInsightQueryParser(): InsightQueryParserState {
+export function useInsightQueryParser(displayCurrency: string): InsightQueryParserState {
   const [query, setQuery] = useState("");
   const [response, setResponse] = useState<ExecuteInsightQueryResponse | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+
+  useEffect(() => {
+    setResponse(null);
+  }, [displayCurrency]);
 
   function updateQuery(nextQuery: string) {
     setQuery(nextQuery);
@@ -40,7 +44,7 @@ export function useInsightQueryParser(): InsightQueryParserState {
     setErrorMessage(null);
 
     try {
-      const nextResponse = await executeInsightQuery(trimmedQuery);
+      const nextResponse = await executeInsightQuery(trimmedQuery, displayCurrency);
       setResponse(nextResponse);
     } catch {
       setResponse(null);

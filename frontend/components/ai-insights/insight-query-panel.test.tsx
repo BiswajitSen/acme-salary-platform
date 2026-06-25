@@ -1,16 +1,21 @@
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { InsightExecutionResult } from "./insight-execution-result";
 import { ParsedInsightSummary } from "./parsed-insight-summary";
 
-const { useInsightQueryParserMock } = vi.hoisted(() => ({
+const { useInsightQueryParserMock, useDisplayCurrencyMock } = vi.hoisted(() => ({
   useInsightQueryParserMock: vi.fn(),
+  useDisplayCurrencyMock: vi.fn(),
 }));
 
 vi.mock("@/lib/hooks/use-insight-query-parser", () => ({
   useInsightQueryParser: (...args: unknown[]) => useInsightQueryParserMock(...args),
+}));
+
+vi.mock("@/lib/hooks/use-display-currency", () => ({
+  useDisplayCurrency: (...args: unknown[]) => useDisplayCurrencyMock(...args),
 }));
 
 import { InsightQueryPanel } from "./insight-query-panel";
@@ -152,6 +157,19 @@ describe("InsightQueryPanel", () => {
   afterEach(() => {
     cleanup();
     useInsightQueryParserMock.mockReset();
+    useDisplayCurrencyMock.mockReset();
+  });
+
+  function mockPanelHooks(currency = "USD") {
+    useDisplayCurrencyMock.mockReturnValue({
+      currency,
+      selectCurrency: vi.fn(),
+      isReady: true,
+    });
+  }
+
+  beforeEach(() => {
+    mockPanelHooks();
   });
 
   it("submits the query when the form is submitted", async () => {
@@ -173,6 +191,7 @@ describe("InsightQueryPanel", () => {
     await waitFor(() => {
       expect(submitQuery).toHaveBeenCalled();
     });
+    expect(useInsightQueryParserMock).toHaveBeenCalledWith("USD");
   });
 
   it("shows parsed intent output when available", () => {
@@ -192,6 +211,7 @@ describe("InsightQueryPanel", () => {
           averageSalary: 120_000,
           employeeCount: 10,
         },
+        exchangeRatesAsOf: "2026-01-01",
         error: null,
       },
       isSubmitting: false,
@@ -205,6 +225,7 @@ describe("InsightQueryPanel", () => {
 
     expect(screen.getByText("Detected intent")).toBeTruthy();
     expect(screen.getByText("Average salary")).toBeTruthy();
+    expect(screen.getByText("FX rates as of 2026-01-01")).toBeTruthy();
   });
 
   it("shows a graceful execution error when the intent is unsupported", () => {

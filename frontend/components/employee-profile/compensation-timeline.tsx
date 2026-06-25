@@ -1,22 +1,30 @@
-import type { CompensationTimelineEntry } from "@acme/shared";
+import type { CompensationTimelineEntry, ExchangeRatesToUsd } from "@acme/shared";
 
 import { Card } from "@/components/ui/card";
+import { formatDisplaySalary } from "@/lib/format-display-salary";
+import { formatSalary } from "@/lib/format-salary";
 
 import styles from "./compensation-timeline.module.css";
 
 type CompensationTimelineProps = {
   entries: CompensationTimelineEntry[];
+  displayCurrency: string;
+  ratesToUsd: ExchangeRatesToUsd | null;
 };
 
-function formatSalary(amount: number, currency: string): string {
-  return new Intl.NumberFormat("en-US", {
-    style: "currency",
-    currency,
-    maximumFractionDigits: 0,
-  }).format(amount);
-}
+export function CompensationTimeline({
+  entries,
+  displayCurrency,
+  ratesToUsd,
+}: CompensationTimelineProps) {
+  function formatAmount(amount: number, nativeCurrency: string): string {
+    if (ratesToUsd === null) {
+      return formatSalary(amount, nativeCurrency);
+    }
 
-export function CompensationTimeline({ entries }: CompensationTimelineProps) {
+    return formatDisplaySalary(amount, nativeCurrency, displayCurrency, ratesToUsd);
+  }
+
   return (
     <Card title="Compensation timeline">
       {entries.length === 0 ? (
@@ -41,9 +49,9 @@ export function CompensationTimeline({ entries }: CompensationTimelineProps) {
                   <td>
                     {entry.previousSalary === null
                       ? "—"
-                      : formatSalary(entry.previousSalary, entry.currency)}
+                      : formatAmount(entry.previousSalary, entry.currency)}
                   </td>
-                  <td>{formatSalary(entry.baseSalary, entry.currency)}</td>
+                  <td>{formatAmount(entry.baseSalary, entry.currency)}</td>
                   <td>{entry.reason}</td>
                   <td>{entry.changedBy}</td>
                   <td>{entry.notes ?? "—"}</td>

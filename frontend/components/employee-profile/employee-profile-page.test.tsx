@@ -1,6 +1,6 @@
 import { cleanup, fireEvent, render, screen, waitFor } from "@testing-library/react";
 import userEvent from "@testing-library/user-event";
-import { afterEach, describe, expect, it, vi } from "vitest";
+import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 
 import { ApiRequestError } from "@/lib/api/client";
 import { EmployeeProfile } from "./employee-profile";
@@ -12,8 +12,21 @@ const { getEmployeeProfile, listEmployeeCompensationHistory, recordCompensationC
     recordCompensationChange: vi.fn(),
   }));
 
-const { useEmployeeProfileMock } = vi.hoisted(() => ({
+const { useEmployeeProfileMock, useExchangeRatesMock } = vi.hoisted(() => ({
   useEmployeeProfileMock: vi.fn(),
+  useExchangeRatesMock: vi.fn(),
+}));
+
+vi.mock("@/lib/hooks/use-display-currency", () => ({
+  useDisplayCurrency: () => ({
+    currency: "USD",
+    selectCurrency: vi.fn(),
+    isReady: true,
+  }),
+}));
+
+vi.mock("@/lib/hooks/use-exchange-rates", () => ({
+  useExchangeRates: (...args: unknown[]) => useExchangeRatesMock(...args),
 }));
 
 vi.mock("@/lib/hooks/use-employee-profile", async () => {
@@ -43,6 +56,21 @@ describe("EmployeeProfile", () => {
   afterEach(() => {
     cleanup();
     useEmployeeProfileMock.mockReset();
+    useExchangeRatesMock.mockReset();
+  });
+
+  beforeEach(() => {
+    useExchangeRatesMock.mockReturnValue({
+      ratesToUsd: {
+        USD: 1,
+        GBP: 1.25,
+        EUR: 1.1,
+        INR: 0.012,
+        SGD: 0.75,
+      },
+      exchangeRatesAsOf: "2026-01-01",
+      isLoading: false,
+    });
   });
 
   it("renders profile sections for a loaded employee", async () => {
@@ -120,11 +148,76 @@ describe("EmployeeProfile", () => {
       isLoading: false,
       errorMessage: null,
       notFound: false,
+      reloadProfile: vi.fn(),
     });
 
     render(<EmployeeProfile employeeId="E001" />);
 
     expect(screen.getByText(/No compensation changes recorded yet/i)).toBeInTheDocument();
+  });
+
+  it("shows a loading message while exchange rates are fetched", () => {
+    useEmployeeProfileMock.mockReturnValue({
+      profile: {
+        id: "E001",
+        fullName: "Jane Doe",
+        department: "Engineering",
+        jobTitle: "Senior Engineer",
+        country: "US",
+        currentCompensation: null,
+      },
+      compensationHistory: { employeeId: "E001", entries: [] },
+      isLoading: false,
+      errorMessage: null,
+      notFound: false,
+      reloadProfile: vi.fn(),
+    });
+    useExchangeRatesMock.mockReturnValue({
+      ratesToUsd: null,
+      exchangeRatesAsOf: null,
+      isLoading: true,
+    });
+
+    render(<EmployeeProfile employeeId="E001" />);
+
+    expect(screen.getByText(/Loading exchange rates/i)).toBeInTheDocument();
+  });
+
+  it("shows recorded-currency salaries when exchange rates are unavailable", () => {
+    useEmployeeProfileMock.mockReturnValue({
+      profile: {
+        id: "E001",
+        fullName: "Jane Doe",
+        department: "Engineering",
+        jobTitle: "Senior Engineer",
+        country: "US",
+        currentCompensation: {
+          baseSalary: 86_300,
+          currency: "SGD",
+          effectiveDate: "2025-01-01",
+          reason: "Annual Increment",
+          changedBy: "HR Admin",
+          lastUpdated: "2025-01-02T10:00:00.000Z",
+        },
+      },
+      compensationHistory: { employeeId: "E001", entries: [] },
+      isLoading: false,
+      errorMessage: null,
+      notFound: false,
+      reloadProfile: vi.fn(),
+    });
+    useExchangeRatesMock.mockReturnValue({
+      ratesToUsd: null,
+      exchangeRatesAsOf: null,
+      isLoading: false,
+    });
+
+    render(<EmployeeProfile employeeId="E001" />);
+
+    expect(
+      screen.getByText(/Exchange rates are unavailable/i),
+    ).toBeInTheDocument();
+    expect(screen.getByText("SGD 86,300")).toBeInTheDocument();
   });
 
   it("reloads the profile after a compensation change is recorded", async () => {

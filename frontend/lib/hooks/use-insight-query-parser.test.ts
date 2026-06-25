@@ -34,7 +34,7 @@ describe("useInsightQueryParser", () => {
       error: null,
     });
 
-    const { result } = renderHook(() => useInsightQueryParser());
+    const { result } = renderHook(() => useInsightQueryParser("USD"));
 
     act(() => {
       result.current.updateQuery("average salary in Engineering");
@@ -46,10 +46,14 @@ describe("useInsightQueryParser", () => {
     await waitFor(() => {
       expect(result.current.response?.result?.intent).toBe("AVG_DEPT_SALARY");
     });
+    expect(executeInsightQueryMock).toHaveBeenCalledWith(
+      "average salary in Engineering",
+      "USD",
+    );
   });
 
   it("requires a non-empty query before submitting", async () => {
-    const { result } = renderHook(() => useInsightQueryParser());
+    const { result } = renderHook(() => useInsightQueryParser("USD"));
 
     await act(async () => {
       await result.current.submitQuery();
@@ -62,7 +66,7 @@ describe("useInsightQueryParser", () => {
   it("surfaces an error when execution fails", async () => {
     executeInsightQueryMock.mockRejectedValue(new Error("Network error"));
 
-    const { result } = renderHook(() => useInsightQueryParser());
+    const { result } = renderHook(() => useInsightQueryParser("USD"));
 
     act(() => {
       result.current.updateQuery("average salary in Engineering");
@@ -92,7 +96,7 @@ describe("useInsightQueryParser", () => {
       error: null,
     });
 
-    const { result } = renderHook(() => useInsightQueryParser());
+    const { result } = renderHook(() => useInsightQueryParser("USD"));
 
     act(() => {
       result.current.updateQuery("top earners in USD");
@@ -111,5 +115,44 @@ describe("useInsightQueryParser", () => {
 
     expect(result.current.query).toBe("");
     expect(result.current.response).toBeNull();
+  });
+
+  it("clears the previous response when display currency changes", async () => {
+    executeInsightQueryMock.mockResolvedValue({
+      parsedQuery: {
+        intent: "HEADCOUNT",
+        originalQuery: "headcount",
+        department: null,
+        currency: null,
+      },
+      result: {
+        intent: "HEADCOUNT",
+        currency: "USD",
+        headcount: 42,
+      },
+      error: null,
+    });
+
+    const { result, rerender } = renderHook(
+      ({ displayCurrency }) => useInsightQueryParser(displayCurrency),
+      { initialProps: { displayCurrency: "USD" } },
+    );
+
+    act(() => {
+      result.current.updateQuery("headcount");
+    });
+    await act(async () => {
+      await result.current.submitQuery();
+    });
+
+    await waitFor(() => {
+      expect(result.current.response?.result?.headcount).toBe(42);
+    });
+
+    rerender({ displayCurrency: "GBP" });
+
+    await waitFor(() => {
+      expect(result.current.response).toBeNull();
+    });
   });
 });
