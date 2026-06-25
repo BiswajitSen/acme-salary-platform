@@ -63,4 +63,84 @@ describe("validateInsightExecutionSafety", () => {
       }),
     ).toBeNull();
   });
+
+  it("rejects countries outside the allowlist", () => {
+    expect(
+      validateInsightExecutionSafety({
+        intent: "HEADCOUNT",
+        originalQuery: "headcount in XX",
+        department: null,
+        country: "XX",
+        jobTitle: null,
+        currency: "USD",
+        months: null,
+        sinceDate: null,
+        limit: null,
+        medianSplitFocus: null,
+      }),
+    ).toEqual({
+      kind: "REJECTED_INPUT",
+      message: "Invalid or unsafe query input.",
+    });
+  });
+
+  it("rejects empty or oversized job titles", () => {
+    expect(
+      validateInsightExecutionSafety({
+        intent: "HEADCOUNT",
+        originalQuery: "headcount",
+        department: null,
+        country: null,
+        jobTitle: "   ",
+        currency: "USD",
+        months: null,
+        sinceDate: null,
+        limit: null,
+        medianSplitFocus: null,
+      }),
+    ).toEqual({
+      kind: "REJECTED_INPUT",
+      message: "Invalid or unsafe query input.",
+    });
+  });
+
+  it("rejects ranked limits outside the supported range", () => {
+    expect(
+      validateInsightExecutionSafety({
+        intent: "TOP_EARNERS",
+        originalQuery: "top 0 earners",
+        department: null,
+        country: null,
+        jobTitle: null,
+        currency: "USD",
+        months: null,
+        sinceDate: null,
+        limit: 0,
+        medianSplitFocus: null,
+      }),
+    ).toEqual({
+      kind: "REJECTED_INPUT",
+      message: "Invalid or unsafe query input.",
+    });
+  });
+
+  it("rejects job titles longer than one hundred characters", () => {
+    expect(
+      validateInsightExecutionSafety({
+        intent: "HEADCOUNT",
+        originalQuery: "headcount",
+        department: null,
+        country: null,
+        jobTitle: "A".repeat(101),
+        currency: "USD",
+        months: null,
+        sinceDate: null,
+        limit: null,
+        medianSplitFocus: null,
+      }),
+    ).toEqual({
+      kind: "REJECTED_INPUT",
+      message: "Invalid or unsafe query input.",
+    });
+  });
 });

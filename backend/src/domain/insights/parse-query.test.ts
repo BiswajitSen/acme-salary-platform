@@ -1,7 +1,8 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import type { ParsedInsightQuery } from "@acme/shared";
 
+import * as medianSplit from "./filters/median-split.js";
 import { parseInsightQuery } from "./parse-query.js";
 
 function parsed(
@@ -381,5 +382,20 @@ describe("parseInsightQuery", () => {
         originalQuery: "average salary; DROP TABLE employees",
       }),
     );
+  });
+
+  it("returns UNKNOWN when a median split question has no focus", () => {
+    const extractMedianSplitFocus = vi
+      .spyOn(medianSplit, "extractMedianSplitFocus")
+      .mockReturnValue(null);
+
+    expect(parseInsightQuery("how many employees earning below median")).toEqual(
+      parsed({
+        intent: "UNKNOWN",
+        originalQuery: "how many employees earning below median",
+      }),
+    );
+
+    extractMedianSplitFocus.mockRestore();
   });
 });

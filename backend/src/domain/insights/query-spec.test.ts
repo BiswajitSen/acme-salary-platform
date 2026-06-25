@@ -8,6 +8,7 @@ import {
   hasScopedInsightFilters,
   metricSupportsFilter,
   shouldReportScopedEmptyResult,
+  toEmployeeScopeParams,
 } from "./query-spec.js";
 
 describe("query-spec", () => {
@@ -122,5 +123,39 @@ describe("query-spec", () => {
     expect(hasScopedInsightFilters(orgWideFilters)).toBe(false);
     expect(shouldReportScopedEmptyResult(scopedFilters, false)).toBe(true);
     expect(shouldReportScopedEmptyResult(orgWideFilters, false)).toBe(false);
+  });
+
+  it("maps non-null filter dimensions into employee scope params", () => {
+    expect(
+      toEmployeeScopeParams({
+        country: "IN",
+        department: "Engineering",
+        jobTitle: "Analyst",
+        months: null,
+        sinceDate: null,
+        limit: null,
+      }),
+    ).toEqual({
+      country: "IN",
+      department: "Engineering",
+      jobTitle: "Analyst",
+    });
+  });
+
+  it("returns null for UNKNOWN intents", () => {
+    expect(
+      buildInsightQuerySpec({
+        intent: "UNKNOWN",
+        originalQuery: "unsupported",
+        department: null,
+        country: null,
+        jobTitle: null,
+        currency: null,
+        months: null,
+        sinceDate: null,
+        limit: null,
+        medianSplitFocus: null,
+      }),
+    ).toBeNull();
   });
 });

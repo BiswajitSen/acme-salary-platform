@@ -24,4 +24,8 @@ describe("extractMedianSplitFocus", () => {
       extractMedianSplitFocus("count of employees paid above the median salary in hr"),
     ).toBe("above");
   });
+
+  it("returns null when no median split focus is present", () => {
+    expect(extractMedianSplitFocus("average salary in engineering")).toBeNull();
+  });
 });

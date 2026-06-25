@@ -22,6 +22,10 @@ describe("extractInsightTopLimit", () => {
   it("returns null when no limit is present", () => {
     expect(extractInsightTopLimit("top earners in engineering")).toBeNull();
   });
+
+  it("returns null for non-positive limits", () => {
+    expect(extractInsightTopLimit("top 0 earners")).toBeNull();
+  });
 });
 
 describe("extractInsightBottomLimit", () => {

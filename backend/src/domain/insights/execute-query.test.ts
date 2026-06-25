@@ -669,4 +669,144 @@ describe("executeParsedInsightQuery", () => {
       department: "Engineering",
     });
   });
+
+  it("returns COUNTRY_NOT_FOUND when scoped headcount is empty", async () => {
+    const response = await executeParsedInsightQuery(
+      parsed({
+        intent: "HEADCOUNT",
+        originalQuery: "headcount in India",
+        country: "IN",
+      }),
+      createContext({
+        getAnalyticsSummary: vi.fn().mockResolvedValue({
+          currency: "USD",
+          headcount: 0,
+          totalPayroll: 0,
+        }),
+      }),
+    );
+
+    expect(response.error?.kind).toBe("COUNTRY_NOT_FOUND");
+  });
+
+  it("returns COUNTRY_NOT_FOUND when scoped total payroll is empty", async () => {
+    const response = await executeParsedInsightQuery(
+      parsed({
+        intent: "TOTAL_PAYROLL",
+        originalQuery: "total payroll in India",
+        country: "IN",
+      }),
+      createContext({
+        getAnalyticsSummary: vi.fn().mockResolvedValue({
+          currency: "USD",
+          headcount: 0,
+          totalPayroll: 0,
+        }),
+      }),
+    );
+
+    expect(response.error?.kind).toBe("COUNTRY_NOT_FOUND");
+  });
+
+  it("returns COUNTRY_NOT_FOUND when scoped bottom earners are empty", async () => {
+    const response = await executeParsedInsightQuery(
+      parsed({
+        intent: "BOTTOM_EARNERS",
+        originalQuery: "bottom earners in India",
+        country: "IN",
+      }),
+      createContext({
+        getBottomEarners: vi.fn().mockResolvedValue({
+          currency: "USD",
+          earners: [],
+        }),
+      }),
+    );
+
+    expect(response.error?.kind).toBe("COUNTRY_NOT_FOUND");
+  });
+
+  it("returns COUNTRY_NOT_FOUND when scoped near-median queries have no employees", async () => {
+    const response = await executeParsedInsightQuery(
+      parsed({
+        intent: "NEAR_MEDIAN_EARNERS",
+        originalQuery: "who earn around the median in India",
+        country: "IN",
+      }),
+      createContext({
+        getScopedSalaryStatistics: vi.fn().mockResolvedValue({
+          currency: "USD",
+          employeeCount: 0,
+          averageSalary: 0,
+          medianSalary: 0,
+        }),
+      }),
+    );
+
+    expect(response.error?.kind).toBe("COUNTRY_NOT_FOUND");
+  });
+
+  it("defaults median split focus when it is omitted", async () => {
+    const response = await executeParsedInsightQuery(
+      parsed({
+        intent: "MEDIAN_SPLIT_COUNTS",
+        originalQuery: "how many employees earn below median in India",
+        country: "IN",
+        medianSplitFocus: "below",
+      }),
+      createContext({
+        getMedianSplitCounts: vi.fn().mockResolvedValue({
+          currency: "USD",
+          medianSalary: 0,
+          belowMedianCount: 0,
+          aboveMedianCount: 0,
+          employeeCount: 0,
+        }),
+      }),
+    );
+
+    expect(response.error?.kind).toBe("COUNTRY_NOT_FOUND");
+  });
+
+  it("passes null months when a since date is provided for timeline queries", async () => {
+    const context = createContext();
+
+    await executeParsedInsightQuery(
+      parsed({
+        intent: "RECENT_PROMOTIONS",
+        originalQuery: "promotions since 2025-06-01",
+        sinceDate: "2025-06-01",
+        months: null,
+      }),
+      context,
+    );
+
+    expect(context.getRecentTimelineEvents).toHaveBeenCalledWith(
+      "RECENT_PROMOTIONS",
+      expect.objectContaining({
+        months: null,
+        sinceDate: "2025-06-01",
+      }),
+    );
+  });
+
+  it("returns COUNTRY_NOT_FOUND when scoped median salary queries have no data", async () => {
+    const response = await executeParsedInsightQuery(
+      parsed({
+        intent: "MEDIAN_DEPT_SALARY",
+        originalQuery: "median salary in HR",
+        department: "HR",
+      }),
+      createContext({
+        getScopedSalaryStatistics: vi.fn().mockResolvedValue({
+          currency: "USD",
+          employeeCount: 0,
+          averageSalary: 0,
+          medianSalary: 0,
+        }),
+      }),
+    );
+
+    expect(response.error?.kind).toBe("COUNTRY_NOT_FOUND");
+  });
 });

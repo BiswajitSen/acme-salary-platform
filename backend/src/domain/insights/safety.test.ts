@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 
 import {
+  isAllowedInsightCountry,
   isAllowedInsightDepartment,
   looksLikeSqlInjection,
   parseSafeInsightCurrency,
@@ -15,6 +16,16 @@ describe("looksLikeSqlInjection", () => {
 
   it("allows normal analytics questions", () => {
     expect(looksLikeSqlInjection("average salary in engineering")).toBe(false);
+  });
+});
+
+describe("isAllowedInsightCountry", () => {
+  it("accepts countries from the shared allowlist", () => {
+    expect(isAllowedInsightCountry("IN", ["IN", "US"])).toBe(true);
+  });
+
+  it("rejects countries outside the allowlist", () => {
+    expect(isAllowedInsightCountry("XX", ["IN", "US"])).toBe(false);
   });
 });
 

@@ -32,18 +32,16 @@ describe("extractInsightJobTitle", () => {
     ).toBe("Data Analyst");
   });
 
-  it("extracts explicit title phrasing via joined-as", () => {
+  it("extracts explicit title phrasing", () => {
     expect(
       extractInsightJobTitle(
-        "headcount for employees who joined as Staff Engineer",
-        "headcount for employees who joined as staff engineer",
+        "headcount with title Data Analyst",
+        "headcount with title data analyst",
       ),
-    ).toBe("Staff Engineer");
+    ).toBe("data analyst");
   });
 
-  it("does not treat department names as job titles", () => {
-    expect(
-      extractInsightJobTitle("average salary in engineering", "average salary in engineering"),
-    ).toBeNull();
+  it("skips short department-like title candidates", () => {
+    expect(extractInsightJobTitle("headcount as hr", "headcount as hr")).toBeNull();
   });
 });

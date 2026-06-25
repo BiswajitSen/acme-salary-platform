@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import {
   isInsightTimelineIntent,
   resolveInsightTimelineMonths,
+  resolveTimelineReasons,
 } from "./timeline.js";
 import { extractInsightTimelineWindow } from "./window.js";
 
@@ -21,5 +22,24 @@ describe("timeline", () => {
 
   it("defaults timeline intents to three months", () => {
     expect(resolveInsightTimelineMonths("RECENT_NEW_HIRES", "new joiners recently")).toBe(3);
+  });
+
+  it("overrides timeline reasons when the query mentions an explicit compensation reason", () => {
+    expect(
+      resolveTimelineReasons(
+        "RECENT_SALARY_INCREASES",
+        "market adjustments in the last 3 months",
+      ),
+    ).toEqual(["Market Adjustment"]);
+  });
+
+  it("uses intent defaults when no explicit compensation reason is mentioned", () => {
+    expect(
+      resolveTimelineReasons("RECENT_NEW_HIRES", "employees in the last 3 months"),
+    ).toEqual(["New Hire"]);
+  });
+
+  it("returns null months for non-timeline intents", () => {
+    expect(resolveInsightTimelineMonths("HEADCOUNT", "headcount")).toBeNull();
   });
 });

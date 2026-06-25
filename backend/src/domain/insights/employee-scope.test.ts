@@ -21,12 +21,18 @@ describe("buildEmployeeScopeFilter", () => {
 
   it("returns a different SQL fragment when scope dimensions are set", () => {
     const empty = buildEmployeeScopeFilter({});
+    const countryOnly = buildEmployeeScopeFilter({ country: "IN" });
+    const departmentOnly = buildEmployeeScopeFilter({ department: "Engineering" });
+    const jobTitleOnly = buildEmployeeScopeFilter({ jobTitle: "Senior Engineer" });
     const scoped = buildEmployeeScopeFilter({
       country: "IN",
       department: "Engineering",
       jobTitle: "Senior Engineer",
     });
 
+    expect(countryOnly).not.toEqual(empty);
+    expect(departmentOnly).not.toEqual(empty);
+    expect(jobTitleOnly).not.toEqual(empty);
     expect(scoped).not.toEqual(empty);
   });
 });

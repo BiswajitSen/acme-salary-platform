@@ -21,6 +21,10 @@ describe("extractNearMedianTolerancePercent", () => {
   it("returns null when no tolerance is mentioned", () => {
     expect(extractNearMedianTolerancePercent("who earn around the median")).toBeNull();
   });
+
+  it("returns null for non-positive tolerances", () => {
+    expect(extractNearMedianTolerancePercent("within 0% of median")).toBeNull();
+  });
 });
 
 describe("resolveNearMedianTolerancePercent", () => {

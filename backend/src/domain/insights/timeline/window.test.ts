@@ -18,6 +18,13 @@ describe("extractInsightTimelineWindow", () => {
   it("parses month-year since dates", () => {
     expect(extractInsightTimelineWindow("hires since June 2025").sinceDate).toBe("2025-06-01");
   });
+
+  it("ignores invalid month-year phrases", () => {
+    expect(extractInsightTimelineWindow("hires since NotAMonth 2025")).toEqual({
+      months: null,
+      sinceDate: null,
+    });
+  });
 });
 
 describe("resolveInsightTimelineWindow", () => {
@@ -32,6 +39,13 @@ describe("resolveInsightTimelineWindow", () => {
     expect(resolveInsightTimelineWindow("recent promotions", true)).toEqual({
       months: 3,
       sinceDate: null,
+    });
+  });
+
+  it("preserves explicit since dates for timeline intents", () => {
+    expect(resolveInsightTimelineWindow("promotions since 2025-06-01", true)).toEqual({
+      months: null,
+      sinceDate: "2025-06-01",
     });
   });
 });
