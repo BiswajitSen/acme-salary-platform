@@ -1,0 +1,19 @@
+.avatar {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+  width: 2.25rem;
+  height: 2.25rem;
+  border-radius: 999px;
+  background: linear-gradient(
+    145deg,
+    color-mix(in srgb, var(--primary) 18%, var(--surface)),
+    var(--primary-soft)
+  );
+  border: 1px solid color-mix(in srgb, var(--primary) 22%, var(--border));
+  color: var(--primary);
+  font-size: 0.75rem;
+  font-weight: 700;
+  letter-spacing: 0.02em;
+}

@@ -9,4 +9,23 @@
   font-weight: 600;
   letter-spacing: 0.02em;
   color: var(--text-muted);
+  white-space: nowrap;
+}
+
+.department {
+  background: var(--primary-soft);
+  border-color: color-mix(in srgb, var(--primary) 20%, var(--border));
+  color: var(--primary);
+}
+
+.statusActive {
+  background: var(--success-soft);
+  border-color: color-mix(in srgb, var(--success) 25%, var(--border));
+  color: var(--success);
+}
+
+.statusInactive {
+  background: var(--surface-muted);
+  border-color: var(--border);
+  color: var(--text-muted);
 }

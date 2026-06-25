@@ -3,33 +3,128 @@
   top: 0;
   left: 0;
   display: grid;
-  grid-template-columns: 1.1fr 1.4fr 1.2fr 1.4fr 0.8fr;
-  gap: 1rem;
+  grid-template-columns: minmax(12rem, 1.6fr) minmax(8rem, 1fr) 5rem minmax(7rem, 0.9fr) minmax(7rem, 0.8fr) auto;
+  gap: 0.875rem;
   align-items: center;
   width: 100%;
-  height: 52px;
+  height: 64px;
   padding: 0 1rem;
   border-bottom: 1px solid var(--border);
+  background: var(--surface);
+  transition:
+    background var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+.row:hover,
+.row:focus-within {
+  background: color-mix(in srgb, var(--primary-soft) 45%, var(--surface));
+  box-shadow: inset 3px 0 0 var(--primary);
+}
+
+.employeeCell {
+  display: flex;
+  align-items: center;
+  gap: 0.75rem;
+  min-width: 0;
+}
+
+.identity {
+  min-width: 0;
+}
+
+.nameLink {
+  display: block;
+  overflow: hidden;
   color: inherit;
+  font-weight: 600;
   text-decoration: none;
-  transition: background 0.12s ease;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.row:hover {
-  background: var(--surface-muted);
-}
-
-.name {
-  font-weight: 500;
+.nameLink:hover {
+  color: var(--primary);
 }
 
 .id {
-  font-family: var(--font-geist-mono), ui-monospace, monospace;
-  font-size: 0.8125rem;
+  margin: 0.1rem 0 0;
+  overflow: hidden;
   color: var(--text-muted);
+  font-family: var(--font-geist-mono), ui-monospace, monospace;
+  font-size: 0.75rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
-.muted {
+.roleCell {
+  min-width: 0;
+}
+
+.jobTitle {
+  margin: 0.2rem 0 0;
+  overflow: hidden;
   color: var(--text-muted);
-  font-size: 0.9375rem;
+  font-size: 0.8125rem;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.countryCell {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.35rem;
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+  font-weight: 600;
+}
+
+.flag {
+  font-size: 1rem;
+  line-height: 1;
+}
+
+.salary {
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.salaryMuted {
+  color: var(--text-muted);
+  font-size: 0.8125rem;
+  font-weight: 500;
+}
+
+.actions {
+  display: flex;
+  justify-content: flex-end;
+  gap: 0.35rem;
+}
+
+.viewLink {
+  padding: 0.35rem 0.7rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  color: var(--foreground);
+  font-size: 0.8125rem;
+  font-weight: 600;
+  text-decoration: none;
+  white-space: nowrap;
+  transition:
+    background var(--transition-fast),
+    border-color var(--transition-fast),
+    color var(--transition-fast);
+}
+
+.viewLink:hover {
+  border-color: color-mix(in srgb, var(--primary) 35%, var(--border));
+  background: var(--primary-soft);
+  color: var(--primary);
+}
+
+.viewLink:focus-visible {
+  outline: none;
+  border-color: var(--primary);
+  box-shadow: 0 0 0 3px var(--primary-soft);
 }
