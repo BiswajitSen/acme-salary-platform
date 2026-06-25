@@ -1,10 +1,12 @@
 import {
+  DEFAULT_RECENT_PROMOTIONS_MONTHS,
   INSIGHT_QUERY_DEPARTMENTS,
   type AiInsightIntent,
   type ParsedInsightQuery,
 } from "@acme/shared";
 
 import { looksLikeSqlInjection } from "./insight-query-safety.js";
+import { extractInsightCountry } from "./insight-query-country-aliases.js";
 
 const ISO_CURRENCY_PATTERN = /\b(USD|GBP|EUR|INR|SGD)\b/i;
 
@@ -12,6 +14,10 @@ const INTENT_PATTERNS: ReadonlyArray<{
   intent: Exclude<AiInsightIntent, "UNKNOWN">;
   pattern: RegExp;
 }> = [
+  {
+    intent: "RECENT_PROMOTIONS",
+    pattern: /\b(?:promotion|promoted|promotions)\b/,
+  },
   { intent: "MEDIAN_DEPT_SALARY", pattern: /\bmedian\s+(?:salary|pay|compensation)\b/ },
   {
     intent: "AVG_DEPT_SALARY",
@@ -36,8 +42,8 @@ function normalizeInsightQuery(query: string): string {
 }
 
 function extractInsightCurrency(normalizedQuery: string): string | null {
-  const match = normalizedQuery.match(ISO_CURRENCY_PATTERN);
-  return match ? match[1]!.toUpperCase() : null;
+  const isoMatch = normalizedQuery.match(ISO_CURRENCY_PATTERN);
+  return isoMatch ? isoMatch[1]!.toUpperCase() : null;
 }
 
 function extractInsightDepartment(normalizedQuery: string): string | null {
@@ -61,17 +67,43 @@ function detectInsightIntent(normalizedQuery: string): AiInsightIntent {
   return "UNKNOWN";
 }
 
+function extractInsightMonths(normalizedQuery: string): number | null {
+  const explicitMatch = normalizedQuery.match(
+    /\b(?:last|past|in the last|within the last)\s+(\d+)\s*months?\b/,
+  );
+
+  if (explicitMatch) {
+    return Number.parseInt(explicitMatch[1]!, 10);
+  }
+
+  return null;
+}
+
+function resolveInsightMonths(intent: AiInsightIntent, normalizedQuery: string): number | null {
+  if (intent !== "RECENT_PROMOTIONS") {
+    return null;
+  }
+
+  return extractInsightMonths(normalizedQuery) ?? DEFAULT_RECENT_PROMOTIONS_MONTHS;
+}
+
 function buildUnknownInsightQuery(originalQuery: string): ParsedInsightQuery {
   return {
     intent: "UNKNOWN",
     originalQuery,
     department: null,
+    country: null,
     currency: null,
+    months: null,
   };
 }
 
-function departmentIntentRequiresDepartment(intent: AiInsightIntent): boolean {
+function salaryIntentRequiresEmployeeScope(intent: AiInsightIntent): boolean {
   return intent === "AVG_DEPT_SALARY" || intent === "MEDIAN_DEPT_SALARY";
+}
+
+function hasEmployeeScope(department: string | null, country: string | null): boolean {
+  return department !== null || country !== null;
 }
 
 export function parseInsightQuery(query: string): ParsedInsightQuery {
@@ -84,13 +116,15 @@ export function parseInsightQuery(query: string): ParsedInsightQuery {
 
   const intent = detectInsightIntent(normalizedQuery);
   const currency = extractInsightCurrency(normalizedQuery);
+  const country = extractInsightCountry(normalizedQuery);
   const department = extractInsightDepartment(normalizedQuery);
+  const months = resolveInsightMonths(intent, normalizedQuery);
 
   if (intent === "UNKNOWN") {
     return buildUnknownInsightQuery(originalQuery);
   }
 
-  if (departmentIntentRequiresDepartment(intent) && department === null) {
+  if (salaryIntentRequiresEmployeeScope(intent) && !hasEmployeeScope(department, country)) {
     return buildUnknownInsightQuery(originalQuery);
   }
 
@@ -98,6 +132,8 @@ export function parseInsightQuery(query: string): ParsedInsightQuery {
     intent,
     originalQuery,
     department,
+    country,
     currency,
+    months,
   };
 }
