@@ -9,9 +9,11 @@ import styles from "./insight-execution-result.module.css";
 type InsightTimelineResultCardProps = {
   title: string;
   emptyMessage: string;
-  months: number;
+  months: number | null;
+  sinceDate?: string | null;
   country: string | null;
   department: string | null;
+  jobTitle?: string | null;
   events: InsightTimelineEvent[];
 };
 
@@ -19,14 +21,16 @@ export function InsightTimelineResultCard({
   title,
   emptyMessage,
   months,
+  sinceDate = null,
   country,
   department,
+  jobTitle = null,
   events,
 }: InsightTimelineResultCardProps) {
   return (
     <Card title={title}>
       <p className={styles.meta}>
-        {formatInsightTimelineScopeMeta({ months, country, department })}
+        {formatInsightTimelineScopeMeta({ months, sinceDate, country, department, jobTitle })}
       </p>
       {events.length === 0 ? (
         <p className={styles.meta}>{emptyMessage}</p>

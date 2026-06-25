@@ -35,8 +35,20 @@ export function ParsedInsightSummary({
           <dd>{parsedQuery.country ?? "—"}</dd>
         </div>
         <div>
+          <dt>Job title</dt>
+          <dd>{parsedQuery.jobTitle ?? "—"}</dd>
+        </div>
+        <div>
           <dt>Months</dt>
           <dd>{parsedQuery.months ?? "—"}</dd>
+        </div>
+        <div>
+          <dt>Since date</dt>
+          <dd>{parsedQuery.sinceDate ?? "—"}</dd>
+        </div>
+        <div>
+          <dt>Limit</dt>
+          <dd>{parsedQuery.limit ?? "—"}</dd>
         </div>
         <div>
           <dt>Display currency</dt>

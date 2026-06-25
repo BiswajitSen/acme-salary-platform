@@ -1,16 +1,19 @@
-import type { ParsedInsightQuery } from "@acme/shared";
-
 type InsightScopeParts = {
   department?: string | null;
   country?: string | null;
+  jobTitle?: string | null;
   currency: string;
 };
 
-function buildScopeParts({ department, country }: InsightScopeParts): string[] {
+function buildScopeParts({ department, country, jobTitle }: InsightScopeParts): string[] {
   const parts: string[] = [];
 
   if (department) {
     parts.push(department);
+  }
+
+  if (jobTitle) {
+    parts.push(jobTitle);
   }
 
   if (country) {
@@ -52,23 +55,59 @@ export function formatInsightSalaryScopeMeta(
   return `${parts.join(" · ")} · ${scope.employeeCount} employees · ${scope.currency}`;
 }
 
-export function formatInsightTopEarnersScopeMeta(scope: InsightScopeParts): string {
+export function formatInsightTopEarnersScopeMeta(
+  scope: InsightScopeParts & { limit?: number },
+): string {
   const parts = buildScopeParts(scope);
+  const limitLabel = scope.limit ? `Top ${scope.limit}` : "Top earners";
 
   if (parts.length === 0) {
-    return `Organization-wide · amounts in ${scope.currency}`;
+    return `${limitLabel} · amounts in ${scope.currency}`;
   }
 
-  return `${parts.join(" · ")} · amounts in ${scope.currency}`;
+  return `${limitLabel} · ${parts.join(" · ")} · amounts in ${scope.currency}`;
+}
+
+export function formatInsightBottomEarnersScopeMeta(
+  scope: InsightScopeParts & { limit?: number },
+): string {
+  const parts = buildScopeParts(scope);
+  const limitLabel = scope.limit ? `Bottom ${scope.limit}` : "Bottom earners";
+
+  if (parts.length === 0) {
+    return `${limitLabel} · amounts in ${scope.currency}`;
+  }
+
+  return `${limitLabel} · ${parts.join(" · ")} · amounts in ${scope.currency}`;
+}
+
+export function formatInsightNearMedianScopeMeta(
+  scope: InsightScopeParts & { tolerancePercent: number },
+): string {
+  const parts = buildScopeParts(scope);
+  const band = `Within ±${scope.tolerancePercent}% of median`;
+
+  if (parts.length === 0) {
+    return `${band} · amounts in ${scope.currency}`;
+  }
+
+  return `${band} · ${parts.join(" · ")} · amounts in ${scope.currency}`;
 }
 
 export function formatInsightTimelineScopeMeta(scope: {
-  months: number;
+  months: number | null;
+  sinceDate?: string | null;
   country?: string | null;
   department?: string | null;
+  jobTitle?: string | null;
 }): string {
   const parts = buildScopeParts(scope);
-  const timeline = `Last ${scope.months} months`;
+  const timeline =
+    scope.sinceDate !== null && scope.sinceDate !== undefined
+      ? `Since ${scope.sinceDate}`
+      : scope.months !== null
+        ? `Last ${scope.months} months`
+        : "Recent period";
 
   if (parts.length === 0) {
     return timeline;
