@@ -52,9 +52,15 @@ export type {
 
 export {
   ANALYTICS_TOP_EARNERS_LIMIT,
+  ANALYTICS_DISPLAY_CURRENCIES,
+  ANALYTICS_EXCHANGE_RATES_TO_USD,
   analyticsSummaryQuerySchema,
+  convertCurrencyAmount,
+  DEFAULT_ANALYTICS_DISPLAY_CURRENCY,
+  getAnalyticsDisplayCurrencyRateToUsd,
   type AnalyticsCurrenciesResponse,
   type AnalyticsDepartmentStatisticsResponse,
+  type AnalyticsDisplayCurrency,
   type AnalyticsSummaryQuery,
   type AnalyticsSummaryResponse,
   type AnalyticsTopEarnersResponse,
