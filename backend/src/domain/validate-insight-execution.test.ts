@@ -9,6 +9,7 @@ describe("validateInsightExecutionSafety", () => {
         intent: "HEADCOUNT",
         originalQuery: "headcount; DROP TABLE employees",
         department: null,
+        country: null,
         currency: "USD",
       }),
     ).toEqual({
@@ -23,6 +24,7 @@ describe("validateInsightExecutionSafety", () => {
         intent: "AVG_DEPT_SALARY",
         originalQuery: "average salary in rogue dept",
         department: "Rogue Dept",
+        country: null,
         currency: null,
       }),
     ).toEqual({
@@ -51,6 +53,7 @@ describe("validateInsightExecutionSafety", () => {
         intent: "AVG_DEPT_SALARY",
         originalQuery: "average salary in Engineering",
         department: "Engineering",
+        country: null,
         currency: "USD",
       }),
     ).toBeNull();

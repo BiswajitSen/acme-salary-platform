@@ -1,10 +1,12 @@
 import {
+  INSIGHT_QUERY_COUNTRIES,
   INSIGHT_QUERY_DEPARTMENTS,
   type InsightExecutionError,
   type ParsedInsightQuery,
 } from "@acme/shared";
 
 import {
+  isAllowedInsightCountry,
   isAllowedInsightDepartment,
   looksLikeSqlInjection,
   parseSafeInsightCurrency,
@@ -33,6 +35,16 @@ export function validateInsightExecutionSafety(
   }
 
   if (parsedQuery.currency !== null && parseSafeInsightCurrency(parsedQuery.currency) === null) {
+    return {
+      kind: "REJECTED_INPUT",
+      message: "Invalid or unsafe query input.",
+    };
+  }
+
+  if (
+    parsedQuery.country != null &&
+    !isAllowedInsightCountry(parsedQuery.country, INSIGHT_QUERY_COUNTRIES)
+  ) {
     return {
       kind: "REJECTED_INPUT",
       message: "Invalid or unsafe query input.",

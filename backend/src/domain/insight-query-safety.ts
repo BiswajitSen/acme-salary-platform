@@ -14,6 +14,13 @@ export function isAllowedInsightDepartment(
   return allowedDepartments.includes(department);
 }
 
+export function isAllowedInsightCountry(
+  country: string,
+  allowedCountries: readonly string[],
+): boolean {
+  return allowedCountries.includes(country);
+}
+
 export function parseSafeInsightCurrency(currency: string): string | null {
   const result = analyticsSummaryQuerySchema.safeParse({ currency });
 
