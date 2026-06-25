@@ -1,7 +1,7 @@
 "use client";
 
 import type { ExecuteInsightQueryResponse } from "@acme/shared";
-import { useEffect, useState } from "react";
+import { useEffect, useRef, useState } from "react";
 
 import { executeInsightQuery } from "@/lib/api/ai-insights";
 
@@ -22,11 +22,18 @@ export function useInsightQueryParser(displayCurrency: string): InsightQueryPars
   const [response, setResponse] = useState<ExecuteInsightQueryResponse | null>(null);
   const [isSubmitting, setIsSubmitting] = useState(false);
   const [errorMessage, setErrorMessage] = useState<string | null>(null);
+  const executedQueryRef = useRef<string | null>(null);
+  const isInitialCurrencyRef = useRef(true);
 
   useEffect(() => {
-    const trimmedQuery = query.trim();
+    if (isInitialCurrencyRef.current) {
+      isInitialCurrencyRef.current = false;
+      return;
+    }
 
-    if (!response || !trimmedQuery) {
+    const trimmedQuery = executedQueryRef.current;
+
+    if (!trimmedQuery) {
       return;
     }
 
@@ -71,6 +78,7 @@ export function useInsightQueryParser(displayCurrency: string): InsightQueryPars
     if (!trimmedQuery) {
       setErrorMessage("Enter a question about salary analytics.");
       setResponse(null);
+      executedQueryRef.current = null;
       return;
     }
 
@@ -79,8 +87,10 @@ export function useInsightQueryParser(displayCurrency: string): InsightQueryPars
 
     try {
       const nextResponse = await executeInsightQuery(trimmedQuery, displayCurrency);
+      executedQueryRef.current = trimmedQuery;
       setResponse(nextResponse);
     } catch {
+      executedQueryRef.current = null;
       setResponse(null);
       setErrorMessage(EXECUTE_ERROR_MESSAGE);
     } finally {
@@ -92,6 +102,7 @@ export function useInsightQueryParser(displayCurrency: string): InsightQueryPars
     setQuery("");
     setResponse(null);
     setErrorMessage(null);
+    executedQueryRef.current = null;
   }
 
   return {

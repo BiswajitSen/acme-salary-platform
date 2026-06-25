@@ -18,6 +18,8 @@ function estimateEmployeeRowHeight() {
 export function EmployeeDirectoryTable({ employees }: EmployeeDirectoryTableProps) {
   const listContainerRef = useRef<HTMLDivElement>(null);
 
+  // TanStack Virtual returns unstable function references; safe to use here.
+  // eslint-disable-next-line react-hooks/incompatible-library -- virtualization library limitation
   const rowVirtualizer = useVirtualizer({
     count: employees.length,
     getScrollElement: () => listContainerRef.current,

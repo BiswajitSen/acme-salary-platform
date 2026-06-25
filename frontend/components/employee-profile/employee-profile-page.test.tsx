@@ -29,22 +29,9 @@ vi.mock("@/lib/hooks/use-exchange-rates", () => ({
   useExchangeRates: (...args: unknown[]) => useExchangeRatesMock(...args),
 }));
 
-vi.mock("@/lib/hooks/use-employee-profile", async () => {
-  const actual = await vi.importActual<typeof import("@/lib/hooks/use-employee-profile")>(
-    "@/lib/hooks/use-employee-profile",
-  );
-
-  return {
-    ...actual,
-    useEmployeeProfile: (...args: Parameters<typeof actual.useEmployeeProfile>) => {
-      if (useEmployeeProfileMock.getMockImplementation()) {
-        return useEmployeeProfileMock(...args);
-      }
-
-      return actual.useEmployeeProfile(...args);
-    },
-  };
-});
+vi.mock("@/lib/hooks/use-employee-profile", () => ({
+  useEmployeeProfile: (employeeId: string) => useEmployeeProfileMock(employeeId),
+}));
 
 vi.mock("@/lib/api/employees", () => ({
   getEmployeeProfile,
@@ -59,7 +46,13 @@ describe("EmployeeProfile", () => {
     useExchangeRatesMock.mockReset();
   });
 
-  beforeEach(() => {
+  beforeEach(async () => {
+    const { useEmployeeProfile } = await vi.importActual<
+      typeof import("@/lib/hooks/use-employee-profile")
+    >("@/lib/hooks/use-employee-profile");
+
+    useEmployeeProfileMock.mockImplementation(useEmployeeProfile);
+
     useExchangeRatesMock.mockReturnValue({
       ratesToUsd: {
         USD: 1,

@@ -9,19 +9,53 @@ import {
   createContext,
   useCallback,
   useContext,
-  useEffect,
   useMemo,
-  useState,
+  useSyncExternalStore,
   type ReactNode,
 } from "react";
 
 const DISPLAY_CURRENCY_STORAGE_KEY = "acme.displayCurrency";
+
+const currencyListeners = new Set<() => void>();
 
 function parseDisplayCurrency(value: string): AnalyticsDisplayCurrency | null {
   const normalized = value.trim().toUpperCase();
   return ANALYTICS_DISPLAY_CURRENCIES.includes(normalized as AnalyticsDisplayCurrency)
     ? (normalized as AnalyticsDisplayCurrency)
     : null;
+}
+
+function readStoredCurrency(): AnalyticsDisplayCurrency {
+  const storedCurrency = window.localStorage.getItem(DISPLAY_CURRENCY_STORAGE_KEY);
+
+  if (!storedCurrency) {
+    return DEFAULT_ANALYTICS_DISPLAY_CURRENCY;
+  }
+
+  return parseDisplayCurrency(storedCurrency) ?? DEFAULT_ANALYTICS_DISPLAY_CURRENCY;
+}
+
+function subscribeToCurrencyChanges(listener: () => void): () => void {
+  currencyListeners.add(listener);
+
+  const onStorage = (event: StorageEvent) => {
+    if (event.key === DISPLAY_CURRENCY_STORAGE_KEY) {
+      listener();
+    }
+  };
+
+  window.addEventListener("storage", onStorage);
+
+  return () => {
+    currencyListeners.delete(listener);
+    window.removeEventListener("storage", onStorage);
+  };
+}
+
+function notifyCurrencyChange(): void {
+  for (const listener of currencyListeners) {
+    listener();
+  }
 }
 
 type DisplayCurrencyContextValue = {
@@ -37,23 +71,17 @@ type DisplayCurrencyProviderProps = {
 };
 
 export function DisplayCurrencyProvider({ children }: DisplayCurrencyProviderProps) {
-  const [currency, setCurrency] = useState<AnalyticsDisplayCurrency>(
-    DEFAULT_ANALYTICS_DISPLAY_CURRENCY,
+  const currency = useSyncExternalStore(
+    subscribeToCurrencyChanges,
+    readStoredCurrency,
+    () => DEFAULT_ANALYTICS_DISPLAY_CURRENCY,
   );
-  const [isReady, setIsReady] = useState(false);
 
-  useEffect(() => {
-    const storedCurrency = window.localStorage.getItem(DISPLAY_CURRENCY_STORAGE_KEY);
-
-    if (storedCurrency) {
-      const parsedCurrency = parseDisplayCurrency(storedCurrency);
-      if (parsedCurrency !== null) {
-        setCurrency(parsedCurrency);
-      }
-    }
-
-    setIsReady(true);
-  }, []);
+  const isReady = useSyncExternalStore(
+    () => () => {},
+    () => true,
+    () => false,
+  );
 
   const selectCurrency = useCallback((nextCurrency: string) => {
     const parsedCurrency = parseDisplayCurrency(nextCurrency);
@@ -61,8 +89,8 @@ export function DisplayCurrencyProvider({ children }: DisplayCurrencyProviderPro
       return;
     }
 
-    setCurrency(parsedCurrency);
     window.localStorage.setItem(DISPLAY_CURRENCY_STORAGE_KEY, parsedCurrency);
+    notifyCurrencyChange();
   }, []);
 
   const value = useMemo(
