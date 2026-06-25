@@ -15,7 +15,7 @@ async function fillValidCompensationChangeForm() {
   const user = userEvent.setup();
 
   await user.type(screen.getByLabelText("Base salary"), "140000");
-  await user.type(screen.getByLabelText("Currency"), "USD");
+  await user.selectOptions(screen.getByLabelText("Currency"), "USD");
   fireEvent.change(screen.getByLabelText("Effective date"), {
     target: { value: "2026-06-01" },
   });
@@ -49,6 +49,7 @@ describe("RecordCompensationChangeForm", () => {
       entry: {
         id: 3,
         previousSalary: 120_000,
+        previousCurrency: "USD",
         baseSalary: 140_000,
         currency: "USD",
         effectiveDate: "2026-06-01",
@@ -156,6 +157,7 @@ describe("RecordCompensationChangeForm", () => {
       entry: {
         id: 3,
         previousSalary: null,
+        previousCurrency: null,
         baseSalary: 140_000,
         currency: "USD",
         effectiveDate: "2026-06-01",

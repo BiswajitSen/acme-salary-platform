@@ -1,6 +1,6 @@
 "use client";
 
-import { COMPENSATION_REASONS, recordCompensationChangeSchema } from "@acme/shared";
+import { ANALYTICS_DISPLAY_CURRENCIES, COMPENSATION_REASONS, recordCompensationChangeSchema } from "@acme/shared";
 import { useState } from "react";
 
 import { Alert } from "@/components/ui/alert";
@@ -121,14 +121,19 @@ export function RecordCompensationChangeForm({
             onChange={(event) => updateField("baseSalary", event.target.value)}
             error={fieldErrors.baseSalary}
           />
-          <Input
+          <Select
             id="compensation-currency"
             label="Currency"
-            maxLength={3}
             value={formState.currency}
-            onChange={(event) => updateField("currency", event.target.value.toUpperCase())}
-            error={fieldErrors.currency}
-          />
+            onChange={(event) => updateField("currency", event.target.value)}
+          >
+            <option value="">Select currency</option>
+            {ANALYTICS_DISPLAY_CURRENCIES.map((currency) => (
+              <option key={currency} value={currency}>
+                {currency}
+              </option>
+            ))}
+          </Select>
           <Input
             id="compensation-effective-date"
             label="Effective date"
@@ -165,6 +170,7 @@ export function RecordCompensationChangeForm({
           />
         </div>
 
+        {fieldErrors.currency && <p className={styles.fieldError}>{fieldErrors.currency}</p>}
         {fieldErrors.reason && <p className={styles.fieldError}>{fieldErrors.reason}</p>}
         {submitError && <Alert variant="error">{submitError}</Alert>}
 
