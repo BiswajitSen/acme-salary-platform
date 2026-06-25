@@ -65,6 +65,32 @@ describe("CachedExchangeRateProvider", () => {
     expect(source.fetchSnapshot).toHaveBeenCalledTimes(1);
   });
 
+  it("refreshes an expired cache when the source succeeds", async () => {
+    vi.useFakeTimers();
+    vi.setSystemTime(new Date("2026-06-24T00:00:00.000Z"));
+
+    const source = {
+      fetchSnapshot: vi
+        .fn()
+        .mockResolvedValueOnce(createTestExchangeRateSnapshot("2026-06-24"))
+        .mockResolvedValueOnce(createTestExchangeRateSnapshot("2026-06-25")),
+    };
+    const provider = new CachedExchangeRateProvider(source, 1_000);
+
+    await expect(provider.fetchSnapshot()).resolves.toEqual(
+      createTestExchangeRateSnapshot("2026-06-24"),
+    );
+
+    vi.setSystemTime(new Date("2026-06-24T00:00:10.000Z"));
+
+    await expect(provider.fetchSnapshot()).resolves.toEqual(
+      createTestExchangeRateSnapshot("2026-06-25"),
+    );
+    expect(source.fetchSnapshot).toHaveBeenCalledTimes(2);
+
+    vi.useRealTimers();
+  });
+
   it("falls back to the last good snapshot when refresh fails", async () => {
     const source = {
       fetchSnapshot: vi

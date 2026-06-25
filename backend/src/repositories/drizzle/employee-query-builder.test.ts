@@ -21,4 +21,20 @@ describe("buildEmployeeMatchConditions", () => {
       }),
     ).toBeDefined();
   });
+
+  it("uses inArray when multiple values are provided for a filter", () => {
+    const singleCountry = buildEmployeeMatchConditions({ countries: ["US"] });
+    const multipleCountries = buildEmployeeMatchConditions({ countries: ["US", "UK"] });
+    const multipleDepartments = buildEmployeeMatchConditions({
+      departments: ["Engineering", "HR"],
+    });
+    const multipleJobTitles = buildEmployeeMatchConditions({
+      jobTitles: ["Engineer", "Analyst"],
+    });
+
+    expect(multipleCountries).toBeDefined();
+    expect(multipleCountries).not.toEqual(singleCountry);
+    expect(multipleDepartments).toBeDefined();
+    expect(multipleJobTitles).toBeDefined();
+  });
 });

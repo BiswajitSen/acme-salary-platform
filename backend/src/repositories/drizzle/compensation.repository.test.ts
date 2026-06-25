@@ -29,6 +29,11 @@ describe("DrizzleCompensationRepository", () => {
     expect(historyByEmployee.get("E003") ?? []).toEqual([]);
   });
 
+  it("returns an empty map when no employee ids are provided", async () => {
+    await expect(repository.findCompensationHistoryByEmployeeIds([])).resolves.toEqual(new Map());
+    await expect(repository.findEmployeeIdsWithCompensationHistory([])).resolves.toEqual(new Set());
+  });
+
   it("returns an empty list when an employee has no compensation history", async () => {
     await runSeed(db);
 

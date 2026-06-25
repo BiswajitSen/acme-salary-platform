@@ -1,4 +1,4 @@
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { convertCurrencyAmount, TEST_EXCHANGE_RATES_TO_USD } from "@acme/shared";
 
@@ -19,6 +19,26 @@ describe("DrizzleAnalyticsRepository", () => {
     await expect(
       repository.sumLatestCompensationSalariesInDisplayCurrency("USD", testRates),
     ).resolves.toBe(0);
+  });
+
+  it("handles empty SQL result rows defensively", async () => {
+    const execute = vi.spyOn(db, "execute").mockResolvedValue({ rows: [] } as never);
+
+    try {
+      await expect(repository.countEmployeesWithLatestCompensation()).resolves.toBe(0);
+      await expect(
+        repository.sumLatestCompensationSalariesInDisplayCurrency("USD", testRates),
+      ).resolves.toBe(0);
+      await expect(
+        repository.findSalaryStatisticsInDisplayCurrency("USD", testRates),
+      ).resolves.toEqual({
+        employeeCount: 0,
+        averageSalary: 0,
+        medianSalary: 0,
+      });
+    } finally {
+      execute.mockRestore();
+    }
   });
 
   it("counts every employee with latest compensation regardless of native currency", async () => {
@@ -285,6 +305,23 @@ describe("DrizzleAnalyticsRepository", () => {
     ]);
   });
 
+  it("returns scoped bottom earners for filtered departments", async () => {
+    await runSeed(db);
+
+    await expect(
+      repository.findBottomEarnersInDisplayCurrency("USD", testRates, 5, {
+        department: "HR",
+      }),
+    ).resolves.toEqual([
+      {
+        employeeId: "E002",
+        fullName: "Bob Smith",
+        department: "HR",
+        baseSalary: 106_250,
+      },
+    ]);
+  });
+
   it("returns employees within the near-median salary band", async () => {
     await runSeed(db);
 
@@ -304,6 +341,26 @@ describe("DrizzleAnalyticsRepository", () => {
           fullName: "Bob Smith",
           department: "HR",
           baseSalary: 106_250,
+        },
+      ],
+    });
+  });
+
+  it("returns scoped near-median earners for filtered departments", async () => {
+    await runSeed(db);
+
+    await expect(
+      repository.findNearMedianEarnersInDisplayCurrency("USD", testRates, 15, {
+        department: "Engineering",
+      }),
+    ).resolves.toEqual({
+      medianSalary: 132_000,
+      earners: [
+        {
+          employeeId: "E001",
+          fullName: "Jane Doe",
+          department: "Engineering",
+          baseSalary: 132_000,
         },
       ],
     });
@@ -392,5 +449,53 @@ describe("DrizzleAnalyticsRepository", () => {
         reason: "New Hire",
       },
     ]);
+  });
+
+  it("returns zero scoped salary statistics when no employees match", async () => {
+    await expect(
+      repository.findSalaryStatisticsInDisplayCurrency("USD", testRates, {
+        country: "IN",
+        department: "Nonexistent",
+      }),
+    ).resolves.toEqual({
+      employeeCount: 0,
+      averageSalary: 0,
+      medianSalary: 0,
+    });
+  });
+
+  it("returns zero median split counts when no employees match the scope", async () => {
+    await runSeed(db);
+
+    await expect(
+      repository.findMedianSplitCountsInDisplayCurrency("USD", testRates, {
+        country: "IN",
+        department: "Nonexistent",
+      }),
+    ).resolves.toEqual({
+      medianSalary: 0,
+      belowMedianCount: 0,
+      aboveMedianCount: 0,
+      employeeCount: 0,
+    });
+  });
+
+  it("filters recent compensation events by multiple reasons", async () => {
+    await runSeed(db);
+
+    await expect(
+      repository.findRecentCompensationEvents(
+        "2026-01-01",
+        { months: 12, sinceDate: null },
+        ["Annual Increment", "Market Adjustment"],
+      ),
+    ).resolves.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          employeeId: "E001",
+          reason: "Annual Increment",
+        }),
+      ]),
+    );
   });
 });

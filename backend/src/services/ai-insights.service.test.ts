@@ -36,6 +36,23 @@ function createInsightAnalyticsServiceMock(): InsightAnalyticsService {
       asOfDate: "2026-01-01",
       events: [],
     }),
+    getBottomEarners: vi.fn().mockResolvedValue({
+      currency: "USD",
+      earners: [],
+    }),
+    getNearMedianEarners: vi.fn().mockResolvedValue({
+      currency: "USD",
+      medianSalary: 118_000,
+      tolerancePercent: 10,
+      earners: [],
+    }),
+    getMedianSplitCounts: vi.fn().mockResolvedValue({
+      currency: "USD",
+      medianSalary: 118_000,
+      belowMedianCount: 1,
+      aboveMedianCount: 1,
+      employeeCount: 2,
+    }),
   } as unknown as InsightAnalyticsService;
 }
 
@@ -235,5 +252,85 @@ describe("AiInsightsService", () => {
       },
     });
     expect(analyticsService.getScopedSalaryStatistics).not.toHaveBeenCalled();
+  });
+
+  it("executes timeline queries with scoped filters and since dates", async () => {
+    const analyticsService = createInsightAnalyticsServiceMock();
+    const service = new AiInsightsService(analyticsService);
+
+    await service.executeQuery({
+      query: "promotions since 2025-06-01 in Engineering in India",
+      displayCurrency: "USD",
+    });
+
+    expect(analyticsService.getRecentTimelineEvents).toHaveBeenCalledWith(
+      "RECENT_PROMOTIONS",
+      expect.objectContaining({
+        sinceDate: "2025-06-01",
+        department: "Engineering",
+        country: "IN",
+      }),
+    );
+  });
+
+  it("forwards job title scope filters to timeline analytics", async () => {
+    const analyticsService = createInsightAnalyticsServiceMock();
+    const service = new AiInsightsService(analyticsService);
+
+    await service.executeQuery({
+      query: "recent hires who joined as Data Analyst in the last 3 months",
+      displayCurrency: "USD",
+    });
+
+    expect(analyticsService.getRecentTimelineEvents).toHaveBeenCalledWith(
+      "RECENT_NEW_HIRES",
+      expect.objectContaining({
+        jobTitle: "Data Analyst",
+      }),
+    );
+  });
+
+  it("forwards department scope filters to analytics services", async () => {
+    const analyticsService = createInsightAnalyticsServiceMock();
+    const service = new AiInsightsService(analyticsService);
+
+    await service.executeQuery({ query: "headcount in Engineering" });
+
+    expect(analyticsService.getAnalyticsSummary).toHaveBeenCalledWith({
+      currency: "USD",
+      department: "Engineering",
+    });
+  });
+
+  it("executes bottom earners questions against analytics", async () => {
+    const analyticsService = createInsightAnalyticsServiceMock();
+    const service = new AiInsightsService(analyticsService);
+
+    await service.executeQuery({ query: "bottom 3 earners in USD" });
+
+    expect(analyticsService.getBottomEarners).toHaveBeenCalledWith({
+      currency: "USD",
+      limit: 3,
+    });
+  });
+
+  it("executes near-median earners questions against analytics", async () => {
+    const analyticsService = createInsightAnalyticsServiceMock();
+    const service = new AiInsightsService(analyticsService);
+
+    await service.executeQuery({ query: "who earn around the median in Engineering" });
+
+    expect(analyticsService.getNearMedianEarners).toHaveBeenCalled();
+  });
+
+  it("executes median split count questions against analytics", async () => {
+    const analyticsService = createInsightAnalyticsServiceMock();
+    const service = new AiInsightsService(analyticsService);
+
+    await service.executeQuery({
+      query: "how many employees earn below median in Engineering",
+    });
+
+    expect(analyticsService.getMedianSplitCounts).toHaveBeenCalled();
   });
 });
