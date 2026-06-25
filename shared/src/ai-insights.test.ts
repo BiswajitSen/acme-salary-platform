@@ -50,6 +50,7 @@ describe("AI_INSIGHT_INTENTS", () => {
   it("includes the analytics intents used by the parser", () => {
     expect(AI_INSIGHT_INTENTS).toContain("AVG_DEPT_SALARY");
     expect(AI_INSIGHT_INTENTS).toContain("TOP_EARNERS");
+    expect(AI_INSIGHT_INTENTS).toContain("MEDIAN_SPLIT_COUNTS");
     expect(AI_INSIGHT_INTENTS).toContain("UNKNOWN");
   });
 });

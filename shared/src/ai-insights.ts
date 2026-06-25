@@ -16,6 +16,7 @@ export const AI_INSIGHT_INTENTS = [
   "TOP_EARNERS",
   "BOTTOM_EARNERS",
   "NEAR_MEDIAN_EARNERS",
+  "MEDIAN_SPLIT_COUNTS",
   "RECENT_PROMOTIONS",
   "RECENT_NEW_HIRES",
   "RECENT_SALARY_INCREASES",
@@ -178,6 +179,15 @@ export type InsightNearMedianEarnersResult = InsightScopedResultFields & {
   earners: TopEarner[];
 };
 
+export type InsightMedianSplitCountsResult = InsightScopedResultFields & {
+  intent: "MEDIAN_SPLIT_COUNTS";
+  currency: string;
+  medianSalary: number;
+  belowMedianCount: number;
+  aboveMedianCount: number;
+  employeeCount: number;
+};
+
 export type InsightTimelineResultScope = InsightScopedResultFields & {
   months: number | null;
   sinceDate: string | null;
@@ -206,6 +216,7 @@ export type InsightExecutionResult =
   | InsightTopEarnersResult
   | InsightBottomEarnersResult
   | InsightNearMedianEarnersResult
+  | InsightMedianSplitCountsResult
   | InsightRecentPromotionsResult
   | InsightRecentNewHiresResult
   | InsightRecentSalaryIncreasesResult;
