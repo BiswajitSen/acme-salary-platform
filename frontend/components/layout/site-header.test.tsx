@@ -3,6 +3,10 @@ import { describe, expect, it, vi } from "vitest";
 
 import { SiteHeader } from "./site-header";
 
+vi.mock("next/navigation", () => ({
+  usePathname: () => "/",
+}));
+
 vi.mock("./display-currency-selector", () => ({
   DisplayCurrencySelector: () => <div data-testid="display-currency-selector" />,
 }));
