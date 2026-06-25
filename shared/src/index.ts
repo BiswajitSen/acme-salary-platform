@@ -9,7 +9,7 @@ export {
   type EmployeeProfileResponse,
   type RecordCompensationChangeInput,
   type RecordCompensationChangeResponse,
-} from "./compensation";
+} from "./compensation.js";
 
 export type HealthStatus = {
   status: "ok";
@@ -36,7 +36,7 @@ export {
   type ListEmployeesQuery,
   type PaginatedEmployeesResponse,
   type PaginationMeta,
-} from "./employees";
+} from "./employees.js";
 
 export type {
   CompensationImportPreviewResponse,
@@ -44,14 +44,14 @@ export type {
   CompensationImportResultResponse,
   CompensationImportValidationErrorResponse,
   CompensationImportValidationIssue,
-} from "./compensation-import";
+} from "./compensation-import.js";
 
 export type {
   EmployeeImportPreviewResponse,
   EmployeeImportResultResponse,
   EmployeeImportValidationErrorResponse,
   EmployeeImportValidationIssue,
-} from "./employee-import";
+} from "./employee-import.js";
 
 export {
   ANALYTICS_TOP_EARNERS_LIMIT,
@@ -72,7 +72,7 @@ export {
   type ExchangeRateSnapshot,
   type ExchangeRatesToUsd,
   type TopEarner,
-} from "./analytics";
+} from "./analytics.js";
 
 export {
   AI_INSIGHT_INTENTS,
@@ -111,4 +111,4 @@ export {
   type ParseInsightQueryResponse,
   type ParsedInsightQuery,
   type PromotedEmployee,
-} from "./ai-insights";
+} from "./ai-insights.js";

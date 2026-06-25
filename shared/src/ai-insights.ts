@@ -1,12 +1,12 @@
 import { z } from "zod";
 
-import type { CompensationReason } from "./compensation";
-import type { TopEarner } from "./analytics";
+import type { CompensationReason } from "./compensation.js";
+import type { TopEarner } from "./analytics.js";
 
 import {
   analyticsDisplayCurrencySchema,
   DEFAULT_ANALYTICS_DISPLAY_CURRENCY,
-} from "./currency-conversion";
+} from "./currency-conversion.js";
 
 export const AI_INSIGHT_INTENTS = [
   "AVG_DEPT_SALARY",

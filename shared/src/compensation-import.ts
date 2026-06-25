@@ -1,4 +1,4 @@
-import type { CompensationReason } from "./compensation";
+import type { CompensationReason } from "./compensation.js";
 
 export type CompensationImportValidationIssue = {
   rowNumber: number;

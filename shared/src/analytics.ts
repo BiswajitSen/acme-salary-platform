@@ -1,4 +1,4 @@
-import type { ExchangeRatesToUsd } from "./currency-conversion";
+import type { ExchangeRatesToUsd } from "./currency-conversion.js";
 
 export {
   ANALYTICS_DISPLAY_CURRENCIES,
@@ -11,7 +11,7 @@ export {
   type AnalyticsDisplayCurrency,
   type ExchangeRateSnapshot,
   type ExchangeRatesToUsd,
-} from "./currency-conversion";
+} from "./currency-conversion.js";
 
 export type AnalyticsSummaryQuery = {
   currency: string;
