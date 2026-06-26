@@ -64,6 +64,34 @@ export function AnalyticsDepartmentPayrollSection({
           </tbody>
         </table>
       </div>
+
+      {departments.length === 0 ? (
+        <p className={styles.mobileEmpty}>No department statistics available.</p>
+      ) : (
+        <ul className={styles.mobileList}>
+          {departments.map((department) => (
+            <li key={department.department} className={styles.mobileCard}>
+              <div className={styles.mobileHeader}>
+                <span className={styles.mobileDepartment}>{department.department}</span>
+                <span className={styles.mobilePayrollShare}>{department.payrollPercent}%</span>
+              </div>
+              <p className={styles.mobileHeadcount}>
+                {department.employeeCount.toLocaleString()} employees
+              </p>
+              <dl className={styles.mobileStats}>
+                <div>
+                  <dt>Avg annual</dt>
+                  <dd>{formatAnnualSalary(department.averageSalary, currency)}</dd>
+                </div>
+                <div>
+                  <dt>Median annual</dt>
+                  <dd>{formatAnnualSalary(department.medianSalary, currency)}</dd>
+                </div>
+              </dl>
+            </li>
+          ))}
+        </ul>
+      )}
     </AnalyticsChartCard>
   );
 }

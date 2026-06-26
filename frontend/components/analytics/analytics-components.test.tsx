@@ -1,9 +1,28 @@
 import { render, screen } from "@testing-library/react";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
 import { AnalyticsDepartmentPayrollSection } from "./analytics-department-payroll-section";
+import { AnalyticsHorizontalBarChart } from "./analytics-horizontal-bar-chart";
 import { AnalyticsKpiCards } from "./analytics-kpi-cards";
 import { AnalyticsTopEarnersList } from "./analytics-top-earners-list";
+
+const { useMobileLayout } = vi.hoisted(() => ({
+  useMobileLayout: vi.fn(() => false),
+}));
+
+vi.mock("@/lib/hooks/use-mobile-layout", () => ({
+  useMobileLayout,
+}));
+
+vi.mock("recharts", () => ({
+  ResponsiveContainer: ({ children }: { children: React.ReactNode }) => <div>{children}</div>,
+  BarChart: ({ children }: { children: React.ReactNode }) => <div data-testid="bar-chart">{children}</div>,
+  CartesianGrid: () => null,
+  XAxis: () => null,
+  YAxis: () => null,
+  Tooltip: () => null,
+  Bar: () => null,
+}));
 
 describe("AnalyticsKpiCards", () => {
   it("renders six executive KPI metrics", () => {
@@ -47,10 +66,53 @@ describe("AnalyticsDepartmentPayrollSection", () => {
       />,
     );
 
-    expect(screen.getByText("Engineering")).toBeTruthy();
-    expect(screen.getByText("$120,000")).toBeTruthy();
-    expect(screen.getByText("$115,000")).toBeTruthy();
-    expect(screen.getByText("60%")).toBeTruthy();
+    expect(screen.getByRole("table")).toHaveTextContent("Engineering");
+    expect(screen.getByRole("list")).toHaveTextContent("Engineering");
+    expect(screen.getAllByText("$120,000").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("$115,000").length).toBeGreaterThan(0);
+    expect(screen.getAllByText("60%").length).toBeGreaterThan(0);
+  });
+});
+
+describe("AnalyticsHorizontalBarChart", () => {
+  it("renders an empty state when there is no data", () => {
+    render(
+      <AnalyticsHorizontalBarChart
+        data={[]}
+        valueFormatter={(value) => `$${value}`}
+        emptyMessage="No department data"
+      />,
+    );
+
+    expect(screen.getByText("No department data")).toBeTruthy();
+  });
+
+  it("renders a chart for desktop layouts", () => {
+    useMobileLayout.mockReturnValue(false);
+
+    render(
+      <AnalyticsHorizontalBarChart
+        data={[{ label: "Engineering", value: 120_000 }]}
+        valueFormatter={(value) => `$${value}`}
+        emptyMessage="No department data"
+      />,
+    );
+
+    expect(screen.getByTestId("bar-chart")).toBeTruthy();
+  });
+
+  it("renders a chart for mobile layouts", () => {
+    useMobileLayout.mockReturnValue(true);
+
+    render(
+      <AnalyticsHorizontalBarChart
+        data={[{ label: "Engineering", value: 120_000 }]}
+        valueFormatter={(value) => `$${value}`}
+        emptyMessage="No department data"
+      />,
+    );
+
+    expect(screen.getByTestId("bar-chart")).toBeTruthy();
   });
 });
 

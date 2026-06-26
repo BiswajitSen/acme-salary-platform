@@ -29,7 +29,9 @@ export function AnalyticsTopEarnersList({ currency, earners }: AnalyticsTopEarne
                 className={`${styles.item} ${isTopThree ? styles.topThree : ""}`}
               >
                 <span className={styles.rank}>{index + 1}</span>
-                <EmployeeAvatar fullName={earner.fullName} />
+                <div className={styles.avatarCell}>
+                  <EmployeeAvatar fullName={earner.fullName} />
+                </div>
                 <div className={styles.details}>
                   <p className={styles.name}>{earner.fullName}</p>
                   <p className={styles.meta}>

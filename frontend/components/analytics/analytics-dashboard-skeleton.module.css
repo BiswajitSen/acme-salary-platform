@@ -55,9 +55,23 @@
 @media (max-width: 960px) {
   .kpiGrid {
     grid-template-columns: repeat(2, minmax(0, 1fr));
+    gap: 0.65rem;
   }
 
   .gridTwo {
     grid-template-columns: 1fr;
+    gap: 0.875rem;
+  }
+
+  .filterBar {
+    height: 5.5rem;
+  }
+
+  .kpiCard {
+    height: 5rem;
+  }
+
+  .panel {
+    min-height: 14rem;
   }
 }

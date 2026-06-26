@@ -36,6 +36,10 @@
   text-align: center;
 }
 
+.avatarCell {
+  flex-shrink: 0;
+}
+
 .details {
   min-width: 0;
 }
@@ -43,6 +47,9 @@
 .name {
   font-size: 0.92rem;
   font-weight: 600;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
 }
 
 .meta {
@@ -63,24 +70,50 @@
   font-size: 0.9rem;
 }
 
-@media (max-width: 720px) {
+@media (max-width: 960px) {
   .item {
-    grid-template-columns: auto 1fr;
-    grid-template-areas:
-      "rank details"
-      "avatar salary";
+    grid-template-columns: 2rem 1fr auto;
+    grid-template-rows: auto auto;
+    gap: 0.35rem 0.65rem;
+    align-items: start;
+    padding: 0.75rem;
   }
 
   .rank {
-    grid-area: rank;
+    grid-row: 1 / 3;
+    align-self: center;
+  }
+
+  .avatarCell {
+    display: none;
   }
 
   .details {
-    grid-area: details;
+    display: contents;
+  }
+
+  .name {
+    grid-column: 2;
+    grid-row: 1;
+    min-width: 0;
+    white-space: normal;
+    overflow: visible;
+    text-overflow: unset;
   }
 
   .salary {
-    grid-area: salary;
-    justify-self: end;
+    grid-column: 3;
+    grid-row: 1;
+    font-size: 0.875rem;
+  }
+
+  .meta {
+    grid-column: 2 / 4;
+    grid-row: 2;
+    margin-top: 0;
+    line-height: 1.4;
+    white-space: normal;
+    overflow: visible;
+    text-overflow: unset;
   }
 }

@@ -11,6 +11,7 @@ import {
 } from "recharts";
 
 import { ANALYTICS_CHART_COLORS, ANALYTICS_CHART_GRID, ANALYTICS_CHART_MUTED } from "@/lib/analytics/chart-theme";
+import { useMobileLayout } from "@/lib/hooks/use-mobile-layout";
 
 import styles from "./analytics-horizontal-bar-chart.module.css";
 
@@ -30,25 +31,41 @@ export function AnalyticsHorizontalBarChart({
   valueFormatter,
   emptyMessage,
 }: AnalyticsHorizontalBarChartProps) {
+  const isMobileLayout = useMobileLayout();
+
   if (data.length === 0) {
     return <p className={styles.empty}>{emptyMessage}</p>;
   }
 
+  const yAxisWidth = isMobileLayout ? 84 : 120;
+  const chartMargin = isMobileLayout
+    ? { top: 4, right: 4, left: 0, bottom: 4 }
+    : { top: 4, right: 12, left: 8, bottom: 4 };
+
+  function formatCategoryLabel(label: string): string {
+    if (!isMobileLayout || label.length <= 12) {
+      return label;
+    }
+
+    return `${label.slice(0, 11)}…`;
+  }
+
   return (
     <div className={styles.chart}>
-      <ResponsiveContainer width="100%" height={Math.max(220, data.length * 42)}>
-        <BarChart data={data} layout="vertical" margin={{ top: 4, right: 12, left: 8, bottom: 4 }}>
+      <ResponsiveContainer width="100%" height={Math.max(isMobileLayout ? 200 : 220, data.length * (isMobileLayout ? 36 : 42))}>
+        <BarChart data={data} layout="vertical" margin={chartMargin}>
           <CartesianGrid stroke={ANALYTICS_CHART_GRID} horizontal={false} />
           <XAxis
             type="number"
-            tick={{ fill: ANALYTICS_CHART_MUTED, fontSize: 12 }}
+            tick={{ fill: ANALYTICS_CHART_MUTED, fontSize: isMobileLayout ? 10 : 12 }}
             tickFormatter={(value: number) => valueFormatter(value)}
           />
           <YAxis
             type="category"
             dataKey="label"
-            width={120}
-            tick={{ fill: ANALYTICS_CHART_MUTED, fontSize: 12 }}
+            width={yAxisWidth}
+            tick={{ fill: ANALYTICS_CHART_MUTED, fontSize: isMobileLayout ? 10 : 12 }}
+            tickFormatter={formatCategoryLabel}
           />
           <Tooltip
             formatter={(value) => valueFormatter(Number(value ?? 0))}
