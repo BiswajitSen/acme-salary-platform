@@ -133,3 +133,85 @@
   background: var(--primary-soft);
   color: var(--primary);
 }
+
+.rowMobile {
+  position: relative;
+  top: auto;
+  left: auto;
+  display: block;
+  width: 100%;
+  height: auto;
+  min-height: 0;
+  padding: 0.875rem 1rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-md);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+}
+
+.rowMobile:hover,
+.rowMobile:focus-visible {
+  border-color: color-mix(in srgb, var(--primary) 30%, var(--border));
+  box-shadow: var(--shadow-sm);
+}
+
+.mobileTop {
+  display: flex;
+  align-items: flex-start;
+  gap: 0.75rem;
+}
+
+.mobileMain {
+  flex: 1;
+  min-width: 0;
+}
+
+.mobileTitleRow {
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: 0.75rem;
+}
+
+.mobileSalary {
+  flex-shrink: 0;
+  font-size: 0.9375rem;
+  font-weight: 650;
+  white-space: nowrap;
+}
+
+.mobileChevron {
+  flex-shrink: 0;
+  margin-top: 0.1rem;
+  color: var(--text-subtle);
+  font-size: 1.35rem;
+  font-weight: 300;
+  line-height: 1;
+}
+
+.mobileDetails {
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  margin-top: 0.625rem;
+  margin-left: calc(2.25rem + 0.75rem);
+}
+
+.mobileRole {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
+.mobileRole .jobTitle {
+  margin: 0;
+  min-width: 0;
+}
+
+.mobileMeta {
+  display: flex;
+  align-items: center;
+  gap: 0.625rem;
+  flex-wrap: wrap;
+}

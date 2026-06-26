@@ -7,6 +7,7 @@ import { EmployeeDirectoryTableHeader } from "@/components/employee-directory/em
 import { EMPLOYEE_ROW_HEIGHT_PX, getEmptyDirectoryMessage } from "@/components/employee-directory/types";
 import { EmployeeRow } from "@/components/employee-directory/employee-row";
 import type { DirectoryFilters } from "@/components/employee-directory/types";
+import { useMobileLayout } from "@/lib/hooks/use-mobile-layout";
 
 import styles from "./employee-directory-table.module.css";
 
@@ -36,6 +37,7 @@ export function EmployeeDirectoryTable({
   ratesToUsd,
   isLoading = false,
 }: EmployeeDirectoryTableProps) {
+  const isMobileLayout = useMobileLayout();
   const listContainerRef = useRef<HTMLDivElement>(null);
 
   // TanStack Virtual returns unstable function references; safe to use here.
@@ -46,6 +48,33 @@ export function EmployeeDirectoryTable({
     estimateSize: estimateEmployeeRowHeight,
     overscan: 8,
   });
+
+  if (isMobileLayout) {
+    return (
+      <div className={`${styles.shell} ${styles.shellMobile}`}>
+        <div className={styles.mobileBody}>
+          {isLoading && employees.length === 0 ? (
+            <p className={styles.bodyMessage}>Loading employees…</p>
+          ) : employees.length === 0 ? (
+            <p className={styles.bodyMessage}>{getEmptyDirectoryMessage(filters)}</p>
+          ) : (
+            <div className={styles.mobileList}>
+              {employees.map((employee) => (
+                <EmployeeRow
+                  key={employee.id}
+                  employee={employee}
+                  displayCurrency={displayCurrency}
+                  ratesToUsd={ratesToUsd}
+                  offsetY={0}
+                  layout="mobile"
+                />
+              ))}
+            </div>
+          )}
+        </div>
+      </div>
+    );
+  }
 
   return (
     <div className={styles.shell}>

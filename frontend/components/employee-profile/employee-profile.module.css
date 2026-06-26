@@ -23,6 +23,13 @@
   justify-content: flex-end;
 }
 
+@media (max-width: 560px) {
+  .headerActions {
+    width: 100%;
+    justify-content: flex-start;
+  }
+}
+
 .fxNote {
   color: var(--text-muted);
   font-size: 0.875rem;

@@ -76,3 +76,27 @@
     min-width: 52rem;
   }
 }
+
+.shellMobile {
+  overflow: visible;
+  border: none;
+  border-radius: 0;
+  background: transparent;
+  box-shadow: none;
+}
+
+.shellMobile .mobileBody {
+  max-height: none;
+  height: auto;
+  overflow: visible;
+}
+
+.mobileList {
+  display: flex;
+  flex-direction: column;
+  gap: 0.625rem;
+}
+
+.mobileBody .bodyMessage {
+  min-height: 12rem;
+}
