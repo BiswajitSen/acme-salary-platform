@@ -47,7 +47,7 @@ Architecture diagrams (Mermaid): [docs/architecture.md](./docs/architecture.md)
 | `/employees/new` | Add employee — form with validation and dropdowns for department, job title, country |
 | `/employees/:id` | Compensation profile — summary, edit/delete employee, timeline, record change form |
 | `/analytics` | Executive dashboard — KPIs, charts, heatmap, filters, session-cached data |
-| `/insights` | Insights — plain-English compensation questions (rule-based parser, no raw SQL) |
+| `/insights` | Insights — plain-English compensation questions ([query engine docs](./docs/insight-query-engine.md)) |
 | `/import` | Employee `.xlsx` import with dry-run preview |
 | `/import/compensation` | Compensation history `.xlsx` import |
 

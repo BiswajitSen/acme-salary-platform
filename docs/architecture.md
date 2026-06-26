@@ -25,6 +25,7 @@ See [adr/README.md](./adr/README.md) for architecture decision records.
 | [Backend request flow](#backend-request-flow) | Express layers & dependency direction |
 | [Feature modules](#feature-modules) | HR features mapped to routes & services |
 | [Analytics & insights](#analytics--insights-data-flow) | Dashboard cache + whitelisted insight executors |
+| [Insight query engine](./insight-query-engine.md) | Rule-based NL parser, intents, filters, execution |
 
 ---
 
@@ -293,7 +294,7 @@ flowchart LR
 ```
 
 - **Analytics:** server aggregates (summary, departments, top earners) plus client-derived charts from the employee list. FX conversion uses daily rates ([ADR 001](./adr/001-daily-frankfurter-exchange-rates-and-display-currency.md)). Repeat visits reuse a **5-minute session cache** ([ADR 002](./adr/002-analytics-dashboard-client-session-cache.md)).
-- **Insights:** rule-based intent parser (no LLM, no dynamic SQL). Each intent maps to a whitelisted executor that calls the same analytics repositories.
+- **Insights:** rule-based intent parser (no LLM, no dynamic SQL). Each intent maps to a whitelisted executor that calls the same analytics repositories. Full design: [insight-query-engine.md](./insight-query-engine.md).
 
 ---
 
