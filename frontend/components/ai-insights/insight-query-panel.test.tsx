@@ -5,9 +5,10 @@ import { afterEach, beforeEach, describe, expect, it, vi } from "vitest";
 import { InsightExecutionResult } from "./insight-execution-result";
 import { ParsedInsightSummary } from "./parsed-insight-summary";
 
-const { useInsightQueryParserMock, useDisplayCurrencyMock } = vi.hoisted(() => ({
+const { useInsightQueryParserMock, useDisplayCurrencyMock, useMobileLayoutMock } = vi.hoisted(() => ({
   useInsightQueryParserMock: vi.fn(),
   useDisplayCurrencyMock: vi.fn(),
+  useMobileLayoutMock: vi.fn(() => false),
 }));
 
 vi.mock("@/lib/hooks/use-insight-query-parser", () => ({
@@ -16,6 +17,10 @@ vi.mock("@/lib/hooks/use-insight-query-parser", () => ({
 
 vi.mock("@/lib/hooks/use-display-currency", () => ({
   useDisplayCurrency: (...args: unknown[]) => useDisplayCurrencyMock(...args),
+}));
+
+vi.mock("@/lib/hooks/use-mobile-layout", () => ({
+  useMobileLayout: () => useMobileLayoutMock(),
 }));
 
 import { InsightQueryPanel } from "./insight-query-panel";
@@ -242,6 +247,8 @@ describe("InsightQueryPanel", () => {
     cleanup();
     useInsightQueryParserMock.mockReset();
     useDisplayCurrencyMock.mockReset();
+    useMobileLayoutMock.mockReset();
+    useMobileLayoutMock.mockReturnValue(false);
   });
 
   function mockPanelHooks(currency = "USD") {
@@ -429,6 +436,50 @@ describe("InsightQueryPanel", () => {
     render(<InsightQueryPanel />);
 
     await userEvent.click(screen.getByRole("button", { name: "Clear" }));
+
+    expect(resetQuery).toHaveBeenCalled();
+  });
+
+  it("replaces Try examples with an inline result panel on mobile", async () => {
+    useMobileLayoutMock.mockReturnValue(true);
+    const resetQuery = vi.fn();
+    useInsightQueryParserMock.mockReturnValue({
+      query: "average salary in Engineering",
+      response: {
+        parsedQuery: {
+          intent: "AVG_DEPT_SALARY",
+          originalQuery: "average salary in Engineering",
+          department: "Engineering",
+          country: null,
+          currency: null,
+        },
+        result: {
+          intent: "AVG_DEPT_SALARY",
+          currency: "USD",
+          country: null,
+          department: "Engineering",
+          jobTitle: null,
+          averageSalary: 120_000,
+          employeeCount: 10,
+        },
+        exchangeRatesAsOf: "2026-01-01",
+        error: null,
+      },
+      isSubmitting: false,
+      errorMessage: null,
+      updateQuery: vi.fn(),
+      submitQuery: vi.fn(),
+      resetQuery,
+    });
+
+    render(<InsightQueryPanel />);
+
+    expect(screen.queryByText("Try:")).not.toBeInTheDocument();
+    expect(screen.getByText("Result")).toBeInTheDocument();
+    expect(screen.getByText("Average salary")).toBeInTheDocument();
+    expect(screen.getAllByText("FX rates as of 2026-01-01")).toHaveLength(1);
+
+    await userEvent.click(screen.getByRole("button", { name: "Close result" }));
 
     expect(resetQuery).toHaveBeenCalled();
   });
