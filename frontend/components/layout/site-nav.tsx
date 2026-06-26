@@ -26,11 +26,16 @@ function isNavActive(href: string, pathname: string): boolean {
   return pathname === href || pathname.startsWith(`${href}/`);
 }
 
-export function SiteNav() {
+type SiteNavProps = {
+  id?: string;
+  onNavigate?: () => void;
+};
+
+export function SiteNav({ id, onNavigate }: SiteNavProps) {
   const pathname = usePathname();
 
   return (
-    <nav className={styles.nav} aria-label="Primary">
+    <nav id={id} className={styles.nav} aria-label="Primary">
       {NAV_ITEMS.map(({ href, label }) => {
         const active = isNavActive(href, pathname);
 
@@ -40,6 +45,7 @@ export function SiteNav() {
             href={href}
             className={active ? `${styles.navLink} ${styles.navLinkActive}` : styles.navLink}
             aria-current={active ? "page" : undefined}
+            onClick={onNavigate}
           >
             {label}
           </Link>
