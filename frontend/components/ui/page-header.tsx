@@ -11,7 +11,7 @@ type PageHeaderProps = {
 export function PageHeader({ title, subtitle, actions }: PageHeaderProps) {
   return (
     <header className={styles.header}>
-      <div>
+      <div className={styles.copy}>
         <h1 className={styles.title}>{title}</h1>
         {subtitle && <p className={styles.subtitle}>{subtitle}</p>}
       </div>

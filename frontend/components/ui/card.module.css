@@ -1,4 +1,6 @@
 .card {
+  width: 100%;
+  min-width: 0;
   border: 1px solid var(--border);
   border-radius: var(--radius-md);
   background: var(--surface);
@@ -18,4 +20,14 @@
 
 .body {
   padding: 1.25rem;
+}
+
+@media (max-width: 960px) {
+  .header {
+    padding: 0.875rem 1rem;
+  }
+
+  .body {
+    padding: 1rem;
+  }
 }
