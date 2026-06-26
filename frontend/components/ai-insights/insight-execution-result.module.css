@@ -91,3 +91,28 @@
   font-weight: 650;
   white-space: nowrap;
 }
+
+@media (max-width: 960px) {
+  .splitCounts {
+    grid-template-columns: 1fr;
+  }
+
+  .item {
+    grid-template-columns: 1.75rem minmax(0, 1fr);
+    gap: 0.5rem 0.75rem;
+  }
+
+  .item > .salary {
+    grid-column: 2;
+    justify-self: start;
+    white-space: normal;
+  }
+
+  .timelineItem {
+    grid-template-columns: minmax(0, 1fr);
+  }
+
+  .timelineItem > .salary {
+    grid-column: 1;
+  }
+}

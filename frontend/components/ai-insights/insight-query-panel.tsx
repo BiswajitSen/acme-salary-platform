@@ -41,9 +41,11 @@ export function InsightQueryPanel() {
             void submitQuery();
           }}
         >
-          <label className={styles.label} htmlFor="insight-query">
-            Natural language query
-          </label>
+          <div className={styles.queryHeader}>
+            <label className={styles.label} htmlFor="insight-query">
+              Natural language query
+            </label>
+          </div>
           <textarea
             id="insight-query"
             className={styles.textarea}
@@ -67,13 +69,17 @@ export function InsightQueryPanel() {
             ))}
           </div>
 
-          <div className={styles.actions}>
-            <Button type="submit" variant="primary" disabled={isSubmitting}>
-              Run query
-            </Button>
-            <Button type="button" onClick={resetQuery} disabled={isSubmitting}>
-              Clear
-            </Button>
+          <div className={styles.formFooter}>
+            <div className={styles.submitSlot}>
+              <Button type="submit" variant="primary" disabled={isSubmitting}>
+                Run query
+              </Button>
+            </div>
+            <div className={styles.actions}>
+              <Button type="button" onClick={resetQuery} disabled={isSubmitting}>
+                Clear
+              </Button>
+            </div>
           </div>
         </form>
       </Card>
