@@ -82,7 +82,7 @@ describe("EmployeeDirectoryTable", () => {
     expect(screen.getByTestId("employee-row-E001")).toHaveAttribute("data-layout", "table");
   });
 
-  it("renders a card list on mobile without table header filters", () => {
+  it("renders a card list with column filters on mobile", () => {
     useMobileLayout.mockReturnValue(true);
 
     render(
@@ -96,7 +96,10 @@ describe("EmployeeDirectoryTable", () => {
       />,
     );
 
-    expect(screen.queryByRole("button", { name: "Filter by country" })).not.toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Filter by country" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Filter by department" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Filter by job title" })).toBeInTheDocument();
+    expect(screen.getByRole("button", { name: "Filter by employment status" })).toBeInTheDocument();
     expect(screen.getByTestId("employee-row-E001")).toHaveAttribute("data-layout", "mobile");
     expect(screen.getByText("Jane Doe")).toBeInTheDocument();
   });
@@ -117,5 +120,22 @@ describe("EmployeeDirectoryTable", () => {
     );
 
     expect(screen.getByText("Loading employees…")).toBeInTheDocument();
+  });
+
+  it("shows an empty message on mobile when no employees match", () => {
+    useMobileLayout.mockReturnValue(true);
+
+    render(
+      <EmployeeDirectoryTable
+        employees={[]}
+        filters={{ ...emptyFilters, search: "missing" }}
+        filterOptions={filterOptions}
+        onFilterChange={vi.fn()}
+        displayCurrency="USD"
+        ratesToUsd={TEST_EXCHANGE_RATES_TO_USD}
+      />,
+    );
+
+    expect(screen.getByText("No employees match the current filters.")).toBeInTheDocument();
   });
 });

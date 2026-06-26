@@ -112,4 +112,31 @@ describe("EmployeeRow", () => {
 
     expect(screen.getByText("No salary")).toBeInTheDocument();
   });
+
+  it("shows inactive status styling on mobile cards", () => {
+    render(
+      <EmployeeRow
+        employee={{ ...sampleEmployee, employmentStatus: "NO_COMPENSATION" }}
+        displayCurrency="USD"
+        ratesToUsd={TEST_EXCHANGE_RATES_TO_USD}
+        offsetY={0}
+        layout="mobile"
+      />,
+    );
+
+    expect(screen.getByText("No salary")).toBeInTheDocument();
+  });
+
+  it("uses muted salary styling in the table layout when compensation is missing", () => {
+    render(
+      <EmployeeRow
+        employee={{ ...sampleEmployee, baseSalary: null, currency: null }}
+        displayCurrency="USD"
+        ratesToUsd={TEST_EXCHANGE_RATES_TO_USD}
+        offsetY={0}
+      />,
+    );
+
+    expect(screen.getByText("—")).toBeInTheDocument();
+  });
 });

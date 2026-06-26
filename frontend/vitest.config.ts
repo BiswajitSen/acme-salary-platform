@@ -39,6 +39,8 @@ export default defineConfig({
         "components/employee-directory/employee-directory.tsx",
         "components/employee-directory/employee-directory-filters.tsx",
         "components/employee-directory/employee-directory-table.tsx",
+        "components/employee-directory/employee-directory-mobile-filters.tsx",
+        "components/employee-directory/column-filter-popover.tsx",
         "components/employee-directory/employee-row.tsx",
         "components/employee-import/employee-import.tsx",
         "components/employee-import/employee-import-preview.tsx",

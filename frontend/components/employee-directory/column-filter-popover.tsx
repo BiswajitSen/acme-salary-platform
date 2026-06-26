@@ -1,6 +1,7 @@
 "use client";
 
 import { useEffect, useId, useRef, useState } from "react";
+import { createPortal } from "react-dom";
 
 import { Button } from "@/components/ui/button";
 import {
@@ -17,6 +18,8 @@ type ColumnFilterPopoverProps = {
   onApply: (values: string[]) => void;
   ariaLabel: string;
   getOptionLabel?: (option: string) => string;
+  variant?: "popover" | "sheet";
+  sheetLabel?: string;
 };
 
 function FilterIcon() {
@@ -38,7 +41,10 @@ export function ColumnFilterPopover({
   onApply,
   ariaLabel,
   getOptionLabel = (option) => option,
+  variant = "popover",
+  sheetLabel,
 }: ColumnFilterPopoverProps) {
+  const isSheet = variant === "sheet";
   const [isOpen, setIsOpen] = useState(false);
   const [draftValues, setDraftValues] = useState<string[]>([]);
   const popoverId = useId();
@@ -56,26 +62,47 @@ export function ColumnFilterPopover({
       return;
     }
 
-    function handlePointerDown(event: MouseEvent) {
-      if (!rootRef.current?.contains(event.target as Node)) {
-        setIsOpen(false);
-      }
-    }
-
     function handleEscape(event: KeyboardEvent) {
       if (event.key === "Escape") {
         setIsOpen(false);
       }
     }
 
-    document.addEventListener("mousedown", handlePointerDown);
+    if (!isSheet) {
+      function handlePointerDown(event: MouseEvent) {
+        if (!rootRef.current?.contains(event.target as Node)) {
+          setIsOpen(false);
+        }
+      }
+
+      document.addEventListener("mousedown", handlePointerDown);
+      document.addEventListener("keydown", handleEscape);
+
+      return () => {
+        document.removeEventListener("mousedown", handlePointerDown);
+        document.removeEventListener("keydown", handleEscape);
+      };
+    }
+
     document.addEventListener("keydown", handleEscape);
 
     return () => {
-      document.removeEventListener("mousedown", handlePointerDown);
       document.removeEventListener("keydown", handleEscape);
     };
-  }, [isOpen]);
+  }, [isOpen, isSheet]);
+
+  useEffect(() => {
+    if (!isOpen || !isSheet) {
+      return;
+    }
+
+    const previousOverflow = document.body.style.overflow;
+    document.body.style.overflow = "hidden";
+
+    return () => {
+      document.body.style.overflow = previousOverflow;
+    };
+  }, [isOpen, isSheet]);
 
   useEffect(() => {
     if (selectAllRef.current) {
@@ -117,20 +144,91 @@ export function ColumnFilterPopover({
     return null;
   }
 
-  return (
-    <div className={styles.root} ref={rootRef}>
+  const sheetPanel = isOpen && isSheet ? (
+    <>
       <button
         type="button"
-        className={isActive ? `${styles.trigger} ${styles.triggerActive}` : styles.trigger}
+        className={styles.sheetBackdrop}
+        aria-label={`Close ${sheetLabel ?? ariaLabel}`}
+        onClick={handleCancel}
+      />
+      <div
+        id={popoverId}
+        className={`${styles.popover} ${styles.popoverSheet}`}
+        role="dialog"
+        aria-label={ariaLabel}
+        aria-modal={true}
+      >
+        {sheetLabel ? (
+          <div className={styles.sheetHeader}>
+            <h3 className={styles.sheetTitle}>{sheetLabel}</h3>
+          </div>
+        ) : null}
+        <div className={styles.optionList}>
+          <label className={styles.option}>
+            <input
+              ref={selectAllRef}
+              type="checkbox"
+              checked={selectAllChecked}
+              onChange={toggleSelectAll}
+            />
+            <span>Select All</span>
+          </label>
+          {options.map((option) => (
+            <label key={option} className={styles.option}>
+              <input
+                type="checkbox"
+                checked={draftValues.includes(option)}
+                onChange={() => toggleValue(option)}
+              />
+              <span>{getOptionLabel(option)}</span>
+            </label>
+          ))}
+        </div>
+        <div className={styles.actions}>
+          <Button className={styles.actionButton} onClick={handleApply}>
+            OK
+          </Button>
+          <Button className={styles.actionButton} onClick={handleCancel}>
+            Cancel
+          </Button>
+          <Button className={styles.actionButton} onClick={handleClear}>
+            clear
+          </Button>
+        </div>
+      </div>
+    </>
+  ) : null;
+
+  return (
+    <div className={isSheet ? `${styles.root} ${styles.rootSheet}` : styles.root} ref={rootRef}>
+      <button
+        type="button"
+        className={
+          isSheet
+            ? isActive
+              ? `${styles.sheetTrigger} ${styles.sheetTriggerActive}`
+              : styles.sheetTrigger
+            : isActive
+              ? `${styles.trigger} ${styles.triggerActive}`
+              : styles.trigger
+        }
         aria-label={ariaLabel}
         aria-expanded={isOpen}
         aria-controls={isOpen ? popoverId : undefined}
         onClick={() => (isOpen ? setIsOpen(false) : openPopover())}
       >
+        {isSheet && sheetLabel ? (
+          <span className={styles.sheetTriggerLabel}>{sheetLabel}</span>
+        ) : null}
         <FilterIcon />
       </button>
 
-      {isOpen && (
+      {sheetPanel && typeof document !== "undefined"
+        ? createPortal(sheetPanel, document.body)
+        : null}
+
+      {isOpen && !isSheet && (
         <div id={popoverId} className={styles.popover} role="dialog" aria-label={ariaLabel}>
           <div className={styles.optionList}>
             <label className={styles.option}>

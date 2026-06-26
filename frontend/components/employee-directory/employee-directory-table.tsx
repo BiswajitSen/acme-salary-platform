@@ -3,6 +3,7 @@ import type { EmployeeFilterOptions, ExchangeRatesToUsd } from "@acme/shared";
 import { useVirtualizer } from "@tanstack/react-virtual";
 import { useRef } from "react";
 
+import { EmployeeDirectoryMobileFilters } from "@/components/employee-directory/employee-directory-mobile-filters";
 import { EmployeeDirectoryTableHeader } from "@/components/employee-directory/employee-directory-table-header";
 import { EMPLOYEE_ROW_HEIGHT_PX, getEmptyDirectoryMessage } from "@/components/employee-directory/types";
 import { EmployeeRow } from "@/components/employee-directory/employee-row";
@@ -52,6 +53,11 @@ export function EmployeeDirectoryTable({
   if (isMobileLayout) {
     return (
       <div className={`${styles.shell} ${styles.shellMobile}`}>
+        <EmployeeDirectoryMobileFilters
+          filters={filters}
+          filterOptions={filterOptions}
+          onFilterChange={onFilterChange}
+        />
         <div className={styles.mobileBody}>
           {isLoading && employees.length === 0 ? (
             <p className={styles.bodyMessage}>Loading employees…</p>

@@ -483,4 +483,36 @@ describe("InsightQueryPanel", () => {
 
     expect(resetQuery).toHaveBeenCalled();
   });
+
+  it("shows inline execution errors on mobile instead of Try examples", () => {
+    useMobileLayoutMock.mockReturnValue(true);
+    useInsightQueryParserMock.mockReturnValue({
+      query: "Tell me a joke",
+      response: {
+        parsedQuery: {
+          intent: "UNKNOWN",
+          originalQuery: "Tell me a joke",
+          department: null,
+          country: null,
+          currency: null,
+        },
+        result: null,
+        error: {
+          kind: "UNSUPPORTED_INTENT",
+          message: "This question is not supported yet.",
+        },
+      },
+      isSubmitting: false,
+      errorMessage: null,
+      updateQuery: vi.fn(),
+      submitQuery: vi.fn(),
+      resetQuery: vi.fn(),
+    });
+
+    render(<InsightQueryPanel />);
+
+    expect(screen.queryByText("Try:")).not.toBeInTheDocument();
+    expect(screen.getByText("Result")).toBeInTheDocument();
+    expect(screen.getAllByText("This question is not supported yet.")).toHaveLength(1);
+  });
 });

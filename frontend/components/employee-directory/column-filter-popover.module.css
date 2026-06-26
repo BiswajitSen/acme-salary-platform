@@ -91,3 +91,94 @@
   padding: 0.35rem 0.45rem;
   font-size: 0.75rem;
 }
+
+.rootSheet {
+  width: 100%;
+}
+
+.sheetTrigger {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.75rem;
+  width: 100%;
+  min-height: 2.75rem;
+  padding: 0.625rem 0.875rem;
+  border: 1px solid var(--border);
+  border-radius: var(--radius-sm);
+  background: var(--surface);
+  box-shadow: var(--shadow-sm);
+  color: var(--foreground);
+  cursor: pointer;
+  transition:
+    border-color var(--transition-fast),
+    box-shadow var(--transition-fast);
+}
+
+.sheetTrigger:hover,
+.sheetTrigger[aria-expanded="true"] {
+  border-color: color-mix(in srgb, var(--primary) 30%, var(--border));
+}
+
+.sheetTriggerActive {
+  border-color: color-mix(in srgb, var(--primary) 40%, var(--border));
+  background: color-mix(in srgb, var(--primary-soft) 45%, var(--surface));
+}
+
+.sheetTriggerLabel {
+  min-width: 0;
+  overflow: hidden;
+  font-size: 0.875rem;
+  font-weight: 600;
+  text-align: left;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.sheetBackdrop {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  border: none;
+  background: rgb(15 23 42 / 42%);
+  cursor: pointer;
+}
+
+.popoverSheet {
+  position: fixed;
+  top: auto;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  z-index: 100;
+  width: auto;
+  max-height: min(72vh, 36rem);
+  overflow: hidden;
+  border-right: none;
+  border-bottom: none;
+  border-left: none;
+  border-radius: var(--radius-lg) var(--radius-lg) 0 0;
+}
+
+.sheetHeader {
+  padding: 1rem 1rem 0.25rem;
+  border-bottom: 1px solid var(--border);
+}
+
+.sheetTitle {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 650;
+}
+
+.popoverSheet .optionList {
+  flex: 1;
+  min-height: 0;
+  max-height: none;
+  padding: 0.75rem 1rem;
+  overflow: auto;
+}
+
+.popoverSheet .actions {
+  padding: 0.75rem 1rem calc(0.75rem + env(safe-area-inset-bottom, 0px));
+}
