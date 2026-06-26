@@ -137,4 +137,45 @@ describe("AnalyticsService", () => {
       10,
     );
   });
+
+  it("returns compensated employees converted to the display currency", async () => {
+    const exchangeRates = createExchangeRateProviderMock();
+    const analyticsRepository = {
+      countEmployeesWithLatestCompensation: vi.fn(),
+      sumLatestCompensationSalariesInDisplayCurrency: vi.fn(),
+      findDepartmentSalaryStatisticsInDisplayCurrency: vi.fn(),
+      findTopEarnersInDisplayCurrency: vi.fn(),
+      findCompensatedEmployeesInDisplayCurrency: vi.fn().mockResolvedValue([
+        {
+          employeeId: "E001",
+          fullName: "Jane Doe",
+          department: "Engineering",
+          jobTitle: "Senior Engineer",
+          country: "US",
+          displaySalary: 132_000,
+        },
+      ]),
+    };
+
+    const service = new AnalyticsService(analyticsRepository, exchangeRates);
+
+    await expect(service.getCompensatedEmployees({ currency: "USD" })).resolves.toEqual({
+      currency: "USD",
+      employees: [
+        {
+          employeeId: "E001",
+          fullName: "Jane Doe",
+          department: "Engineering",
+          jobTitle: "Senior Engineer",
+          country: "US",
+          displaySalary: 132_000,
+        },
+      ],
+      exchangeRatesAsOf: "2026-01-01",
+    });
+    expect(analyticsRepository.findCompensatedEmployeesInDisplayCurrency).toHaveBeenCalledWith(
+      "USD",
+      createTestExchangeRateSnapshot().ratesToUsd,
+    );
+  });
 });

@@ -3,6 +3,7 @@ import { describe, expect, it } from "vitest";
 import { TEST_EXCHANGE_RATES_TO_USD } from "@acme/shared";
 
 import {
+  getAnalyticsCompensatedEmployees,
   getAnalyticsCurrencies,
   getAnalyticsSummary,
   getDepartmentSalaryStatistics,
@@ -131,6 +132,49 @@ describe("getTopEarners", () => {
           fullName: "Jane Doe",
           department: "Engineering",
           baseSalary: 132_000,
+        },
+      ],
+      exchangeRatesAsOf: "2026-06-24",
+    });
+    global.fetch = originalFetch;
+  });
+});
+
+describe("getAnalyticsCompensatedEmployees", () => {
+  it("fetches compensated employees for a currency", async () => {
+    const originalFetch = global.fetch;
+    global.fetch = async (input) => {
+      expect(String(input)).toBe("/api/backend/analytics/compensated-employees?currency=USD");
+
+      return new Response(
+        JSON.stringify({
+          currency: "USD",
+          employees: [
+            {
+              employeeId: "E001",
+              fullName: "Jane Doe",
+              department: "Engineering",
+              jobTitle: "Senior Engineer",
+              country: "US",
+              displaySalary: 132_000,
+            },
+          ],
+          exchangeRatesAsOf: "2026-06-24",
+        }),
+        { status: 200, headers: { "Content-Type": "application/json" } },
+      );
+    };
+
+    await expect(getAnalyticsCompensatedEmployees("USD")).resolves.toEqual({
+      currency: "USD",
+      employees: [
+        {
+          employeeId: "E001",
+          fullName: "Jane Doe",
+          department: "Engineering",
+          jobTitle: "Senior Engineer",
+          country: "US",
+          displaySalary: 132_000,
         },
       ],
       exchangeRatesAsOf: "2026-06-24",

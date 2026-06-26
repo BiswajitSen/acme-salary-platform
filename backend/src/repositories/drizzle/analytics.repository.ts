@@ -7,6 +7,7 @@ import {
   type EmployeeScopeParams,
 } from "../../domain/insights/employee-scope.js";
 import type {
+  CompensatedEmployeeAnalyticsRecord,
   CompensationTimelineRecord,
   DepartmentSalaryStatisticsRecord,
   MedianSplitCountsRecord,
@@ -49,6 +50,24 @@ function mapTopEarnerRow(row: {
     fullName: row.full_name,
     department: row.department,
     baseSalary: row.base_salary,
+  };
+}
+
+function mapCompensatedEmployeeRow(row: {
+  employee_id: string;
+  full_name: string;
+  department: string;
+  job_title: string;
+  country: string;
+  display_salary: number;
+}): CompensatedEmployeeAnalyticsRecord {
+  return {
+    employeeId: row.employee_id,
+    fullName: row.full_name,
+    department: row.department,
+    jobTitle: row.job_title,
+    country: row.country,
+    displaySalary: row.display_salary,
   };
 }
 
@@ -205,6 +224,36 @@ export class DrizzleAnalyticsRepository implements IAnalyticsRepository {
     `);
 
     return result.rows.map(mapTopEarnerRow);
+  }
+
+  async findCompensatedEmployeesInDisplayCurrency(
+    displayCurrency: string,
+    ratesToUsd: ExchangeRatesToUsd,
+  ): Promise<CompensatedEmployeeAnalyticsRecord[]> {
+    const convertedSalary = buildConvertedSalarySql(displayCurrency, ratesToUsd);
+
+    const result = await this.database.execute<{
+      employee_id: string;
+      full_name: string;
+      department: string;
+      job_title: string;
+      country: string;
+      display_salary: number;
+    }>(sql`
+      WITH latest_compensation AS (${latestCompensationRows})
+      SELECT
+        lc.employee_id,
+        e.full_name,
+        e.department,
+        e.job_title,
+        e.country,
+        ${convertedSalary} AS display_salary
+      FROM latest_compensation lc
+      INNER JOIN employees e ON e.id = lc.employee_id
+      ORDER BY lc.employee_id ASC
+    `);
+
+    return result.rows.map(mapCompensatedEmployeeRow);
   }
 
   async findBottomEarnersInDisplayCurrency(

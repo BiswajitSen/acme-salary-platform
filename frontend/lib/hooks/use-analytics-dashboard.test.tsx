@@ -68,9 +68,7 @@ const compensatedEmployees = [
     department: "Engineering",
     jobTitle: "Engineer",
     country: "US",
-    baseSalary: 120_000,
-    currency: "USD",
-    employmentStatus: "ACTIVE" as const,
+    displaySalary: 120_000,
   },
 ];
 

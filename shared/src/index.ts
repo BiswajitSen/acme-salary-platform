@@ -80,6 +80,8 @@ export {
   getAnalyticsDisplayCurrencyRateToUsd,
   TEST_EXCHANGE_RATES_TO_USD,
   type AnalyticsCurrenciesResponse,
+  type AnalyticsCompensatedEmployee,
+  type AnalyticsCompensatedEmployeesResponse,
   type AnalyticsDepartmentStatisticsResponse,
   type AnalyticsDisplayCurrency,
   type AnalyticsSummaryQuery,

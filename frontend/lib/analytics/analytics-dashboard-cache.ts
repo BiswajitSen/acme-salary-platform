@@ -1,10 +1,7 @@
-import type {
-  AnalyticsCurrenciesResponse,
-  EmployeeFilterOptions,
-  EmployeeSummary,
-} from "@acme/shared";
+import type { AnalyticsCurrenciesResponse, EmployeeFilterOptions } from "@acme/shared";
 
 import type { AnalyticsDashboardMetrics } from "./fetch-analytics-dashboard";
+import type { CompensatedEmployeeRecord } from "./types";
 
 const ANALYTICS_DASHBOARD_CACHE_TTL_MS = 5 * 60 * 1000;
 
@@ -15,7 +12,7 @@ type AnalyticsStaticCacheEntry = {
 };
 
 type AnalyticsEmployeesCacheEntry = {
-  employees: EmployeeSummary[];
+  employees: CompensatedEmployeeRecord[];
   fetchedAt: number;
 };
 
@@ -48,7 +45,7 @@ export function writeAnalyticsStaticCache(
   staticCache = { currencies, filterOptions, fetchedAt };
 }
 
-export function readAnalyticsEmployeesCache(now = Date.now()): EmployeeSummary[] | null {
+export function readAnalyticsEmployeesCache(now = Date.now()): CompensatedEmployeeRecord[] | null {
   if (!employeesCache || !isFresh(employeesCache.fetchedAt, now)) {
     return null;
   }
@@ -57,7 +54,7 @@ export function readAnalyticsEmployeesCache(now = Date.now()): EmployeeSummary[]
 }
 
 export function writeAnalyticsEmployeesCache(
-  employees: EmployeeSummary[],
+  employees: CompensatedEmployeeRecord[],
   fetchedAt = Date.now(),
 ): void {
   employeesCache = { employees, fetchedAt };

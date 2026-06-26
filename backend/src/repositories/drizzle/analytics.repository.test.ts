@@ -163,6 +163,25 @@ describe("DrizzleAnalyticsRepository", () => {
     await expect(repository.countEmployeesWithLatestCompensation({ country: "US" })).resolves.toBe(1);
   });
 
+  it("returns compensated employees with converted salaries", async () => {
+    await runSeed(db);
+
+    await expect(
+      repository.findCompensatedEmployeesInDisplayCurrency("USD", testRates),
+    ).resolves.toEqual(
+      expect.arrayContaining([
+        expect.objectContaining({
+          employeeId: "E001",
+          fullName: expect.any(String),
+          department: expect.any(String),
+          jobTitle: expect.any(String),
+          country: expect.any(String),
+          displaySalary: expect.any(Number),
+        }),
+      ]),
+    );
+  });
+
   it("returns top earners filtered by country when requested", async () => {
     await runSeed(db);
 

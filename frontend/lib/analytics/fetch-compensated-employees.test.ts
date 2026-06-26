@@ -1,7 +1,13 @@
 import { TEST_EXCHANGE_RATES_TO_USD, type EmployeeSummary } from "@acme/shared";
-import { describe, expect, it } from "vitest";
+import { describe, expect, it, vi } from "vitest";
 
-import { toCompensatedEmployeeRecords } from "./fetch-compensated-employees";
+import { getAnalyticsCompensatedEmployees } from "@/lib/api/analytics";
+
+import { fetchCompensatedEmployees, toCompensatedEmployeeRecords } from "./fetch-compensated-employees";
+
+vi.mock("@/lib/api/analytics", () => ({
+  getAnalyticsCompensatedEmployees: vi.fn(),
+}));
 
 const employees: EmployeeSummary[] = [
   {
@@ -49,5 +55,37 @@ describe("toCompensatedEmployeeRecords", () => {
       jobTitle: "Senior Engineer",
       country: "US",
     });
+  });
+});
+
+describe("fetchCompensatedEmployees", () => {
+  it("loads compensated employees in a single analytics request", async () => {
+    vi.mocked(getAnalyticsCompensatedEmployees).mockResolvedValue({
+      currency: "USD",
+      exchangeRatesAsOf: "2026-01-01",
+      employees: [
+        {
+          employeeId: "E001",
+          fullName: "Jane Doe",
+          department: "Engineering",
+          jobTitle: "Senior Engineer",
+          country: "US",
+          displaySalary: 132_000,
+        },
+      ],
+    });
+
+    await expect(fetchCompensatedEmployees("USD")).resolves.toEqual([
+      {
+        id: "E001",
+        fullName: "Jane Doe",
+        department: "Engineering",
+        jobTitle: "Senior Engineer",
+        country: "US",
+        displaySalary: 132_000,
+      },
+    ]);
+
+    expect(getAnalyticsCompensatedEmployees).toHaveBeenCalledWith("USD");
   });
 });

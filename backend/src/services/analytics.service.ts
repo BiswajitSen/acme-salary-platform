@@ -1,6 +1,7 @@
 import {
   ANALYTICS_DISPLAY_CURRENCIES,
   ANALYTICS_TOP_EARNERS_LIMIT,
+  type AnalyticsCompensatedEmployeesResponse,
   type AnalyticsCurrenciesResponse,
   type AnalyticsDepartmentStatisticsResponse,
   type AnalyticsSummaryResponse,
@@ -73,6 +74,23 @@ export class AnalyticsService {
     return {
       currency,
       earners,
+      exchangeRatesAsOf: asOf,
+    };
+  }
+
+  async getCompensatedEmployees(
+    query: unknown,
+  ): Promise<AnalyticsCompensatedEmployeesResponse> {
+    const currency = parseAnalyticsCurrencyQuery(query);
+    const { asOf, ratesToUsd } = await this.exchangeRates.fetchSnapshot();
+    const employees = await this.analytics.findCompensatedEmployeesInDisplayCurrency(
+      currency,
+      ratesToUsd,
+    );
+
+    return {
+      currency,
+      employees,
       exchangeRatesAsOf: asOf,
     };
   }

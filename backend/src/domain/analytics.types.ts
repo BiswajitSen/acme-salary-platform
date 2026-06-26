@@ -39,3 +39,12 @@ export type TopEarnerRecord = {
   department: string;
   baseSalary: number;
 };
+
+export type CompensatedEmployeeAnalyticsRecord = {
+  employeeId: string;
+  fullName: string;
+  department: string;
+  jobTitle: string;
+  country: string;
+  displaySalary: number;
+};

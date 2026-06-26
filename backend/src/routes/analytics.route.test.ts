@@ -138,6 +138,32 @@ describe("createAnalyticsRouter", () => {
     expect(response.body.earners).toHaveLength(1);
   });
 
+  it("returns compensated employees for a valid currency query", async () => {
+    const analyticsService = {
+      getCompensatedEmployees: vi.fn().mockResolvedValue({
+        currency: "USD",
+        exchangeRatesAsOf: "2026-01-01",
+        employees: [
+          {
+            employeeId: "E001",
+            fullName: "Jane Doe",
+            department: "Engineering",
+            jobTitle: "Senior Engineer",
+            country: "US",
+            displaySalary: 132_000,
+          },
+        ],
+      }),
+    } as unknown as AnalyticsService;
+
+    const response = await request(createTestApp(analyticsService)).get(
+      "/analytics/compensated-employees?currency=USD",
+    );
+
+    expect(response.status).toBe(200);
+    expect(response.body.employees).toHaveLength(1);
+  });
+
   it("forwards service errors to the error handler", async () => {
     const analyticsService = {
       getAvailableCurrencies: vi.fn().mockRejectedValue(new Error("Database unavailable")),

@@ -57,3 +57,18 @@ export type AnalyticsCurrenciesResponse = {
   exchangeRatesAsOf: string;
   ratesToUsd: ExchangeRatesToUsd;
 };
+
+export type AnalyticsCompensatedEmployee = {
+  employeeId: string;
+  fullName: string;
+  department: string;
+  jobTitle: string;
+  country: string;
+  displaySalary: number;
+};
+
+export type AnalyticsCompensatedEmployeesResponse = {
+  currency: string;
+  exchangeRatesAsOf: string;
+  employees: AnalyticsCompensatedEmployee[];
+};

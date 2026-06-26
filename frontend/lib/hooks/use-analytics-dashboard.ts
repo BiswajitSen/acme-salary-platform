@@ -5,7 +5,6 @@ import type {
   AnalyticsSummaryResponse,
   AnalyticsTopEarnersResponse,
   EmployeeFilterOptions,
-  EmployeeSummary,
   ExchangeRatesToUsd,
 } from "@acme/shared";
 import { useCallback, useEffect, useMemo, useState } from "react";
@@ -20,7 +19,6 @@ import {
 } from "@/lib/analytics/analytics-dashboard-cache";
 import {
   buildAnalyticsDashboardView,
-  buildCompensatedEmployeesFromSummaries,
 } from "@/lib/analytics/build-analytics-dashboard-view";
 import {
   fetchAnalyticsCurrencies,
@@ -31,6 +29,7 @@ import {
   EMPTY_ANALYTICS_FILTERS,
   type AnalyticsDashboardFilters,
   type AnalyticsDashboardView,
+  type CompensatedEmployeeRecord,
 } from "@/lib/analytics/types";
 import { listEmployeeFilterOptions } from "@/lib/api/employees";
 import { useDisplayCurrency } from "@/lib/hooks/use-display-currency";
@@ -65,7 +64,7 @@ type DashboardMetricsState = {
   summary: AnalyticsSummaryResponse | null;
   departmentStatistics: AnalyticsDepartmentStatisticsResponse | null;
   topEarners: AnalyticsTopEarnersResponse | null;
-  rawEmployees: EmployeeSummary[];
+  rawEmployees: CompensatedEmployeeRecord[];
 };
 
 const EMPTY_METRICS_STATE: DashboardMetricsState = {
@@ -215,7 +214,7 @@ export function useAnalyticsDashboard(): AnalyticsDashboardState {
       try {
         const employeesPromise = cachedEmployees
           ? Promise.resolve(cachedEmployees)
-          : fetchCompensatedEmployees();
+          : fetchCompensatedEmployees(currency);
         const metricsPromise = cachedMetrics
           ? Promise.resolve(cachedMetrics)
           : fetchAnalyticsDashboardMetrics(currency);
@@ -256,17 +255,7 @@ export function useAnalyticsDashboard(): AnalyticsDashboardState {
     };
   }, [currency, isCurrencyReady, ratesToUsd]);
 
-  const compensatedEmployees = useMemo(
-    () =>
-      ratesToUsd === null
-        ? []
-        : buildCompensatedEmployeesFromSummaries(
-            metricsState.rawEmployees,
-            currency,
-            ratesToUsd,
-          ),
-    [currency, metricsState.rawEmployees, ratesToUsd],
-  );
+  const compensatedEmployees = metricsState.rawEmployees;
 
   const view = useMemo(() => {
     if (!exchangeRatesAsOf || ratesToUsd === null) {

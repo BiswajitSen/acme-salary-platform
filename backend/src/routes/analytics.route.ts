@@ -47,5 +47,14 @@ export function createAnalyticsRouter(deps: AnalyticsRouterDeps) {
     }
   });
 
+  router.get("/compensated-employees", async (req, res, next) => {
+    try {
+      const employees = await deps.analyticsService.getCompensatedEmployees(req.query);
+      res.json(employees);
+    } catch (error) {
+      next(error);
+    }
+  });
+
   return router;
 }

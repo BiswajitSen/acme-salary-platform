@@ -2,6 +2,7 @@ import type { ExchangeRatesToUsd } from "@acme/shared";
 
 import type { EmployeeScopeParams } from "../../domain/insights/employee-scope.js";
 import type {
+  CompensatedEmployeeAnalyticsRecord,
   CompensationTimelineRecord,
   DepartmentSalaryStatisticsRecord,
   MedianSplitCountsRecord,
@@ -32,6 +33,10 @@ export interface IAnalyticsRepository {
     limit: number,
     scope?: EmployeeScopeParams,
   ): Promise<TopEarnerRecord[]>;
+  findCompensatedEmployeesInDisplayCurrency(
+    displayCurrency: string,
+    ratesToUsd: ExchangeRatesToUsd,
+  ): Promise<CompensatedEmployeeAnalyticsRecord[]>;
   findBottomEarnersInDisplayCurrency(
     displayCurrency: string,
     ratesToUsd: ExchangeRatesToUsd,

@@ -1,4 +1,5 @@
 import type {
+  AnalyticsCompensatedEmployeesResponse,
   AnalyticsCurrenciesResponse,
   AnalyticsDepartmentStatisticsResponse,
   AnalyticsSummaryResponse,
@@ -36,5 +37,13 @@ export async function getTopEarners(
 ): Promise<AnalyticsTopEarnersResponse> {
   return apiFetch<AnalyticsTopEarnersResponse>(
     `/api/backend/analytics/top-earners${buildAnalyticsQuery(currency)}`,
+  );
+}
+
+export async function getAnalyticsCompensatedEmployees(
+  currency: string,
+): Promise<AnalyticsCompensatedEmployeesResponse> {
+  return apiFetch<AnalyticsCompensatedEmployeesResponse>(
+    `/api/backend/analytics/compensated-employees${buildAnalyticsQuery(currency)}`,
   );
 }

@@ -36,6 +36,7 @@ describe("Analytics API performance", () => {
       "/api/analytics/summary?currency=USD",
       "/api/analytics/departments?currency=USD",
       "/api/analytics/top-earners?currency=USD",
+      "/api/analytics/compensated-employees?currency=USD",
     ] as const;
 
     for (const endpoint of endpoints) {
