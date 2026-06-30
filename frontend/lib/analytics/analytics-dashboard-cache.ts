@@ -22,7 +22,7 @@ type AnalyticsMetricsCacheEntry = {
 };
 
 let staticCache: AnalyticsStaticCacheEntry | null = null;
-let employeesCache: AnalyticsEmployeesCacheEntry | null = null;
+const employeesCache = new Map<string, AnalyticsEmployeesCacheEntry>();
 const metricsCache = new Map<string, AnalyticsMetricsCacheEntry>();
 
 function isFresh(fetchedAt: number, now = Date.now()): boolean {
@@ -45,19 +45,25 @@ export function writeAnalyticsStaticCache(
   staticCache = { currencies, filterOptions, fetchedAt };
 }
 
-export function readAnalyticsEmployeesCache(now = Date.now()): CompensatedEmployeeRecord[] | null {
-  if (!employeesCache || !isFresh(employeesCache.fetchedAt, now)) {
+export function readAnalyticsEmployeesCache(
+  currency: string,
+  now = Date.now(),
+): CompensatedEmployeeRecord[] | null {
+  const entry = employeesCache.get(currency);
+
+  if (!entry || !isFresh(entry.fetchedAt, now)) {
     return null;
   }
 
-  return employeesCache.employees;
+  return entry.employees;
 }
 
 export function writeAnalyticsEmployeesCache(
+  currency: string,
   employees: CompensatedEmployeeRecord[],
   fetchedAt = Date.now(),
 ): void {
-  employeesCache = { employees, fetchedAt };
+  employeesCache.set(currency, { employees, fetchedAt });
 }
 
 export function readAnalyticsMetricsCache(
@@ -83,7 +89,7 @@ export function writeAnalyticsMetricsCache(
 
 export function clearAnalyticsDashboardCache(): void {
   staticCache = null;
-  employeesCache = null;
+  employeesCache.clear();
   metricsCache.clear();
 }
 

@@ -21,6 +21,18 @@ export function sumDisplaySalaries(employees: CompensatedEmployeeRecord[]): numb
   return employees.reduce((sum, employee) => sum + employee.displaySalary, 0);
 }
 
+export function resolveOrgTotalPayroll(
+  allEmployees: CompensatedEmployeeRecord[],
+  apiTotalPayroll?: number | null,
+): number {
+  const employeeTotal = sumDisplaySalaries(allEmployees);
+  if (employeeTotal > 0) {
+    return employeeTotal;
+  }
+
+  return apiTotalPayroll ?? 0;
+}
+
 export function arePayrollTotalsAligned(
   employeePayrollTotal: number,
   referencePayrollTotal: number,
@@ -93,10 +105,27 @@ export function computeTopTenPayrollPercent(
   return Math.round(percent * 10) / 10;
 }
 
+export function roundDepartmentPayrollPercent(
+  departmentPayroll: number,
+  denominator: number,
+): number {
+  if (denominator <= 0 || departmentPayroll <= 0) {
+    return 0;
+  }
+
+  const percent = (departmentPayroll / denominator) * 100;
+
+  if (percent < 1) {
+    return Math.round(percent * 100) / 100;
+  }
+
+  return Math.round(percent * 10) / 10;
+}
+
 export function applyDepartmentPayrollPercents(
   departments: AnalyticsDepartmentRow[],
   employees: CompensatedEmployeeRecord[],
-  totalPayroll: number,
+  orgTotalPayroll: number,
 ): AnalyticsDepartmentRow[] {
   const payrollByDepartment = new Map<string, number>();
 
@@ -107,6 +136,9 @@ export function applyDepartmentPayrollPercents(
     );
   }
 
+  const filteredPayrollTotal = sumDisplaySalaries(employees);
+  const denominator = orgTotalPayroll > 0 ? orgTotalPayroll : filteredPayrollTotal;
+
   return departments.map((department) => {
     const departmentPayroll =
       payrollByDepartment.get(department.department) ??
@@ -114,10 +146,7 @@ export function applyDepartmentPayrollPercents(
 
     return {
       ...department,
-      payrollPercent:
-        totalPayroll > 0
-          ? Math.round((departmentPayroll / totalPayroll) * 1000) / 10
-          : 0,
+      payrollPercent: roundDepartmentPayrollPercent(departmentPayroll, denominator),
     };
   });
 }

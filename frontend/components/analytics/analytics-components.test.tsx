@@ -72,6 +72,25 @@ describe("AnalyticsDepartmentPayrollSection", () => {
     expect(screen.getAllByText("$115,000").length).toBeGreaterThan(0);
     expect(screen.getAllByText("60%").length).toBeGreaterThan(0);
   });
+
+  it("renders small org payroll shares with two decimal places", () => {
+    render(
+      <AnalyticsDepartmentPayrollSection
+        currency="USD"
+        departments={[
+          {
+            department: "Finance",
+            employeeCount: 1,
+            averageSalary: 64_366,
+            medianSalary: 64_366,
+            payrollPercent: 0.04,
+          },
+        ]}
+      />,
+    );
+
+    expect(screen.getAllByText("0.04%").length).toBeGreaterThan(0);
+  });
 });
 
 describe("AnalyticsHorizontalBarChart", () => {

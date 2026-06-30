@@ -150,6 +150,62 @@ describe("applyDepartmentPayrollPercents", () => {
       expect.objectContaining({ department: "Sales", payrollPercent: 11.1 }),
     ]);
   });
+
+  it("uses org-wide payroll as the denominator even when filtered payroll differs", () => {
+    const departments: AnalyticsDepartmentRow[] = [
+      {
+        department: "Engineering",
+        employeeCount: 2,
+        averageSalary: 150_000,
+        medianSalary: 150_000,
+        payrollPercent: 0,
+      },
+      {
+        department: "HR",
+        employeeCount: 1,
+        averageSalary: 100_000,
+        medianSalary: 100_000,
+        payrollPercent: 0,
+      },
+    ];
+
+    const enriched = applyDepartmentPayrollPercents(departments, employees, 450_000);
+
+    expect(enriched).toEqual([
+      expect.objectContaining({ department: "Engineering", payrollPercent: 66.7 }),
+      expect.objectContaining({ department: "HR", payrollPercent: 22.2 }),
+    ]);
+  });
+
+  it("preserves small non-zero payroll shares instead of rounding to zero", () => {
+    const departments: AnalyticsDepartmentRow[] = [
+      {
+        department: "Finance",
+        employeeCount: 1,
+        averageSalary: 64_366,
+        medianSalary: 64_366,
+        payrollPercent: 0,
+      },
+    ];
+    const financeEmployees: CompensatedEmployeeRecord[] = [
+      {
+        id: "E010",
+        fullName: "Finance Coordinator",
+        department: "Finance",
+        jobTitle: "Coordinator",
+        country: "UK",
+        displaySalary: 64_366,
+      },
+    ];
+
+    const enriched = applyDepartmentPayrollPercents(
+      departments,
+      financeEmployees,
+      160_599_081,
+    );
+
+    expect(enriched[0]?.payrollPercent).toBe(0.04);
+  });
 });
 
 describe("computeTopTenPayrollPercent", () => {

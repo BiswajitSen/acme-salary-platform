@@ -41,6 +41,7 @@ describe("analytics-dashboard-cache", () => {
       now,
     );
     writeAnalyticsEmployeesCache(
+      "USD",
       [
         {
           id: "E001",
@@ -56,8 +57,44 @@ describe("analytics-dashboard-cache", () => {
     writeAnalyticsMetricsCache("USD", metrics, now);
 
     expect(readAnalyticsStaticCache(now)?.currencies.currencies).toEqual(["USD"]);
-    expect(readAnalyticsEmployeesCache(now)).toHaveLength(1);
+    expect(readAnalyticsEmployeesCache("USD", now)).toHaveLength(1);
     expect(readAnalyticsMetricsCache("USD", now)?.summary.headcount).toBe(1);
+  });
+
+  it("keeps compensated employees separate per currency", () => {
+    const now = Date.now();
+
+    writeAnalyticsEmployeesCache(
+      "USD",
+      [
+        {
+          id: "E001",
+          fullName: "Jane Doe",
+          department: "Engineering",
+          jobTitle: "Engineer",
+          country: "US",
+          displaySalary: 120_000,
+        },
+      ],
+      now,
+    );
+    writeAnalyticsEmployeesCache(
+      "GBP",
+      [
+        {
+          id: "E001",
+          fullName: "Jane Doe",
+          department: "Engineering",
+          jobTitle: "Engineer",
+          country: "US",
+          displaySalary: 96_000,
+        },
+      ],
+      now,
+    );
+
+    expect(readAnalyticsEmployeesCache("USD", now)?.[0]?.displaySalary).toBe(120_000);
+    expect(readAnalyticsEmployeesCache("GBP", now)?.[0]?.displaySalary).toBe(96_000);
   });
 
   it("expires cached entries after the ttl", () => {

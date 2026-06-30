@@ -44,6 +44,16 @@ describe("toCompensatedEmployeeRecords", () => {
         displaySalary: 106_250,
       }),
     ]);
+    expect(toCompensatedEmployeeRecords(employees, "GBP", TEST_EXCHANGE_RATES_TO_USD)).toEqual([
+      expect.objectContaining({
+        id: "E001",
+        displaySalary: 105_600,
+      }),
+      expect.objectContaining({
+        id: "E002",
+        displaySalary: 85_000,
+      }),
+    ]);
   });
 
   it("preserves employee metadata used by analytics filters", () => {

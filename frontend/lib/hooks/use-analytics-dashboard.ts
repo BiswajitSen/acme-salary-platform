@@ -81,7 +81,7 @@ function hydrateFromCache(currency: string): {
   staticRatesToUsd: ExchangeRatesToUsd | null;
 } {
   const staticEntry = readAnalyticsStaticCache();
-  const cachedEmployees = readAnalyticsEmployeesCache();
+  const cachedEmployees = readAnalyticsEmployeesCache(currency);
   const cachedMetrics = readAnalyticsMetricsCache(currency);
 
   return {
@@ -110,7 +110,7 @@ export function useAnalyticsDashboard(): AnalyticsDashboardState {
   const [filters, setFilters] = useState<AnalyticsDashboardFilters>(EMPTY_ANALYTICS_FILTERS);
   const [metricsState, setMetricsState] = useState<DashboardMetricsState>(() => {
     const cachedMetrics = readAnalyticsMetricsCache(currency);
-    const cachedEmployees = readAnalyticsEmployeesCache() ?? [];
+    const cachedEmployees = readAnalyticsEmployeesCache(currency) ?? [];
 
     return cachedMetrics
       ? {
@@ -129,7 +129,7 @@ export function useAnalyticsDashboard(): AnalyticsDashboardState {
   const [metricsCurrency, setMetricsCurrency] = useState(currency);
 
   if (isCurrencyReady && ratesToUsd !== null && currency !== metricsCurrency) {
-    const cachedEmployees = readAnalyticsEmployeesCache();
+    const cachedEmployees = readAnalyticsEmployeesCache(currency);
     const cachedMetrics = readAnalyticsMetricsCache(currency);
 
     setMetricsCurrency(currency);
@@ -198,7 +198,7 @@ export function useAnalyticsDashboard(): AnalyticsDashboardState {
     }
 
     let isCancelled = false;
-    const cachedEmployees = readAnalyticsEmployeesCache();
+    const cachedEmployees = readAnalyticsEmployeesCache(currency);
     const cachedMetrics = readAnalyticsMetricsCache(currency);
 
     if (cachedEmployees !== null && cachedMetrics !== null) {
@@ -225,7 +225,7 @@ export function useAnalyticsDashboard(): AnalyticsDashboardState {
           return;
         }
 
-        writeAnalyticsEmployeesCache(employees);
+        writeAnalyticsEmployeesCache(currency, employees);
         writeAnalyticsMetricsCache(currency, metrics);
         setMetricsState({
           summary: metrics.summary,

@@ -125,6 +125,55 @@ describe("buildAnalyticsDashboardView", () => {
     expect(verifyAnalyticsDashboardView(view, employees)).toEqual([]);
   });
 
+  it("keeps payroll percentages stable when API total payroll does not match employee sums", () => {
+    const view = buildAnalyticsDashboardView({
+      currency: "GBP",
+      exchangeRatesAsOf: "2026-01-01",
+      filters: EMPTY_ANALYTICS_FILTERS,
+      ratesToUsd: TEST_EXCHANGE_RATES_TO_USD,
+      employees,
+      apiSummary: {
+        currency: "GBP",
+        headcount: 4,
+        totalPayroll: 999_999,
+        exchangeRatesAsOf: "2026-01-01",
+      },
+      apiDepartments: {
+        currency: "GBP",
+        exchangeRatesAsOf: "2026-01-01",
+        departments: [
+          {
+            department: "Engineering",
+            employeeCount: 2,
+            averageSalary: 100_000,
+            medianSalary: 100_000,
+          },
+          {
+            department: "HR",
+            employeeCount: 1,
+            averageSalary: 60_000,
+            medianSalary: 60_000,
+          },
+          {
+            department: "Sales",
+            employeeCount: 1,
+            averageSalary: 40_000,
+            medianSalary: 40_000,
+          },
+        ],
+      },
+      apiTopEarners: {
+        currency: "GBP",
+        exchangeRatesAsOf: "2026-01-01",
+        earners: [],
+      },
+    });
+
+    expect(view.departments.find((department) => department.department === "Engineering")?.payrollPercent).toBe(66.7);
+    expect(view.departments.find((department) => department.department === "HR")?.payrollPercent).toBe(20);
+    expect(view.departments.find((department) => department.department === "Sales")?.payrollPercent).toBe(13.3);
+  });
+
   it("recomputes metrics from filtered employees when filters are active", () => {
     const view = buildAnalyticsDashboardView({
       currency: "USD",
@@ -158,6 +207,58 @@ describe("buildAnalyticsDashboardView", () => {
       department: "",
       jobTitle: "",
     }))).toEqual([]);
+  });
+
+  it("keeps org-wide payroll share when a department filter is active", () => {
+    const view = buildAnalyticsDashboardView({
+      currency: "USD",
+      exchangeRatesAsOf: "2026-01-01",
+      filters: { country: "", department: "Engineering", jobTitle: "" },
+      ratesToUsd: TEST_EXCHANGE_RATES_TO_USD,
+      employees,
+      apiSummary: null,
+      apiDepartments: null,
+      apiTopEarners: null,
+    });
+
+    expect(view.departments).toHaveLength(1);
+    expect(view.departments[0]?.payrollPercent).toBe(66.7);
+    expect(view.kpis.totalPayroll).toBe(200_000);
+  });
+
+  it("keeps org-wide payroll share when a location filter is active", () => {
+    const view = buildAnalyticsDashboardView({
+      currency: "USD",
+      exchangeRatesAsOf: "2026-01-01",
+      filters: { country: "IN", department: "", jobTitle: "" },
+      ratesToUsd: TEST_EXCHANGE_RATES_TO_USD,
+      employees,
+      apiSummary: null,
+      apiDepartments: null,
+      apiTopEarners: null,
+    });
+
+    expect(view.departments.find((department) => department.department === "Engineering")?.payrollPercent).toBe(26.7);
+    expect(view.departments.find((department) => department.department === "HR")?.payrollPercent).toBe(20);
+    expect(view.kpis.totalPayroll).toBe(140_000);
+  });
+
+  it("keeps org-wide payroll share when a role filter is active", () => {
+    const view = buildAnalyticsDashboardView({
+      currency: "USD",
+      exchangeRatesAsOf: "2026-01-01",
+      filters: { country: "", department: "", jobTitle: "Engineer" },
+      ratesToUsd: TEST_EXCHANGE_RATES_TO_USD,
+      employees,
+      apiSummary: null,
+      apiDepartments: null,
+      apiTopEarners: null,
+    });
+
+    expect(view.departments).toHaveLength(1);
+    expect(view.departments[0]?.department).toBe("Engineering");
+    expect(view.departments[0]?.payrollPercent).toBe(26.7);
+    expect(view.kpis.totalPayroll).toBe(80_000);
   });
 
   it("keeps payroll concentration visible for large uniform workforces", () => {

@@ -1,5 +1,6 @@
 import type { AnalyticsDepartmentRow } from "@/lib/analytics/types";
 import { formatAnnualSalary } from "@/lib/analytics/format-analytics-salary";
+import { formatPayrollPercent } from "@/lib/analytics/format-analytics-percent";
 
 import { AnalyticsChartCard } from "./analytics-chart-card";
 import { AnalyticsHorizontalBarChart } from "./analytics-horizontal-bar-chart";
@@ -21,7 +22,10 @@ export function AnalyticsDepartmentPayrollSection({
   }));
 
   return (
-    <AnalyticsChartCard title="Payroll by department" subtitle="Average annual base salary by team">
+    <AnalyticsChartCard
+      title="Payroll by department"
+      subtitle="Average annual base salary by team. Payroll % of org compares each row to total organization compensation."
+    >
       <AnalyticsHorizontalBarChart
         data={chartData}
         valueFormatter={(value) => formatAnnualSalary(value, currency)}
@@ -36,7 +40,7 @@ export function AnalyticsDepartmentPayrollSection({
               <th className={styles.numeric}>Employees</th>
               <th className={styles.numeric}>Avg annual</th>
               <th className={styles.numeric}>Median annual</th>
-              <th className={styles.numeric}>Payroll %</th>
+              <th className={styles.numeric}>Payroll % of org</th>
             </tr>
           </thead>
           <tbody>
@@ -57,7 +61,7 @@ export function AnalyticsDepartmentPayrollSection({
                   <td className={styles.numeric}>
                     {formatAnnualSalary(department.medianSalary, currency)}
                   </td>
-                  <td className={styles.numeric}>{department.payrollPercent}%</td>
+                  <td className={styles.numeric}>{formatPayrollPercent(department.payrollPercent)}</td>
                 </tr>
               ))
             )}
@@ -73,7 +77,9 @@ export function AnalyticsDepartmentPayrollSection({
             <li key={department.department} className={styles.mobileCard}>
               <div className={styles.mobileHeader}>
                 <span className={styles.mobileDepartment}>{department.department}</span>
-                <span className={styles.mobilePayrollShare}>{department.payrollPercent}%</span>
+                <span className={styles.mobilePayrollShare}>
+                  {formatPayrollPercent(department.payrollPercent)}
+                </span>
               </div>
               <p className={styles.mobileHeadcount}>
                 {department.employeeCount.toLocaleString()} employees

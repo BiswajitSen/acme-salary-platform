@@ -132,7 +132,7 @@ describe("useAnalyticsDashboard", () => {
     expect(result.current.isLoading).toBe(false);
   });
 
-  it("fetches only metrics when employees are cached and currency changes", async () => {
+  it("fetches employees and metrics when currency changes", async () => {
     fetchAnalyticsCurrencies.mockResolvedValue(currenciesResponse(["USD", "GBP"]));
     fetchAnalyticsDashboardMetrics.mockImplementation(async (currency: string) =>
       metricsResponse(currency),
@@ -160,7 +160,50 @@ describe("useAnalyticsDashboard", () => {
     });
 
     expect(fetchAnalyticsDashboardMetrics).toHaveBeenCalledTimes(2);
-    expect(fetchCompensatedEmployees).toHaveBeenCalledTimes(1);
+    expect(fetchCompensatedEmployees).toHaveBeenCalledTimes(2);
+    expect(fetchAnalyticsDashboardMetrics).toHaveBeenNthCalledWith(1, "USD");
+    expect(fetchAnalyticsDashboardMetrics).toHaveBeenNthCalledWith(2, "GBP");
+    expect(fetchCompensatedEmployees).toHaveBeenNthCalledWith(1, "USD");
+    expect(fetchCompensatedEmployees).toHaveBeenNthCalledWith(2, "GBP");
+  });
+
+  it("reuses cached employees and metrics when switching back to a prior currency", async () => {
+    fetchAnalyticsCurrencies.mockResolvedValue(currenciesResponse(["USD", "GBP"]));
+    fetchAnalyticsDashboardMetrics.mockImplementation(async (currency: string) =>
+      metricsResponse(currency),
+    );
+    fetchCompensatedEmployees.mockResolvedValue(compensatedEmployees);
+    listEmployeeFilterOptions.mockResolvedValue({
+      countries: [],
+      departments: [],
+      jobTitles: [],
+    });
+
+    const wrapper = createWrapper();
+    const { result } = renderHook(() => useAnalyticsDashboard(), { wrapper });
+
+    await waitFor(() => {
+      expect(result.current.view?.kpis.headcount).toBe(3);
+    });
+
+    act(() => {
+      result.current.selectCurrency("GBP");
+    });
+
+    await waitFor(() => {
+      expect(result.current.view?.kpis.headcount).toBe(1);
+    });
+
+    act(() => {
+      result.current.selectCurrency("USD");
+    });
+
+    await waitFor(() => {
+      expect(result.current.view?.kpis.headcount).toBe(3);
+    });
+
+    expect(fetchAnalyticsDashboardMetrics).toHaveBeenCalledTimes(2);
+    expect(fetchCompensatedEmployees).toHaveBeenCalledTimes(2);
   });
 
   it("uses the persisted display currency preference", async () => {

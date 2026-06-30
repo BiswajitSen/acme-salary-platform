@@ -15,9 +15,10 @@ import {
   countMedianSplit,
   pickHighestPaidLocation,
   pickHighestPayrollDepartment,
+  resolveOrgTotalPayroll,
   sumDisplaySalaries,
 } from "./analytics-math";
-import { formatAnalyticsPercent } from "./format-analytics-percent";
+import { formatAnalyticsPercent, formatPayrollPercent } from "./format-analytics-percent";
 import { toCompensatedEmployeeRecords } from "./fetch-compensated-employees";
 import type {
   AnalyticsDashboardFilters,
@@ -73,7 +74,7 @@ export function filterCompensatedEmployees(
 
 function computeDepartmentRows(
   employees: CompensatedEmployeeRecord[],
-  totalPayroll: number,
+  orgTotalPayroll: number,
 ): AnalyticsDepartmentRow[] {
   const grouped = groupBy(employees, (employee) => employee.department);
 
@@ -91,7 +92,7 @@ function computeDepartmentRows(
       };
     }),
     employees,
-    totalPayroll,
+    orgTotalPayroll,
   ).sort((left, right) => right.averageSalary - left.averageSalary);
 }
 
@@ -276,10 +277,11 @@ function computeHighlights(
 
 function computeKpisFromEmployees(
   employees: CompensatedEmployeeRecord[],
+  orgTotalPayroll: number,
 ): AnalyticsKpiSnapshot {
   const salaries = employees.map((employee) => employee.displaySalary);
   const totalPayroll = sumDisplaySalaries(employees);
-  const departmentRows = computeDepartmentRows(employees, totalPayroll);
+  const departmentRows = computeDepartmentRows(employees, orgTotalPayroll);
 
   return {
     headcount: employees.length,
@@ -329,7 +331,7 @@ export function generateExecutiveInsights(
 
   if (topPayrollDepartment) {
     insights.push(
-      `${topPayrollDepartment.department} contributes ${formatAnalyticsPercent(topPayrollDepartment.payrollPercent)} of total payroll.`,
+      `${topPayrollDepartment.department} contributes ${formatPayrollPercent(topPayrollDepartment.payrollPercent)} of total payroll.`,
     );
   }
 
@@ -379,6 +381,10 @@ export function buildAnalyticsDashboardView(
   input: BuildAnalyticsDashboardViewInput,
 ): AnalyticsDashboardView {
   const filteredEmployees = filterCompensatedEmployees(input.employees, input.filters);
+  const orgTotalPayroll = resolveOrgTotalPayroll(
+    input.employees,
+    input.apiSummary?.totalPayroll,
+  );
   const useApiAggregates =
     !hasActiveAnalyticsFilters(input.filters) &&
     input.apiSummary !== null &&
@@ -391,7 +397,7 @@ export function buildAnalyticsDashboardView(
     ? applyDepartmentPayrollPercents(
         mapApiDepartmentRows(input.apiDepartments!.departments),
         filteredEmployees,
-        input.apiSummary!.totalPayroll,
+        orgTotalPayroll,
       ).sort((left, right) => right.averageSalary - left.averageSalary)
     : [];
 
@@ -412,11 +418,11 @@ export function buildAnalyticsDashboardView(
           : null,
         highestPaidLocation: pickHighestPaidLocation(locationRows),
       }
-    : computeKpisFromEmployees(filteredEmployees);
+    : computeKpisFromEmployees(filteredEmployees, orgTotalPayroll);
 
   const departments = useApiAggregates
     ? apiDepartmentRows
-    : computeDepartmentRows(filteredEmployees, kpis.totalPayroll);
+    : computeDepartmentRows(filteredEmployees, orgTotalPayroll);
 
   const topEarners = useApiAggregates
     ? mapApiTopEarners(input.apiTopEarners!.earners, employeesById)
